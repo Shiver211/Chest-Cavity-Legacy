@@ -1,0 +1,11 @@
+{
+  "type": "chestcavity:crafting_salvage",
+  "ingredient": {
+    "type": "forge:ore_dict",
+    "ore": "chestcavity:salvageable_alien_organ_meat"
+  },
+  "result": {
+    "item": "chestcavity:raw_alien_organ_meat",
+    "count": 1
+  }
+}

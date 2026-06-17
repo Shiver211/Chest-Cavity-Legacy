@@ -1,0 +1,18 @@
+{
+  "defaultChestCavity": [
+    {"item": "chestcavity:animal_muscle", "position": 0},
+    {"item": "chestcavity:animal_heart", "position": 1},
+    {"item": "chestcavity:animal_intestine", "position": 3},
+    {"item": "chestcavity:animal_intestine", "position": 4},
+    {"item": "chestcavity:animal_muscle", "position": 8},
+    {"item": "chestcavity:animal_stomach", "position": 11},
+    {"item": "chestcavity:animal_intestine", "position": 12},
+    {"item": "chestcavity:animal_intestine", "position": 13},
+    {"item": "chestcavity:animal_muscle", "position": 17},
+    {"item": "chestcavity:animal_lung", "position": 20},
+    {"item": "chestcavity:animal_lung", "position": 21},
+    {"item": "chestcavity:animal_muscle", "position": 25},
+    {"item": "chestcavity:animal_muscle", "position": 26}
+  ],
+  "dropRateMultiplier": ".5"
+}

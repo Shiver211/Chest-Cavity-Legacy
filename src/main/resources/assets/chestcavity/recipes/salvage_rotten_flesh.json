@@ -1,0 +1,11 @@
+{
+  "type": "chestcavity:crafting_salvage",
+  "ingredient": {
+    "type": "forge:ore_dict",
+    "ore": "chestcavity:salvageable_rotten_flesh"
+  },
+  "result": {
+    "item": "minecraft:rotten_flesh",
+    "count": 1
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "itemID": "minecraft:slime_ball",
+  "pseudoOrgan": true,
+  "organScores": [
+    {"id": "chestcavity:health", "value": "32"},
+    {"id": "chestcavity:strength", "value": "64"},
+    {"id": "chestcavity:speed", "value": "64"},
+    {"id": "chestcavity:defense", "value": "64"},
+    {"id": "chestcavity:buoyant", "value": "1"},
+    {"id": "chestcavity:leaping", "value": "1"}
+  ]
+}

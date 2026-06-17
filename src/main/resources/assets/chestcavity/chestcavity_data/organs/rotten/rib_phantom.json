@@ -1,0 +1,7 @@
+{
+  "itemID": "chestcavity:phantom_rib",
+  "organScores": [
+    {"id":"chestcavity:defense","value": ".5"},
+    {"id":"chestcavity:lightweight","value": "1"}
+  ]
+}

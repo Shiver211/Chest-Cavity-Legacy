@@ -1,0 +1,10 @@
+{
+  "defaultChestCavity": [
+    {"item": "minecraft:gunpowder", "position": 4, "count": 1},
+    {"item": "minecraft:gunpowder", "position": 12, "count": 1},
+    {"item": "minecraft:tnt", "position": 13, "count": 1},
+    {"item": "minecraft:gunpowder", "position": 14, "count": 1},
+    {"item": "minecraft:gunpowder", "position": 22, "count": 1}
+  ],
+  "dropRateMultiplier": "1.5"
+}

@@ -1,0 +1,34 @@
+package com.shiver.chestcavity.chest.types;
+
+import com.shiver.chestcavity.chest.ChestCavityInventory;
+import com.shiver.chestcavity.chest.organs.OrganData;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+
+import java.util.List;
+import java.util.Map;
+
+public interface ChestCavityType {
+
+    Map<ResourceLocation, Float> getDefaultOrganScores();
+
+    float getDefaultOrganScore(ResourceLocation id);
+
+    ChestCavityInventory getDefaultChestCavity();
+
+    boolean isSlotForbidden(int index);
+
+    void fillChestCavityInventory(ChestCavityInventory chestCavity);
+
+    void loadBaseOrganScores(Map<ResourceLocation, Float> organScores);
+
+    OrganData catchExceptionalOrgan(ItemStack stack);
+
+    List<ItemStack> getDroppableOrgans();
+
+    boolean isBossChestCavity();
+
+    boolean isPlayerChestCavity();
+
+    float getDropRateMultiplier();
+}

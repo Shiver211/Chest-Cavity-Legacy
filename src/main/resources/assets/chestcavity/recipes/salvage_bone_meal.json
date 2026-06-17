@@ -1,0 +1,12 @@
+{
+  "type": "chestcavity:crafting_salvage",
+  "ingredient": {
+    "type": "forge:ore_dict",
+    "ore": "chestcavity:salvageable_bone_meal"
+  },
+  "result": {
+    "item": "minecraft:dye",
+    "data": 15,
+    "count": 1
+  }
+}

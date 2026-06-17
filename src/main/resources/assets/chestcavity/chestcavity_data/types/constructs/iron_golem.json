@@ -1,0 +1,16 @@
+{
+  "defaultChestCavity": [
+    {"item": "minecraft:iron_bars", "position": 1, "count": 1},
+    {"item": "minecraft:iron_block", "position": 4, "count": 1},
+    {"item": "minecraft:iron_bars", "position": 7, "count": 1},
+    {"item": "minecraft:piston", "position": 8, "count": 1},
+    {"item": "minecraft:piston", "position": 9, "count": 1},
+    {"item": "minecraft:iron_bars", "position": 10, "count": 1},
+    {"item": "minecraft:furnace", "position": 13, "count": 1},
+    {"item": "minecraft:iron_bars", "position": 16, "count": 1},
+    {"item": "minecraft:piston", "position": 17, "count": 1},
+    {"item": "minecraft:piston", "position": 18, "count": 1},
+    {"item": "minecraft:iron_block", "position": 22, "count": 1}
+  ],
+  "dropRateMultiplier": "2"
+}

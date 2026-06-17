@@ -1,0 +1,12 @@
+{
+  "itemID": "minecraft:iron_bars",
+  "pseudoOrgan": true,
+  "organScores": [
+    {"id": "chestcavity:defense", "value": "1.25"},
+    {"id": "chestcavity:lightweight", "value": "-.5"},
+    {"id": "chestcavity:speed", "value": "-.25"},
+    {"id": "chestcavity:impact_resistant", "value": ".25"},
+    {"id": "chestcavity:iron_repair", "value": ".5"},
+    {"id": "chestcavity:fire_resistant", "value": "1"}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "type": "chestcavity:crafting_salvage",
+  "ingredient": {
+    "type": "forge:ore_dict",
+    "ore": "chestcavity:salvageable_blaze_powder"
+  },
+  "result": {
+    "item": "minecraft:blaze_powder",
+    "count": 1
+  }
+}

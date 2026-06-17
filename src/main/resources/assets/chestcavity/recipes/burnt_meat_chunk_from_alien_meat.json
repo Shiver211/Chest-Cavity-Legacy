@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": {
+    "type": "forge:ore_dict",
+    "ore": "chestcavity:salvageable_alien_meat"
+  },
+  "result": "chestcavity:burnt_meat_chunk",
+  "experience": 0.35,
+  "cookingtime": 200
+}

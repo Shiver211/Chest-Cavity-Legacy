@@ -1,0 +1,10 @@
+{
+  "type": "chestcavity:crafting_salvage",
+  "ingredient": {
+    "item": "chestcavity:creeper_appendix"
+  },
+  "result": {
+    "item": "minecraft:gunpowder",
+    "count": 1
+  }
+}

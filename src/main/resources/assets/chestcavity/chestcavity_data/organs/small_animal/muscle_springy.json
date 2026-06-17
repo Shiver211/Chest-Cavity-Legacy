@@ -1,0 +1,9 @@
+{
+  "itemID": "chestcavity:small_springy_muscle",
+  "organScores": [
+    {"id":"chestcavity:strength","value": ".5"},
+    {"id":"chestcavity:speed","value": ".5"},
+    {"id":"chestcavity:leaping","value": ".5"},
+    {"id":"chestcavity:lightweight","value": "1"}
+  ]
+}

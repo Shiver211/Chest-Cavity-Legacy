@@ -1,0 +1,7 @@
+{
+  "chestcavity": "chestcavity:types/humanoids/human.json",
+  "entities": [
+    "azurejarjar:jarjar",
+    "azurejarjar:darthbinks"
+  ]
+}

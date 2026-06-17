@@ -1,0 +1,12 @@
+{
+  "defaultChestCavity": [
+    {"item": "minecraft:blaze_rod", "position": 3, "count": 1},
+    {"item": "minecraft:blaze_rod", "position": 4, "count": 1},
+    {"item": "minecraft:blaze_rod", "position": 5, "count": 1},
+    {"item": "minecraft:furnace", "position": 13, "count": 1},
+    {"item": "minecraft:blaze_rod", "position": 21, "count": 1},
+    {"item": "minecraft:blaze_rod", "position": 22, "count": 1},
+    {"item": "minecraft:blaze_rod", "position": 23, "count": 1}
+  ],
+  "dropRateMultiplier": "2"
+}

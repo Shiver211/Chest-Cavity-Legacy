@@ -1,0 +1,8 @@
+{
+  "itemID": "minecraft:tnt",
+  "pseudoOrgan": true,
+  "organScores": [
+    {"id": "chestcavity:creepy", "value": "1"},
+    {"id": "chestcavity:explosive", "value": "1024"}
+  ]
+}
