@@ -64,8 +64,6 @@ public class ChestOpener extends Item {
         }
 
         player.getCooldownTracker().setCooldown(this, 2);
-        target.world.playSound(null, target.posX, target.posY, target.posZ,
-                SoundEvents.BLOCK_CHEST_OPEN, SoundCategory.PLAYERS, 0.75F, 1.0F);
         if (shouldKnockback && target != player) {
             target.knockBack(player, 0.2F, player.posX - target.posX, player.posZ - target.posZ);
         }

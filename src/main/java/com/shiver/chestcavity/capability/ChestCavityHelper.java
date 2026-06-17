@@ -917,31 +917,30 @@ public final class ChestCavityHelper {
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH),
                 HEALTH_MODIFIER_ID,
                 "Chest Cavity health",
-                chestCavity.getOrganScore(CCOrganScores.HEALTH) * CCConfig.HEART_HP);
+                (chestCavity.getOrganScore(CCOrganScores.HEALTH) - type.getDefaultOrganScore(CCOrganScores.HEALTH)) * CCConfig.HEART_HP);
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE),
                 STRENGTH_MODIFIER_ID,
                 "Chest Cavity strength",
-                chestCavity.getOrganScore(CCOrganScores.STRENGTH) * CCConfig.MUSCLE_STRENGTH / 8.0F,
+                (chestCavity.getOrganScore(CCOrganScores.STRENGTH) - type.getDefaultOrganScore(CCOrganScores.STRENGTH)) * CCConfig.MUSCLE_STRENGTH / 8.0F,
                 1);
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED),
                 SPEED_MODIFIER_ID,
                 "Chest Cavity speed",
-                chestCavity.getOrganScore(CCOrganScores.SPEED) * CCConfig.MUSCLE_SPEED / 8.0F,
+                (chestCavity.getOrganScore(CCOrganScores.SPEED) - type.getDefaultOrganScore(CCOrganScores.SPEED)) * CCConfig.MUSCLE_SPEED / 8.0F,
                 1);
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_SPEED),
                 ATTACK_SPEED_MODIFIER_ID,
                 "Chest Cavity attack speed",
-                (chestCavity.getOrganScore(CCOrganScores.NERVES)
-                        - type.getDefaultOrganScore(CCOrganScores.NERVES)) * CCConfig.NERVES_HASTE,
+                (chestCavity.getOrganScore(CCOrganScores.NERVES) - type.getDefaultOrganScore(CCOrganScores.NERVES)) * CCConfig.NERVES_HASTE,
                 1);
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.LUCK),
                 LUCK_MODIFIER_ID,
                 "Chest Cavity luck",
-                chestCavity.getOrganScore(CCOrganScores.LUCK) * CCConfig.APPENDIX_LUCK);
+                (chestCavity.getOrganScore(CCOrganScores.LUCK) - type.getDefaultOrganScore(CCOrganScores.LUCK)) * CCConfig.APPENDIX_LUCK);
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE),
                 KNOCKBACK_RESISTANCE_MODIFIER_ID,
                 "Chest Cavity knockback resistance",
-                Math.max(0.0F, chestCavity.getOrganScore(CCOrganScores.KNOCKBACK_RESISTANT)) * 0.1F);
+                Math.max(0.0F, chestCavity.getOrganScore(CCOrganScores.KNOCKBACK_RESISTANT) - type.getDefaultOrganScore(CCOrganScores.KNOCKBACK_RESISTANT)) * 0.1F);
         applyScoreModifier(entity.getEntityAttribute(EntityLivingBase.SWIM_SPEED),
                 SWIM_SPEED_MODIFIER_ID,
                 "Chest Cavity swim speed",
