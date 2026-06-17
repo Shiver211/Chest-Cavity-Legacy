@@ -55,6 +55,8 @@ public final class CCKeyBindings {
     public static KeyBinding silk;
 
     private static boolean registered;
+    private static int utilityAbilityIndex;
+    private static int attackAbilityIndex;
 
     private CCKeyBindings() {
     }
@@ -89,8 +91,8 @@ public final class CCKeyBindings {
             return;
         }
 
-        drainGroup(utilityAbilities, UTILITY_ABILITIES);
-        drainGroup(attackAbilities, ATTACK_ABILITIES);
+        utilityAbilityIndex = drainGroup(utilityAbilities, UTILITY_ABILITIES, utilityAbilityIndex);
+        attackAbilityIndex = drainGroup(attackAbilities, ATTACK_ABILITIES, attackAbilityIndex);
         drain(buoyantExhale, CCOrganScores.BUOYANT);
         drain(creepy, CCOrganScores.CREEPY);
         drain(dragonBreath, CCOrganScores.DRAGON_BREATH);
@@ -111,12 +113,12 @@ public final class CCKeyBindings {
         return keyBinding;
     }
 
-    private static void drainGroup(KeyBinding keyBinding, ResourceLocation[] abilityIds) {
+    private static int drainGroup(KeyBinding keyBinding, ResourceLocation[] abilityIds, int index) {
         while (keyBinding.isPressed()) {
-            for (ResourceLocation abilityId : abilityIds) {
-                ChestCavityNetwork.sendHotkeyActivation(abilityId);
-            }
+            ChestCavityNetwork.sendHotkeyActivation(abilityIds[index]);
+            index = (index + 1) % abilityIds.length;
         }
+        return index;
     }
 
     private static void drain(KeyBinding keyBinding, ResourceLocation abilityId) {

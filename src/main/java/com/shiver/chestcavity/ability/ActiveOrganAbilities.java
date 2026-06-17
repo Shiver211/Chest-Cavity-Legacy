@@ -4,6 +4,7 @@ import com.shiver.chestcavity.ChestCavityLegacy;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.config.CCConfig;
+import com.shiver.chestcavity.entity.EntityForcefulSpit;
 import com.shiver.chestcavity.potion.FurnacePower;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import com.shiver.chestcavity.registry.CCPotions;
@@ -13,12 +14,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityAreaEffectCloud;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.passive.EntityLlama;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityDragonFireball;
 import net.minecraft.entity.projectile.EntityLargeFireball;
-import net.minecraft.entity.projectile.EntityLlamaSpit;
 import net.minecraft.entity.projectile.EntityShulkerBullet;
 import net.minecraft.entity.projectile.EntitySmallFireball;
 import net.minecraft.init.Blocks;
@@ -176,6 +175,8 @@ public final class ActiveOrganAbilities {
         }
 
         player.setAir(Math.max(0, player.getAir() - wholeAirLoss));
+        player.motionY -= Math.min(0.5D, breathRecovery * CCConfig.BUOYANCY_LIFT * BUOYANT_BREATH_RECOVERY_COST);
+        player.velocityChanged = true;
         return true;
     }
 
@@ -213,7 +214,7 @@ public final class ActiveOrganAbilities {
             return false;
         }
 
-        float healAmount = player.getMaxHealth() * CCConfig.IRON_REPAIR_PERCENT;
+        float healAmount = player.getMaxHealth() * CCConfig.IRON_REPAIR_PERCENT * getIronRepairMaterialValue(material);
         player.heal(healAmount);
         player.addPotionEffect(new PotionEffect(CCPotions.IRON_REPAIR_COOLDOWN,
                 Math.max(1, Math.round(CCConfig.IRON_REPAIR_COOLDOWN / ironRepair)), 0, false, false));
@@ -335,13 +336,7 @@ public final class ActiveOrganAbilities {
         int projectiles = (int) forcefulSpit;
         boolean spawned = false;
         for (int i = 0; i < projectiles; i++) {
-            EntityLlama fakeLlama = new EntityLlama(player.world);
-            fakeLlama.setPosition(player.posX, player.posY, player.posZ);
-            fakeLlama.rotationYaw = player.rotationYaw;
-            fakeLlama.rotationPitch = player.rotationPitch;
-            fakeLlama.renderYawOffset = player.renderYawOffset;
-
-            EntityLlamaSpit spit = new EntityLlamaSpit(player.world, fakeLlama);
+            EntityForcefulSpit spit = new EntityForcefulSpit(player.world, player);
             spit.setPosition(player.posX + look.x, player.posY + player.getEyeHeight() - 0.1D, player.posZ + look.z);
             spit.shoot(look.x, look.y, look.z, FORCEFUL_SPIT_VELOCITY, 0.0F);
             spawned |= player.world.spawnEntity(spit);
@@ -563,6 +558,17 @@ public final class ActiveOrganAbilities {
     private static boolean isIronRepairMaterial(ItemStack stack) {
         Item item = stack.getItem();
         return item == Items.IRON_NUGGET || item == Items.IRON_INGOT || item == Item.getItemFromBlock(Blocks.IRON_BLOCK);
+    }
+
+    private static float getIronRepairMaterialValue(ItemStack stack) {
+        Item item = stack.getItem();
+        if (item == Items.IRON_NUGGET) {
+            return 1.0F / 9.0F;
+        }
+        if (item == Item.getItemFromBlock(Blocks.IRON_BLOCK)) {
+            return 9.0F;
+        }
+        return 1.0F;
     }
 
     private static final class FuelStack {

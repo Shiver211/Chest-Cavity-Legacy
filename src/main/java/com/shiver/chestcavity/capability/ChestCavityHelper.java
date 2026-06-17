@@ -314,7 +314,7 @@ public final class ChestCavityHelper {
 
         EntityLivingBase attacker = (EntityLivingBase) trueSource;
         IChestCavity attackerCavity = getOrNull(attacker);
-        if (attackerCavity == null) {
+        if (attackerCavity == null || !attackerCavity.isOpened()) {
             return damage;
         }
 

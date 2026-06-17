@@ -1,6 +1,5 @@
 package com.shiver.chestcavity.event;
 
-import com.shiver.chestcavity.capability.ChestCavityCapability;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.ChestCavityProvider;
 import com.shiver.chestcavity.capability.IChestCavity;
@@ -31,12 +30,6 @@ import java.util.List;
 
 @Mod.EventBusSubscriber(modid = "chestcavity")
 public final class ForgeEvents {
-
-    @SuppressWarnings("unused")
-    private static final boolean CAPABILITY_BOOTSTRAP = ChestCavityCapability.ensureRegistered();
-
-    @SuppressWarnings("unused")
-    private static final boolean NETWORK_BOOTSTRAP = ChestCavityNetwork.register();
 
     private ForgeEvents() {
     }

@@ -3,9 +3,11 @@ package com.shiver.chestcavity.event;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.organs.OrganData;
+import com.shiver.chestcavity.entity.EntityForcefulSpit;
 import com.shiver.chestcavity.registry.CCEnchantments;
 import com.shiver.chestcavity.registry.CCItems;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.RenderLlamaSpit;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -14,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -33,6 +36,7 @@ public final class ForgeClientEvents {
         for (Item item : CCItems.getItems()) {
             ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
         }
+        RenderingRegistry.registerEntityRenderingHandler(EntityForcefulSpit.class, RenderLlamaSpit::new);
     }
 
     @SubscribeEvent
