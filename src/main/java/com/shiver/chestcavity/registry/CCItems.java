@@ -179,68 +179,6 @@ public final class CCItems {
     private static final Item SAUSAGE_SKIN = register("sausage_skin", basicItem(64), CCTabs.MAIN);
     private static final Item MINI_SAUSAGE_SKIN = register("mini_sausage_skin", basicItem(64), CCTabs.MAIN);
 
-    private static final Item BURNT_MEAT_CHUNK = register("burnt_meat_chunk", food(1, 0.8F, 64), CCTabs.MAIN);
-    public static final Item RAW_ORGAN_MEAT = register("raw_organ_meat", food(2, 0.6F, 64), CCTabs.MAIN);
-    private static final Item COOKED_ORGAN_MEAT = register("cooked_organ_meat", food(3, 1.2F, 64), CCTabs.MAIN);
-    private static final Item RAW_BUTCHERED_MEAT = register("raw_butchered_meat", food(2, 0.4F, 64), CCTabs.MAIN);
-    private static final Item COOKED_BUTCHERED_MEAT = register("cooked_butchered_meat", food(3, 0.8F, 64), CCTabs.MAIN);
-
-    private static final Item[] SAUSAGES = registerFoods(4, 0.4F, 64,
-            "raw_sausage");
-    private static final Item[] COOKED_SAUSAGES = registerFoods(8, 0.8F, 64,
-            "sausage");
-    private static final Item[] RICH_SAUSAGES = registerFoods(4, 0.6F, 64,
-            "raw_rich_sausage");
-    private static final Item[] COOKED_RICH_SAUSAGES = registerFoods(8, 1.2F, 64,
-            "rich_sausage");
-    private static final Item[] MINI_SAUSAGES = registerFoods(3, 0.4F, 64,
-            "raw_mini_sausage");
-    private static final Item[] COOKED_MINI_SAUSAGES = registerFoods(6, 0.8F, 64,
-            "mini_sausage");
-    private static final Item[] RICH_MINI_SAUSAGES = registerFoods(3, 0.6F, 64,
-            "raw_rich_mini_sausage");
-    private static final Item[] COOKED_RICH_MINI_SAUSAGES = registerFoods(6, 1.2F, 64,
-            "rich_mini_sausage");
-
-    private static final Item ROTTEN_SAUSAGE = register("rotten_sausage", rottenFood(8, 64), CCTabs.MAIN);
-
-    private static final Item RAW_TOXIC_ORGAN_MEAT = register("raw_toxic_organ_meat", toxicFood(2, 0.6F, 64), CCTabs.MAIN);
-    private static final Item COOKED_TOXIC_ORGAN_MEAT = register("cooked_toxic_organ_meat", toxicFood(3, 1.2F, 64), CCTabs.MAIN);
-    private static final Item RAW_TOXIC_MEAT = register("raw_toxic_meat", toxicFood(2, 0.4F, 64), CCTabs.MAIN);
-    private static final Item COOKED_TOXIC_MEAT = register("cooked_toxic_meat", toxicFood(3, 0.8F, 64), CCTabs.MAIN);
-    private static final Item RAW_TOXIC_SAUSAGE = register("raw_toxic_sausage", toxicFood(4, 0.4F, 64), CCTabs.MAIN);
-    private static final Item TOXIC_SAUSAGE = register("toxic_sausage", toxicFood(8, 0.8F, 64), CCTabs.MAIN);
-    private static final Item RAW_RICH_TOXIC_SAUSAGE = register("raw_rich_toxic_sausage", toxicFood(4, 0.6F, 64), CCTabs.MAIN);
-    private static final Item RICH_TOXIC_SAUSAGE = register("rich_toxic_sausage", toxicFood(8, 1.2F, 64), CCTabs.MAIN);
-
-    private static final Item RAW_HUMAN_ORGAN_MEAT = register("raw_human_organ_meat", food(3, 0.6F, 64), CCTabs.MAIN);
-    private static final Item COOKED_HUMAN_ORGAN_MEAT = register("cooked_human_organ_meat", food(4, 1.2F, 64), CCTabs.MAIN);
-    private static final Item RAW_MAN_MEAT = register("raw_man_meat", food(3, 0.4F, 64), CCTabs.MAIN);
-    private static final Item COOKED_MAN_MEAT = register("cooked_man_meat", food(4, 0.8F, 64), CCTabs.MAIN);
-    private static final Item RAW_HUMAN_SAUSAGE = register("raw_human_sausage", food(5, 0.4F, 64), CCTabs.MAIN);
-    private static final Item HUMAN_SAUSAGE = register("human_sausage", food(9, 0.8F, 64), CCTabs.MAIN);
-    private static final Item RAW_RICH_HUMAN_SAUSAGE = register("raw_rich_human_sausage", food(5, 0.6F, 64), CCTabs.MAIN);
-    private static final Item RICH_HUMAN_SAUSAGE = register("rich_human_sausage", food(9, 1.2F, 64), CCTabs.MAIN);
-
-    private static final Item RAW_ALIEN_ORGAN_MEAT = register("raw_alien_organ_meat", food(2, 0.6F, 64), CCTabs.MAIN);
-    private static final Item COOKED_ALIEN_ORGAN_MEAT = register("cooked_alien_organ_meat", food(3, 1.2F, 64), CCTabs.MAIN);
-    private static final Item RAW_ALIEN_MEAT = register("raw_alien_meat", food(2, 0.4F, 64), CCTabs.MAIN);
-    private static final Item COOKED_ALIEN_MEAT = register("cooked_alien_meat", food(3, 0.8F, 64), CCTabs.MAIN);
-    private static final Item RAW_ALIEN_SAUSAGE = register("raw_alien_sausage", food(4, 0.4F, 64), CCTabs.MAIN);
-    private static final Item ALIEN_SAUSAGE = register("alien_sausage", food(8, 0.8F, 64), CCTabs.MAIN);
-    private static final Item RAW_RICH_ALIEN_SAUSAGE = register("raw_rich_alien_sausage", food(4, 0.6F, 64), CCTabs.MAIN);
-    private static final Item RICH_ALIEN_SAUSAGE = register("rich_alien_sausage", food(8, 1.2F, 64), CCTabs.MAIN);
-
-    private static final Item RAW_DRAGON_ORGAN_MEAT = register("raw_dragon_organ_meat", food(2, 0.6F, 64), CCTabs.MAIN);
-    private static final Item COOKED_DRAGON_ORGAN_MEAT = register("cooked_dragon_organ_meat", food(3, 1.2F, 64), CCTabs.MAIN);
-    private static final Item RAW_DRAGON_MEAT = register("raw_dragon_meat", food(2, 0.4F, 64), CCTabs.MAIN);
-    private static final Item COOKED_DRAGON_MEAT = register("cooked_dragon_meat", food(3, 0.8F, 64), CCTabs.MAIN);
-    private static final Item RAW_DRAGON_SAUSAGE = register("raw_dragon_sausage", food(4, 0.4F, 64), CCTabs.MAIN);
-    private static final Item DRAGON_SAUSAGE = register("dragon_sausage", food(8, 0.8F, 64), CCTabs.MAIN);
-    private static final Item RAW_RICH_DRAGON_SAUSAGE = register("raw_rich_dragon_sausage", food(4, 0.6F, 64), CCTabs.MAIN);
-    private static final Item RICH_DRAGON_SAUSAGE = register("rich_dragon_sausage", food(8, 1.2F, 64), CCTabs.MAIN);
-
-    private static final Item CUD = register("cud", food(1, 0.1F, 64, false), CCTabs.MAIN);
     public static final Item FURNACE_POWER = register("furnace_power", food(1, 0.6F, 64, false), CCTabs.MAIN);
 
     private CCItems() {
