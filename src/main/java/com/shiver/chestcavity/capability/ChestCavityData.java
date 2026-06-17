@@ -10,7 +10,9 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.UUID;
 
 public class ChestCavityData implements IChestCavity {
@@ -32,6 +34,8 @@ public class ChestCavityData implements IChestCavity {
     private float lungRemainder;
     private int furnaceProgress;
     private int photosynthesisProgress;
+    private int connectedCrystalId = -1;
+    private final Queue<ResourceLocation> projectileQueue = new LinkedList<>();
 
     @Override
     public EntityLivingBase getOwner() {
@@ -211,6 +215,33 @@ public class ChestCavityData implements IChestCavity {
     @Override
     public void setPhotosynthesisProgress(int value) {
         photosynthesisProgress = value;
+    }
+
+    @Override
+    public int getConnectedCrystalId() {
+        return connectedCrystalId;
+    }
+
+    @Override
+    public void setConnectedCrystalId(int entityId) {
+        connectedCrystalId = entityId;
+    }
+
+    @Override
+    public void enqueueProjectileAbility(ResourceLocation abilityId) {
+        if (abilityId != null) {
+            projectileQueue.add(abilityId);
+        }
+    }
+
+    @Override
+    public ResourceLocation pollProjectileAbility() {
+        return projectileQueue.poll();
+    }
+
+    @Override
+    public void clearProjectileQueue() {
+        projectileQueue.clear();
     }
 
     @Override

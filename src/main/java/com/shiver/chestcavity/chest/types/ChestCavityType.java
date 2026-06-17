@@ -28,6 +28,10 @@ public interface ChestCavityType {
 
     boolean isBossChestCavity();
 
+    default int getHeartBleedCap() {
+        return isBossChestCavity() ? 5 : Integer.MAX_VALUE;
+    }
+
     boolean isPlayerChestCavity();
 
     float getDropRateMultiplier();

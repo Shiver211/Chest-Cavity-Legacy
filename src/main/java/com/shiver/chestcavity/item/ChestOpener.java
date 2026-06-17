@@ -13,6 +13,7 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
@@ -58,14 +59,26 @@ public class ChestOpener extends Item {
             return false;
         }
 
+        if (chestCavity.getOrganScore(com.shiver.chestcavity.registry.CCOrganScores.EASE_OF_ACCESS) <= 0.0F) {
+            DamageSource damageSource = shouldKnockback && target != player
+                    ? DamageSource.causePlayerDamage(player)
+                    : DamageSource.GENERIC;
+            target.attackEntityFrom(damageSource, 4.0F);
+        } else {
+            target.world.playSound(null, target.posX, target.posY, target.posZ,
+                    SoundEvents.BLOCK_CHEST_OPEN, SoundCategory.PLAYERS, 0.75F, 1.0F);
+        }
+
+        if (!target.isEntityAlive()) {
+            return true;
+        }
+
         ChestCavityHelper.openChestCavity(chestCavity);
         if (player instanceof EntityPlayerMP) {
             ChestCavityUiBridge.open((EntityPlayerMP) player, target);
         }
 
         player.getCooldownTracker().setCooldown(this, 2);
-        target.world.playSound(null, target.posX, target.posY, target.posZ,
-                SoundEvents.BLOCK_CHEST_OPEN, SoundCategory.PLAYERS, 0.75F, 1.0F);
         if (shouldKnockback && target != player) {
             target.knockBack(player, 0.2F, player.posX - target.posX, player.posZ - target.posZ);
         }
@@ -86,6 +99,6 @@ public class ChestOpener extends Item {
         }
 
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(target);
-        return ChestCavityHelper.isOpenable(chestCavity);
+        return target == player || ChestCavityHelper.isOpenable(chestCavity);
     }
 }

@@ -3,7 +3,11 @@ package com.shiver.chestcavity.chest.types;
 import com.shiver.chestcavity.chest.ChestCavityInventory;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.organs.OrganManager;
+import com.shiver.chestcavity.registry.CCOrganScores;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemDoor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
@@ -110,6 +114,14 @@ public class GeneratedChestCavityType implements ChestCavityType {
                 return data;
             }
         }
+        if (isDoorOrTrapdoor(stack)) {
+            OrganData data = new OrganData();
+            Map<ResourceLocation, Float> scores = new LinkedHashMap<>();
+            scores.put(CCOrganScores.EASE_OF_ACCESS, (float) stack.getMaxStackSize());
+            data.setPseudoOrgan(true);
+            data.setOrganScores(scores);
+            return data;
+        }
         return OrganManager.get(stack);
     }
 
@@ -186,6 +198,14 @@ public class GeneratedChestCavityType implements ChestCavityType {
                 scores.put(entry.getKey(), old == null ? value : old + value);
             }
         }
+    }
+
+    private boolean isDoorOrTrapdoor(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+        Item item = stack.getItem();
+        return item instanceof ItemDoor || Block.getBlockFromItem(item) instanceof BlockTrapDoor;
     }
 
     public static final class ExceptionalOrgan {

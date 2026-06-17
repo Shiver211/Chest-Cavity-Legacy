@@ -80,6 +80,16 @@ public interface IChestCavity {
 
     void setPhotosynthesisProgress(int value);
 
+    int getConnectedCrystalId();
+
+    void setConnectedCrystalId(int entityId);
+
+    void enqueueProjectileAbility(ResourceLocation abilityId);
+
+    ResourceLocation pollProjectileAbility();
+
+    void clearProjectileQueue();
+
     void copyFrom(IChestCavity other);
 
     NBTTagCompound serializeNBT();

@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.capability;
 
+import com.shiver.chestcavity.ability.ActiveOrganAbilities;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
@@ -22,8 +23,10 @@ import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
@@ -71,7 +74,6 @@ public final class ChestCavityHelper {
     private static final UUID SWIM_SPEED_MODIFIER_ID = UUID.fromString("32d5f52b-796a-4194-a8e3-1acb45f5a365");
     private static final Field POTION_EFFECT_DURATION_FIELD = findPotionEffectDurationField();
     private static final float DEFENSE_HALF_DAMAGE_STEP = 4.0F;
-    private static final float HEART_BLEED_DAMAGE_CAP = 4.0F;
     private static final DamageSource HEART_BLEED_DAMAGE = new DamageSource("cc_heartbleed").setDamageBypassesArmor();
     private static final int NO_BREATH_DAMAGE_RATE_TICKS = 20;
     private static final int HYDROALLERGENIC_BASE_RATE_TICKS = 260;
@@ -121,6 +123,7 @@ public final class ChestCavityHelper {
             tickFiltration(entity, chestCavity);
             tickBreathing(entity, chestCavity);
             tickMetabolism(entity, chestCavity);
+            tickProjectileQueue(entity, chestCavity);
             tickPassiveEffects(entity, chestCavity);
             tickOrganRejection(entity, chestCavity);
         }
@@ -179,6 +182,8 @@ public final class ChestCavityHelper {
                 chestCavity.setOrgan(i, stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
             }
             chestCavity.setOpened(true);
+            chestCavity.clearProjectileQueue();
+            disconnectCrystal(chestCavity);
             setOrganCompatibility(chestCavity);
             recalculateOrganScores(chestCavity);
             applyAndSyncScoreChanges(chestCavity);
@@ -346,6 +351,90 @@ public final class ChestCavityHelper {
         float maxHardness = DESTRUCTIVE_COLLISION_BASE_HARDNESS + destructive * 0.75F + damage * 0.25F;
         BlockPos center = source == DamageSource.FALL ? new BlockPos(entity).down() : new BlockPos(entity);
         breakWeakCollisionBlocks(entity, center, budget, maxHardness);
+    }
+
+    public static void destroyOrgansWithScore(IChestCavity chestCavity, ResourceLocation scoreId) {
+        if (chestCavity == null || scoreId == null) {
+            return;
+        }
+        ChestCavityType type = getChestCavityType(chestCavity);
+        boolean changed = false;
+        for (int slot = 0; slot < chestCavity.getSlotCount(); slot++) {
+            ItemStack stack = chestCavity.getOrgan(slot);
+            OrganData data = resolveOrganData(type, stack);
+            if (data != null && data.getOrganScores().containsKey(scoreId)) {
+                chestCavity.setOrgan(slot, ItemStack.EMPTY);
+                changed = true;
+            }
+        }
+        if (changed) {
+            applyAndSyncScoreChanges(chestCavity);
+        }
+    }
+
+    public static void applyWaterSplash(Entity source) {
+        if (source == null || source.world == null || source.world.isRemote) {
+            return;
+        }
+        AxisAlignedBB box = source.getEntityBoundingBox().grow(4.0D, 2.0D, 4.0D);
+        List<EntityLivingBase> entities = source.world.getEntitiesWithinAABB(EntityLivingBase.class, box);
+        for (EntityLivingBase entity : entities) {
+            if (source.getDistanceSq(entity) >= 16.0D) {
+                continue;
+            }
+            IChestCavity chestCavity = getOrNull(entity);
+            if (chestCavity == null || !chestCavity.isOpened()) {
+                continue;
+            }
+            float allergy = chestCavity.getOrganScore(CCOrganScores.HYDROALLERGENIC);
+            if (allergy > 0.0F) {
+                entity.attackEntityFrom(DamageSource.MAGIC, allergy / 26.0F);
+            }
+            float phobia = chestCavity.getOrganScore(CCOrganScores.HYDROPHOBIA);
+            if (phobia > 0.0F) {
+                attemptRandomTeleport(entity, phobia * 32.0F);
+            }
+        }
+    }
+
+    public static boolean milkSilk(EntityLivingBase entity) {
+        IChestCavity chestCavity = getOrNull(entity);
+        if (chestCavity == null || !chestCavity.isOpened()
+                || chestCavity.getOrganScore(CCOrganScores.SILK) <= 0.0F
+                || entity.isPotionActive(CCPotions.SILK_COOLDOWN)) {
+            return false;
+        }
+        boolean spun = spinWeb(entity, chestCavity.getOrganScore(CCOrganScores.SILK));
+        if (spun) {
+            entity.addPotionEffect(new PotionEffect(CCPotions.SILK_COOLDOWN,
+                    CCConfig.SILK_COOLDOWN, 0, false, false));
+        }
+        return spun;
+    }
+
+    public static boolean shearSilk(EntityLivingBase entity) {
+        IChestCavity chestCavity = getOrNull(entity);
+        if (chestCavity == null || !chestCavity.isOpened()) {
+            return false;
+        }
+        float silk = chestCavity.getOrganScore(CCOrganScores.SILK);
+        if (silk <= 0.0F) {
+            return false;
+        }
+
+        boolean dropped = false;
+        int webs = (int) silk / 2;
+        if (webs > 0) {
+            entity.world.spawnEntity(new EntityItem(entity.world, entity.posX, entity.posY, entity.posZ,
+                    new ItemStack(Blocks.WEB, webs)));
+            dropped = true;
+        }
+        if (silk % 2.0F >= 1.0F) {
+            entity.world.spawnEntity(new EntityItem(entity.world, entity.posX, entity.posY, entity.posZ,
+                    new ItemStack(Items.STRING)));
+            dropped = true;
+        }
+        return dropped;
     }
 
     public static void applyJump(EntityLivingBase entity, IChestCavity chestCavity) {
@@ -766,6 +855,16 @@ public final class ChestCavityHelper {
         tickCrystalsynthesis(entity, chestCavity);
     }
 
+    private static void tickProjectileQueue(EntityLivingBase entity, IChestCavity chestCavity) {
+        if (entity.ticksExisted % 5 != 0) {
+            return;
+        }
+        ResourceLocation abilityId = chestCavity.pollProjectileAbility();
+        if (abilityId != null) {
+            ActiveOrganAbilities.fireQueuedProjectile(entity, chestCavity, abilityId);
+        }
+    }
+
     private static void onScoreChanged(IChestCavity chestCavity) {
         if (chestCavity.getOrganScore(CCOrganScores.FILTRATION) >= chestCavity.getOldOrganScore(CCOrganScores.FILTRATION)) {
             chestCavity.setBloodPoisonTimer(0);
@@ -973,7 +1072,8 @@ public final class ChestCavityHelper {
 
         int bleedLevel = chestCavity.getHeartBleedTimer() + 1;
         chestCavity.setHeartBleedTimer(bleedLevel);
-        entity.attackEntityFrom(HEART_BLEED_DAMAGE, Math.min(bleedLevel, HEART_BLEED_DAMAGE_CAP));
+        int cap = getChestCavityType(chestCavity).getHeartBleedCap();
+        entity.attackEntityFrom(HEART_BLEED_DAMAGE, cap == Integer.MAX_VALUE ? bleedLevel : Math.min(bleedLevel, cap));
     }
 
     private static float applyDamageResistance(float score, float defense, float damage) {
@@ -1061,6 +1161,37 @@ public final class ChestCavityHelper {
             return false;
         }
         return entity.world.destroyBlock(pos, true);
+    }
+
+    private static boolean spinWeb(EntityLivingBase entity, float silkScore) {
+        int exhaustionCost = 0;
+        if (entity instanceof EntityPlayer && ((EntityPlayer) entity).getFoodStats().getFoodLevel() < 6) {
+            return false;
+        }
+
+        if (silkScore >= 2.0F) {
+            BlockPos pos = new BlockPos(entity).offset(entity.getHorizontalFacing().getOpposite());
+            if (entity.world.isAirBlock(pos)) {
+                if (silkScore >= 3.0F && entity.world.setBlockState(pos, Blocks.WOOL.getDefaultState(), 2)) {
+                    exhaustionCost = 16;
+                    silkScore -= 3.0F;
+                } else if (entity.world.setBlockState(pos, Blocks.WEB.getDefaultState(), 2)) {
+                    exhaustionCost = 8;
+                    silkScore -= 2.0F;
+                }
+            }
+        }
+
+        while (silkScore >= 1.0F) {
+            silkScore -= 1.0F;
+            exhaustionCost += 4;
+            entity.world.spawnEntity(new EntityItem(entity.world, entity.posX, entity.posY + 0.5D, entity.posZ,
+                    new ItemStack(Items.STRING)));
+        }
+        if (entity instanceof EntityPlayer) {
+            ((EntityPlayer) entity).addExhaustion(exhaustionCost);
+        }
+        return exhaustionCost > 0;
     }
 
     private static int applyDigestion(EntityPlayer player, float digestion, int food) {
@@ -1316,12 +1447,34 @@ public final class ChestCavityHelper {
 
     private static void tickCrystalsynthesis(EntityLivingBase entity, IChestCavity chestCavity) {
         float crystalsynthesis = chestCavity.getOrganScore(CCOrganScores.CRYSTALSYNTHESIS);
-        if (crystalsynthesis <= 0.0F
-                || entity instanceof EntityDragon
-                || entity.ticksExisted % Math.max(1, CCConfig.CRYSTALSYNTHESIS_FREQUENCY) != 0
-                || !hasNearbyEndCrystal(entity)) {
+        EntityEnderCrystal connectedCrystal = getConnectedCrystal(entity, chestCavity);
+        if (connectedCrystal != null) {
+            if (crystalsynthesis > 0.0F) {
+                connectedCrystal.setBeamTarget(new BlockPos(entity).down(2));
+            } else {
+                disconnectCrystal(chestCavity);
+            }
+        } else if (chestCavity.getConnectedCrystalId() >= 0) {
+            entity.attackEntityFrom(DamageSource.STARVE, crystalsynthesis * 2.0F);
+            chestCavity.setConnectedCrystalId(-1);
+        }
+
+        if (crystalsynthesis <= 0.0F || entity instanceof EntityDragon
+                || entity.ticksExisted % Math.max(1, CCConfig.CRYSTALSYNTHESIS_FREQUENCY) != 0) {
             return;
         }
+
+        connectedCrystal = findNearestCrystal(entity);
+        if (connectedCrystal == null) {
+            disconnectCrystal(chestCavity);
+            return;
+        }
+        EntityEnderCrystal oldCrystal = getConnectedCrystal(entity, chestCavity);
+        if (oldCrystal != null && oldCrystal != connectedCrystal) {
+            oldCrystal.setBeamTarget(null);
+        }
+        chestCavity.setConnectedCrystalId(connectedCrystal.getEntityId());
+        connectedCrystal.setBeamTarget(new BlockPos(entity).down(2));
 
         if (entity instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer) entity;
@@ -1345,9 +1498,39 @@ public final class ChestCavityHelper {
         }
     }
 
-    private static boolean hasNearbyEndCrystal(EntityLivingBase entity) {
+    private static EntityEnderCrystal getConnectedCrystal(EntityLivingBase entity, IChestCavity chestCavity) {
+        int crystalId = chestCavity.getConnectedCrystalId();
+        if (crystalId < 0 || entity.world == null) {
+            return null;
+        }
+        Entity entityById = entity.world.getEntityByID(crystalId);
+        return entityById instanceof EntityEnderCrystal && entityById.isEntityAlive()
+                ? (EntityEnderCrystal) entityById
+                : null;
+    }
+
+    private static EntityEnderCrystal findNearestCrystal(EntityLivingBase entity) {
         AxisAlignedBB box = entity.getEntityBoundingBox().grow(CCConfig.CRYSTALSYNTHESIS_RANGE);
-        return !entity.world.getEntitiesWithinAABB(EntityEnderCrystal.class, box).isEmpty();
+        List<EntityEnderCrystal> crystals = entity.world.getEntitiesWithinAABB(EntityEnderCrystal.class, box);
+        EntityEnderCrystal nearest = null;
+        double nearestDistance = Double.MAX_VALUE;
+        for (EntityEnderCrystal crystal : crystals) {
+            double distance = crystal.getDistanceSq(entity);
+            if (distance < nearestDistance) {
+                nearest = crystal;
+                nearestDistance = distance;
+            }
+        }
+        return nearest;
+    }
+
+    private static void disconnectCrystal(IChestCavity chestCavity) {
+        EntityLivingBase owner = chestCavity.getOwner();
+        EntityEnderCrystal crystal = owner == null ? null : getConnectedCrystal(owner, chestCavity);
+        if (crystal != null) {
+            crystal.setBeamTarget(null);
+        }
+        chestCavity.setConnectedCrystalId(-1);
     }
 
     private static void applyScoreModifier(IAttributeInstance attribute, UUID id, String name, float amount) {

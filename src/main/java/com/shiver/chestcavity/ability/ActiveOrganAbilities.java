@@ -109,6 +109,32 @@ public final class ActiveOrganAbilities {
         return ability.activate(player, chestCavity);
     }
 
+    public static boolean fireQueuedProjectile(EntityLivingBase entity, IChestCavity chestCavity, ResourceLocation abilityId) {
+        if (!(entity instanceof EntityPlayerMP)) {
+            return false;
+        }
+        EntityPlayerMP player = (EntityPlayerMP) entity;
+        if (PYROMANCY.equals(abilityId)) {
+            return spawnPyromancyFireball(player);
+        }
+        if (DRAGON_BOMBS.equals(abilityId)) {
+            return spawnDragonBomb(player);
+        }
+        if (DRAGON_BREATH.equals(abilityId)) {
+            return spawnDragonBreath(player, chestCavity);
+        }
+        if (FORCEFUL_SPIT.equals(abilityId)) {
+            return spawnForcefulSpit(player);
+        }
+        if (GHASTLY.equals(abilityId)) {
+            return spawnGhastlyFireball(player);
+        }
+        if (SHULKER_BULLETS.equals(abilityId)) {
+            return spawnShulkerBullet(player);
+        }
+        return false;
+    }
+
     private static boolean activateFurnacePowered(EntityPlayerMP player, IChestCavity chestCavity) {
         int furnacePowered = Math.round(chestCavity.getOrganScore(FURNACE_POWERED));
         if (furnacePowered < 1) {
@@ -193,6 +219,7 @@ public final class ActiveOrganAbilities {
 
         float strength = MathHelper.sqrt(explosive);
         player.world.createExplosion(player, player.posX, player.posY, player.posZ, strength, false);
+        ChestCavityHelper.destroyOrgansWithScore(chestCavity, CCOrganScores.EXPLOSIVE);
         if (player.isEntityAlive()) {
             player.addPotionEffect(new PotionEffect(CCPotions.EXPLOSION_COOLDOWN,
                     CCConfig.EXPLOSION_COOLDOWN, 0, false, false));
@@ -236,14 +263,8 @@ public final class ActiveOrganAbilities {
             return false;
         }
 
-        boolean spawned = false;
         for (int i = 0; i < fireballs; i++) {
-            EntitySmallFireball fireball = new EntitySmallFireball(player.world, player, look.x, look.y, look.z);
-            fireball.setPosition(player.posX + look.x, player.posY + player.getEyeHeight() - 0.1D, player.posZ + look.z);
-            spawned |= player.world.spawnEntity(fireball);
-        }
-        if (!spawned) {
-            return false;
+            chestCavity.enqueueProjectileAbility(PYROMANCY);
         }
 
         player.addExhaustion(fireballs * PYROMANCY_EXHAUSTION);
@@ -268,14 +289,8 @@ public final class ActiveOrganAbilities {
         }
 
         int bombs = (int) dragonBombs;
-        boolean spawned = false;
         for (int i = 0; i < bombs; i++) {
-            EntityDragonFireball fireball = new EntityDragonFireball(player.world, player, look.x, look.y, look.z);
-            setProjectileStart(player, fireball, look);
-            spawned |= player.world.spawnEntity(fireball);
-        }
-        if (!spawned) {
-            return false;
+            chestCavity.enqueueProjectileAbility(DRAGON_BOMBS);
         }
 
         player.addExhaustion(bombs * DRAGON_BOMB_EXHAUSTION);
@@ -296,26 +311,7 @@ public final class ActiveOrganAbilities {
             return false;
         }
 
-        double range = Math.max(2.0D, Math.sqrt(dragonBreath / 2.0D) * 5.0D);
-        Vec3d start = new Vec3d(player.posX, player.posY + player.getEyeHeight(), player.posZ);
-        Vec3d end = start.add(look.scale(range));
-        RayTraceResult result = player.world.rayTraceBlocks(start, end, false, true, false);
-        Vec3d cloudVec = result == null || result.hitVec == null ? end : result.hitVec;
-        BlockPos cloudPos = findDragonBreathSurface(player.world, cloudVec);
-        if (cloudPos == null) {
-            return false;
-        }
-
-        EntityAreaEffectCloud cloud = new EntityAreaEffectCloud(player.world, cloudVec.x, cloudPos.getY(), cloudVec.z);
-        cloud.setOwner(player);
-        cloud.setRadius(MathHelper.clamp((float) (range / 2.0D), 2.0F, 7.0F));
-        cloud.setDuration(DRAGON_BREATH_DURATION_TICKS);
-        cloud.setParticle(EnumParticleTypes.DRAGON_BREATH);
-        cloud.addEffect(new PotionEffect(MobEffects.INSTANT_DAMAGE, 1, 1));
-        if (!player.world.spawnEntity(cloud)) {
-            return false;
-        }
-
+        chestCavity.enqueueProjectileAbility(DRAGON_BREATH);
         player.addExhaustion(dragonBreath * DRAGON_BREATH_EXHAUSTION);
         player.addPotionEffect(new PotionEffect(CCPotions.DRAGON_BREATH_COOLDOWN,
                 CCConfig.DRAGON_BREATH_COOLDOWN, 0, false, false));
@@ -334,15 +330,8 @@ public final class ActiveOrganAbilities {
         }
 
         int projectiles = (int) forcefulSpit;
-        boolean spawned = false;
         for (int i = 0; i < projectiles; i++) {
-            EntityForcefulSpit spit = new EntityForcefulSpit(player.world, player);
-            spit.setPosition(player.posX + look.x, player.posY + player.getEyeHeight() - 0.1D, player.posZ + look.z);
-            spit.shoot(look.x, look.y, look.z, FORCEFUL_SPIT_VELOCITY, 0.0F);
-            spawned |= player.world.spawnEntity(spit);
-        }
-        if (!spawned) {
-            return false;
+            chestCavity.enqueueProjectileAbility(FORCEFUL_SPIT);
         }
 
         player.addExhaustion(projectiles * FORCEFUL_SPIT_EXHAUSTION);
@@ -364,15 +353,8 @@ public final class ActiveOrganAbilities {
         }
 
         int fireballs = (int) ghastly;
-        boolean spawned = false;
         for (int i = 0; i < fireballs; i++) {
-            EntityLargeFireball fireball = new EntityLargeFireball(player.world, player, look.x, look.y, look.z);
-            fireball.explosionPower = 1;
-            setProjectileStart(player, fireball, look);
-            spawned |= player.world.spawnEntity(fireball);
-        }
-        if (!spawned) {
-            return false;
+            chestCavity.enqueueProjectileAbility(GHASTLY);
         }
 
         player.addExhaustion(fireballs * GHASTLY_EXHAUSTION);
@@ -394,13 +376,8 @@ public final class ActiveOrganAbilities {
         }
 
         int bullets = (int) shulkerBullets;
-        boolean spawned = false;
         for (int i = 0; i < bullets; i++) {
-            EntityShulkerBullet bullet = new EntityShulkerBullet(player.world, player, target, EnumFacing.Axis.Y);
-            spawned |= player.world.spawnEntity(bullet);
-        }
-        if (!spawned) {
-            return false;
+            chestCavity.enqueueProjectileAbility(SHULKER_BULLETS);
         }
 
         player.addExhaustion(bullets * SHULKER_BULLET_EXHAUSTION);
@@ -449,6 +426,82 @@ public final class ActiveOrganAbilities {
         player.addPotionEffect(new PotionEffect(CCPotions.SILK_COOLDOWN,
                 CCConfig.SILK_COOLDOWN, 0, false, false));
         return true;
+    }
+
+    private static boolean spawnPyromancyFireball(EntityPlayerMP player) {
+        Vec3d look = getNormalizedLook(player);
+        if (look == null) {
+            return false;
+        }
+        EntitySmallFireball fireball = new EntitySmallFireball(player.world, player, look.x, look.y, look.z);
+        setProjectileStart(player, fireball, look);
+        return player.world.spawnEntity(fireball);
+    }
+
+    private static boolean spawnDragonBomb(EntityPlayerMP player) {
+        Vec3d look = getNormalizedLook(player);
+        if (look == null) {
+            return false;
+        }
+        EntityDragonFireball fireball = new EntityDragonFireball(player.world, player, look.x, look.y, look.z);
+        setProjectileStart(player, fireball, look);
+        return player.world.spawnEntity(fireball);
+    }
+
+    private static boolean spawnDragonBreath(EntityPlayerMP player, IChestCavity chestCavity) {
+        Vec3d look = getNormalizedLook(player);
+        if (look == null) {
+            return false;
+        }
+        float dragonBreath = chestCavity.getOrganScore(DRAGON_BREATH);
+        double range = Math.max(2.0D, Math.sqrt(dragonBreath / 2.0D) * 5.0D);
+        Vec3d start = new Vec3d(player.posX, player.posY + player.getEyeHeight(), player.posZ);
+        Vec3d end = start.add(look.scale(range));
+        RayTraceResult result = player.world.rayTraceBlocks(start, end, false, true, false);
+        Vec3d cloudVec = result == null || result.hitVec == null ? end : result.hitVec;
+        BlockPos cloudPos = findDragonBreathSurface(player.world, cloudVec);
+        if (cloudPos == null) {
+            return false;
+        }
+
+        EntityAreaEffectCloud cloud = new EntityAreaEffectCloud(player.world, cloudVec.x, cloudPos.getY(), cloudVec.z);
+        cloud.setOwner(player);
+        cloud.setRadius(MathHelper.clamp((float) (range / 2.0D), 2.0F, 7.0F));
+        cloud.setDuration(DRAGON_BREATH_DURATION_TICKS);
+        cloud.setParticle(EnumParticleTypes.DRAGON_BREATH);
+        cloud.addEffect(new PotionEffect(MobEffects.INSTANT_DAMAGE, 1, 1));
+        return player.world.spawnEntity(cloud);
+    }
+
+    private static boolean spawnForcefulSpit(EntityPlayerMP player) {
+        Vec3d look = getNormalizedLook(player);
+        if (look == null) {
+            return false;
+        }
+        EntityForcefulSpit spit = new EntityForcefulSpit(player.world, player);
+        spit.setPosition(player.posX + look.x, player.posY + player.getEyeHeight() - 0.1D, player.posZ + look.z);
+        spit.shoot(look.x, look.y, look.z, FORCEFUL_SPIT_VELOCITY, 0.0F);
+        return player.world.spawnEntity(spit);
+    }
+
+    private static boolean spawnGhastlyFireball(EntityPlayerMP player) {
+        Vec3d look = getNormalizedLook(player);
+        if (look == null) {
+            return false;
+        }
+        EntityLargeFireball fireball = new EntityLargeFireball(player.world, player, look.x, look.y, look.z);
+        fireball.explosionPower = 1;
+        setProjectileStart(player, fireball, look);
+        return player.world.spawnEntity(fireball);
+    }
+
+    private static boolean spawnShulkerBullet(EntityPlayerMP player) {
+        EntityLivingBase target = findNearestTarget(player, CCConfig.SHULKER_BULLET_TARGETING_RANGE);
+        if (target == null) {
+            return false;
+        }
+        EntityShulkerBullet bullet = new EntityShulkerBullet(player.world, player, target, EnumFacing.Axis.Y);
+        return player.world.spawnEntity(bullet);
     }
 
     private static Vec3d getNormalizedLook(EntityPlayerMP player) {
