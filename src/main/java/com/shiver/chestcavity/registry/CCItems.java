@@ -31,7 +31,6 @@ public final class CCItems {
     private static final Item GOLD_CLEAVER = register("gold_cleaver", cleaver(Item.ToolMaterial.GOLD), CCTabs.MAIN);
     public static final Item IRON_CLEAVER = register("iron_cleaver", cleaver(Item.ToolMaterial.IRON), CCTabs.MAIN);
     private static final Item DIAMOND_CLEAVER = register("diamond_cleaver", cleaver(Item.ToolMaterial.DIAMOND), CCTabs.MAIN);
-    private static final Item NETHERITE_CLEAVER = register("netherite_cleaver", cleaver(Item.ToolMaterial.DIAMOND), CCTabs.MAIN);
 
     public static final Item HUMAN_APPENDIX = register("appendix", humanOrgan(), CCTabs.MAIN);
     public static final Item HUMAN_HEART = register("heart", humanOrgan(), CCTabs.MAIN);
@@ -57,7 +56,6 @@ public final class CCItems {
     public static final Item ROTTEN_SPLEEN = register("rotten_spleen", rottenOrgan(), CCTabs.MAIN);
     public static final Item ROTTEN_STOMACH = register("rotten_stomach", rottenOrgan(), CCTabs.MAIN);
 
-    private static final Item PHANTOM_RIB = register("phantom_rib", basicItem(4), CCTabs.MAIN);
     private static final Item WITHERED_RIB = register("withered_rib", basicItem(4), CCTabs.MAIN);
     private static final Item WITHERED_SPINE = register("withered_spine", basicItem(1), CCTabs.MAIN);
     private static final Item WRITHING_SOULSAND = register("writhing_soulsand", basicItem(16), CCTabs.MAIN);
@@ -174,9 +172,6 @@ public final class CCItems {
     private static final Item PISTON_MUSCLE = register("piston_muscle", basicItem(16), CCTabs.MAIN);
     private static final Item IRON_SCRAP = register("iron_scrap", basicItem(64), CCTabs.MAIN);
 
-    private static final Item SALTWATER_HEART = register("saltwater_heart", basicItem(1), CCTabs.MAIN);
-    private static final Item SALTWATER_LUNG = register("saltwater_lung", basicItem(1), CCTabs.MAIN);
-    private static final Item SALTWATER_MUSCLE = register("saltwater_muscle", basicItem(16), CCTabs.MAIN);
     private static final Item CREEPER_APPENDIX = register("creeper_appendix", basicItem(1), CCTabs.MAIN);
     private static final Item SHIFTING_LEAVES = register("shifting_leaves", basicItem(16), CCTabs.MAIN);
     private static final Item SHULKER_SPLEEN = register("shulker_spleen", basicItem(1), CCTabs.MAIN);
@@ -265,8 +260,7 @@ public final class CCItems {
                 "stone_cleaver",
                 "gold_cleaver",
                 "iron_cleaver",
-                "diamond_cleaver",
-                "netherite_cleaver");
+                "diamond_cleaver");
 
         registerOre("chestcavity:salvageable_human_organ_meat",
                 "appendix",
@@ -368,7 +362,6 @@ public final class CCItems {
                 "hollow_fireproof_rib",
                 "small_animal_rib",
                 "rotten_rib",
-                "phantom_rib",
                 "withered_rib",
                 "ender_rib",
                 "dragon_rib",
@@ -511,7 +504,6 @@ public final class CCItems {
                 "hollow_fireproof_rib",
                 "small_animal_rib",
                 "rotten_rib",
-                "phantom_rib",
                 "withered_rib",
                 "ender_rib",
                 "dragon_rib",

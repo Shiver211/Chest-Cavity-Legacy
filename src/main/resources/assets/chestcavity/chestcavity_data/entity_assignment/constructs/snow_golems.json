@@ -1,7 +1,6 @@
 {
   "chestcavity": "chestcavity:types/constructs/snow_golem.json",
   "entities": [
-    "minecraft:snowman",
-    "minecraft:snow_golem"
+    "minecraft:snowman"
   ]
 }

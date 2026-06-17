@@ -3,8 +3,10 @@ package com.shiver.chestcavity.chest.types;
 import com.shiver.chestcavity.chest.ChestCavityInventory;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.organs.OrganManager;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +19,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
 
     private ChestCavityInventory defaultChestCavity = new ChestCavityInventory();
     private final Map<ResourceLocation, Float> baseOrganScores = new LinkedHashMap<>();
+    private final List<ExceptionalOrgan> exceptionalOrgans = new ArrayList<>();
     private final List<Integer> forbiddenSlots = new ArrayList<>();
     private Map<ResourceLocation, Float> defaultOrganScores;
     private List<ItemStack> droppableOrgans;
@@ -99,6 +102,14 @@ public class GeneratedChestCavityType implements ChestCavityType {
 
     @Override
     public OrganData catchExceptionalOrgan(ItemStack stack) {
+        for (ExceptionalOrgan exceptionalOrgan : exceptionalOrgans) {
+            if (exceptionalOrgan.matches(stack)) {
+                OrganData data = new OrganData();
+                data.setPseudoOrgan(true);
+                data.setOrganScores(exceptionalOrgan.scores);
+                return data;
+            }
+        }
         return OrganManager.get(stack);
     }
 
@@ -108,7 +119,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
             droppableOrgans = new LinkedList<>();
             for (int i = 0; i < defaultChestCavity.size(); i++) {
                 ItemStack stack = defaultChestCavity.getStack(i);
-                if (!stack.isEmpty()) {
+                if (OrganManager.isTrueOrgan(stack)) {
                     droppableOrgans.add(stack.copy());
                 }
             }
@@ -148,6 +159,14 @@ public class GeneratedChestCavityType implements ChestCavityType {
         droppableOrgans = null;
     }
 
+    public void setExceptionalOrgans(List<ExceptionalOrgan> organs) {
+        exceptionalOrgans.clear();
+        if (organs != null) {
+            exceptionalOrgans.addAll(organs);
+        }
+        clearDerivedCache();
+    }
+
     private void addInventoryOrganScores(Map<ResourceLocation, Float> scores, ChestCavityInventory inventory) {
         for (int i = 0; i < inventory.size(); i++) {
             ItemStack stack = inventory.getStack(i);
@@ -166,6 +185,39 @@ public class GeneratedChestCavityType implements ChestCavityType {
                 float value = entry.getValue() * stackRatio;
                 scores.put(entry.getKey(), old == null ? value : old + value);
             }
+        }
+    }
+
+    public static final class ExceptionalOrgan {
+        private final Item item;
+        private final String oreName;
+        private final Map<ResourceLocation, Float> scores;
+
+        public ExceptionalOrgan(Item item, String oreName, Map<ResourceLocation, Float> scores) {
+            this.item = item;
+            this.oreName = oreName;
+            this.scores = new LinkedHashMap<>();
+            if (scores != null) {
+                this.scores.putAll(scores);
+            }
+        }
+
+        private boolean matches(ItemStack stack) {
+            if (stack == null || stack.isEmpty()) {
+                return false;
+            }
+            if (item != null && stack.getItem() == item) {
+                return true;
+            }
+            if (oreName == null || oreName.isEmpty()) {
+                return false;
+            }
+            for (ItemStack oreStack : OreDictionary.getOres(oreName, false)) {
+                if (OreDictionary.itemMatches(oreStack, stack, false)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

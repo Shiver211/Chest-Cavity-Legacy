@@ -43,6 +43,11 @@ public final class OrganManager {
         return OrganData.fromRegistry(stack);
     }
 
+    public static boolean isTrueOrgan(ItemStack stack) {
+        OrganData data = get(stack);
+        return data != null && !data.isPseudoOrgan();
+    }
+
     public static NBTTagCompound writeRegistryToNbt() {
         NBTTagCompound root = new NBTTagCompound();
         NBTTagList organs = new NBTTagList();

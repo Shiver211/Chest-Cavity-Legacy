@@ -1,7 +1,6 @@
 {
   "chestcavity": "chestcavity:types/constructs/iron_golem.json",
   "entities": [
-    "minecraft:villager_golem",
-    "minecraft:iron_golem"
+    "minecraft:villager_golem"
   ]
 }

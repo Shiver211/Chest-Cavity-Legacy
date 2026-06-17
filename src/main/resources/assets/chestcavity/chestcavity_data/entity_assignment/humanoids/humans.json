@@ -2,14 +2,9 @@
   "chestcavity": "chestcavity:types/humanoids/human.json",
   "entities": [
     "minecraft:evocation_illager",
-    "minecraft:evoker",
     "minecraft:illusion_illager",
-    "minecraft:illusioner",
-    "minecraft:pillager",
     "minecraft:villager",
     "minecraft:vindication_illager",
-    "minecraft:vindicator",
-    "minecraft:wandering_trader",
     "minecraft:witch"
   ]
 }

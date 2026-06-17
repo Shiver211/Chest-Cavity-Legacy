@@ -1,10 +1,44 @@
 {
   "defaultChestCavity": [
-    {"item": "minecraft:gunpowder", "position": 4, "count": 1},
+    {"item": "chestcavity:shifting_leaves", "position": 0},
+    {"item": "minecraft:stick", "position": 1, "count": 4},
+    {"item": "chestcavity:creeper_appendix", "position": 4},
+    {"item": "minecraft:stick", "position": 7, "count": 4},
+    {"item": "chestcavity:shifting_leaves", "position": 8},
+    {"item": "chestcavity:shifting_leaves", "position": 9},
+    {"item": "minecraft:stick", "position": 10, "count": 4},
     {"item": "minecraft:gunpowder", "position": 12, "count": 1},
-    {"item": "minecraft:tnt", "position": 13, "count": 1},
+    {"item": "minecraft:log", "position": 13, "count": 1},
     {"item": "minecraft:gunpowder", "position": 14, "count": 1},
-    {"item": "minecraft:gunpowder", "position": 22, "count": 1}
+    {"item": "minecraft:stick", "position": 16, "count": 4},
+    {"item": "chestcavity:shifting_leaves", "position": 17},
+    {"item": "chestcavity:shifting_leaves", "position": 18},
+    {"item": "chestcavity:shifting_leaves", "position": 19},
+    {"item": "minecraft:gunpowder", "position": 22, "count": 1},
+    {"item": "chestcavity:shifting_leaves", "position": 25},
+    {"item": "chestcavity:shifting_leaves", "position": 26}
   ],
-  "dropRateMultiplier": "1.5"
+  "exceptionalOrgans": [
+    {
+      "ingredient": {"ore": "treeLeaves"},
+      "value": [
+        {"id": "chestcavity:speed", "value": "1"},
+        {"id": "chestcavity:photosynthesis", "value": "1"}
+      ]
+    },
+    {
+      "ingredient": {"item": "minecraft:stick"},
+      "value": [
+        {"id": "chestcavity:defense", "value": "16"}
+      ]
+    },
+    {
+      "ingredient": {"ore": "logWood"},
+      "value": [
+        {"id": "chestcavity:health", "value": "64"},
+        {"id": "chestcavity:defense", "value": "48"},
+        {"id": "chestcavity:nerves", "value": "64"}
+      ]
+    }
+  ]
 }

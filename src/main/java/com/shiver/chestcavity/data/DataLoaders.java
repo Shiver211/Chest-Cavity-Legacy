@@ -186,6 +186,7 @@ public final class DataLoaders {
         try (Stream<Path> paths = Files.walk(rootPath)) {
             paths.filter(Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().endsWith(".json"))
+                    .sorted()
                     .forEach(path -> loadJsonFile(rootPath, path));
         } catch (IOException e) {
             ChestCavityLegacy.LOGGER.warn("Unable to scan chest cavity data directory {}", root.getPath(), e);
@@ -228,6 +229,9 @@ public final class DataLoaders {
         }
         if (json.has("baseOrganScores")) {
             type.setBaseOrganScores(readOrganScores(id, json.get("baseOrganScores")));
+        }
+        if (json.has("exceptionalOrgans")) {
+            type.setExceptionalOrgans(readExceptionalOrgans(id, json.get("exceptionalOrgans")));
         }
         if (json.has("bossChestCavity")) {
             type.setBossChestCavity(json.get("bossChestCavity").getAsBoolean());
@@ -338,6 +342,63 @@ public final class DataLoaders {
             }
         }
         return scores;
+    }
+
+    private static List<GeneratedChestCavityType.ExceptionalOrgan> readExceptionalOrgans(ResourceLocation id, JsonElement element) {
+        List<GeneratedChestCavityType.ExceptionalOrgan> organs = new ArrayList<>();
+        if (element == null || !element.isJsonArray()) {
+            ChestCavityLegacy.LOGGER.warn("Skipping exceptional organs in {} because they are not an array.", id);
+            return organs;
+        }
+
+        int index = 0;
+        for (JsonElement entry : element.getAsJsonArray()) {
+            index++;
+            try {
+                if (!entry.isJsonObject()) {
+                    continue;
+                }
+                JsonObject object = entry.getAsJsonObject();
+                if (!object.has("ingredient") || !object.has("value")) {
+                    ChestCavityLegacy.LOGGER.warn("Skipping exceptional organ entry {} in {} because ingredient or value is missing.", index, id);
+                    continue;
+                }
+
+                JsonObject ingredient = object.getAsJsonObject("ingredient");
+                Item item = null;
+                String oreName = null;
+                if (ingredient.has("item")) {
+                    ResourceLocation itemId = new ResourceLocation(ingredient.get("item").getAsString());
+                    item = ForgeRegistries.ITEMS.getValue(itemId);
+                    if (item == null) {
+                        ChestCavityLegacy.LOGGER.info("Skipping exceptional organ entry {} in {} because item {} is not registered in 1.12.2.", index, id, itemId);
+                        continue;
+                    }
+                } else if (ingredient.has("ore")) {
+                    oreName = ingredient.get("ore").getAsString();
+                } else if (ingredient.has("tag")) {
+                    oreName = mapTagToOreName(ingredient.get("tag").getAsString());
+                }
+                if (item == null && (oreName == null || oreName.isEmpty())) {
+                    ChestCavityLegacy.LOGGER.warn("Skipping exceptional organ entry {} in {} because ingredient has no supported item, ore, or tag.", index, id);
+                    continue;
+                }
+                organs.add(new GeneratedChestCavityType.ExceptionalOrgan(item, oreName, readOrganScores(id, object.get("value"))));
+            } catch (Exception e) {
+                ChestCavityLegacy.LOGGER.warn("Unable to parse exceptional organ entry {} in {}.", index, id, e);
+            }
+        }
+        return organs;
+    }
+
+    private static String mapTagToOreName(String tag) {
+        if ("minecraft:logs".equals(tag)) {
+            return "logWood";
+        }
+        if ("minecraft:leaves".equals(tag)) {
+            return "treeLeaves";
+        }
+        return null;
     }
 
     private static List<Integer> readForbiddenSlots(ResourceLocation id, JsonElement element) {
