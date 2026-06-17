@@ -61,11 +61,6 @@ public final class CCConfig {
     public static int SILK_COOLDOWN = 20;
     public static int VENOM_COOLDOWN = 40;
 
-    public static boolean BACKROOMS_INTEGRATION = true;
-    public static int BACKROOMS_CHEST_ORGAN_LOOT_ATTEMPTS = 2;
-    public static float BACKROOMS_CHEST_ORGAN_LOOT_CHANCE = 0.2F;
-    public static boolean REQUIEM_INTEGRATION = true;
-
     private static Configuration configuration;
 
     private CCConfig() {
@@ -133,11 +128,6 @@ public final class CCConfig {
         SHULKER_BULLET_COOLDOWN = getInt("cooldown", "SHULKER_BULLET_COOLDOWN", SHULKER_BULLET_COOLDOWN);
         SILK_COOLDOWN = getInt("cooldown", "SILK_COOLDOWN", SILK_COOLDOWN);
         VENOM_COOLDOWN = getInt("cooldown", "VENOM_COOLDOWN", VENOM_COOLDOWN);
-
-        BACKROOMS_INTEGRATION = configuration.getBoolean("BACKROOMS_INTEGRATION", "integration", BACKROOMS_INTEGRATION, "");
-        BACKROOMS_CHEST_ORGAN_LOOT_ATTEMPTS = getInt("integration", "BACKROOMS_CHEST_ORGAN_LOOT_ATTEMPTS", BACKROOMS_CHEST_ORGAN_LOOT_ATTEMPTS);
-        BACKROOMS_CHEST_ORGAN_LOOT_CHANCE = getFloat("integration", "BACKROOMS_CHEST_ORGAN_LOOT_CHANCE", BACKROOMS_CHEST_ORGAN_LOOT_CHANCE);
-        REQUIEM_INTEGRATION = configuration.getBoolean("REQUIEM_INTEGRATION", "integration", REQUIEM_INTEGRATION, "");
 
         if (configuration.hasChanged()) {
             configuration.save();

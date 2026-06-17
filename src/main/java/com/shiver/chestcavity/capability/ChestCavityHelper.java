@@ -6,7 +6,6 @@ import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
-import com.shiver.chestcavity.integration.compat.CrossModCompat;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.potion.OrganRejection;
 import com.shiver.chestcavity.recipe.SalvageRecipe;
@@ -592,9 +591,6 @@ public final class ChestCavityHelper {
     public static List<ItemStack> removeUnboundOrgansForDeath(IChestCavity chestCavity) {
         List<ItemStack> drops = new ArrayList<ItemStack>();
         if (chestCavity == null || !chestCavity.isOpened()) {
-            return drops;
-        }
-        if (CrossModCompat.isRequiemPlayerShell(chestCavity.getOwner())) {
             return drops;
         }
 

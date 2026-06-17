@@ -3,7 +3,6 @@ package com.shiver.chestcavity;
 import com.shiver.chestcavity.capability.ChestCavityCapability;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
-import com.shiver.chestcavity.integration.compat.CrossModCompat;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.registry.CCRecipes;
 import com.shiver.chestcavity.ui.ChestCavityGuiFactory;
@@ -29,7 +28,7 @@ public class ChestCavityLegacy {
         ChestCavityNetwork.register();
         ChestCavityGuiFactory.register();
         CCRecipes.registerFactories();
-        CrossModCompat.init();
+
         if (event.getSide().isClient()) {
             registerClientKeyBindings();
         }
