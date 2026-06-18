@@ -8,6 +8,7 @@ import com.shiver.chestcavity.potion.CCPotion;
 import com.shiver.chestcavity.potion.FurnacePower;
 import com.shiver.chestcavity.potion.OrganRejection;
 import com.shiver.chestcavity.potion.Ruminating;
+import com.shiver.chestcavity.potion.WaterVulnerability;
 
 import net.minecraft.potion.Potion;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -30,7 +31,7 @@ public final class CCPotions {
     public static final Potion SHULKER_BULLET_COOLDOWN = register("shulker_bullet_cooldown", new CCPotion(false, 0x000000));
     public static final Potion SILK_COOLDOWN = register("silk_cooldown", new CCPotion(false, 0x000000));
     public static final Potion VENOM_COOLDOWN = register("venom_cooldown", new CCPotion(false, 0x000000));
-    public static final Potion WATER_VULNERABILITY = register("water_vulnerability", new CCPotion(false, 0x000000));
+    public static final Potion WATER_VULNERABILITY = register("water_vulnerability", new WaterVulnerability());
 
     private CCPotions() {
     }

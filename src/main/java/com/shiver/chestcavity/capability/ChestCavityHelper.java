@@ -75,7 +75,6 @@ public final class ChestCavityHelper {
     private static final float DEFENSE_HALF_DAMAGE_STEP = 4.0F;
     private static final DamageSource HEART_BLEED_DAMAGE = new DamageSource("cc_heartbleed").setDamageBypassesArmor();
     private static final int NO_BREATH_DAMAGE_RATE_TICKS = 20;
-    private static final int HYDROALLERGENIC_BASE_RATE_TICKS = 260;
     private static final int HYDROPHOBIA_INTERVAL_TICKS = 20;
     private static final String ENDURANCE_LAST_EXHAUSTION_KEY = "chestcavity:last_exhaustion";
     private static final String FOOD_EXHAUSTION_KEY = "foodExhaustionLevel";
@@ -833,10 +832,13 @@ public final class ChestCavityHelper {
 
         float hydroallergenic = chestCavity.getOrganScore(CCOrganScores.HYDROALLERGENIC);
         if (hydroallergenic > 0.0F && entity.isWet()) {
-            int rate = Math.max(20, (int) (HYDROALLERGENIC_BASE_RATE_TICKS / hydroallergenic));
-            if (entity.ticksExisted % rate == 0) {
-                entity.attackEntityFrom(DamageSource.MAGIC, entity.isInsideOfMaterial(Material.WATER) ? 10.0F : 1.0F);
+            int amplifier = Math.max(1, Math.round(hydroallergenic * 10));
+            PotionEffect active = entity.getActivePotionEffect(CCPotions.WATER_VULNERABILITY);
+            if (active == null || active.getAmplifier() != amplifier) {
+                entity.addPotionEffect(new PotionEffect(CCPotions.WATER_VULNERABILITY, 32767, amplifier, false, true));
             }
+        } else if (entity.isPotionActive(CCPotions.WATER_VULNERABILITY)) {
+            entity.removePotionEffect(CCPotions.WATER_VULNERABILITY);
         }
 
         float hydrophobia = chestCavity.getOrganScore(CCOrganScores.HYDROPHOBIA);
