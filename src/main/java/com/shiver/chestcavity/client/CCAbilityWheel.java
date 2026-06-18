@@ -3,8 +3,8 @@ package com.shiver.chestcavity.client;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.ability.ActiveOrganAbilities;
-import com.shiver.chestcavity.script.model.ScriptAbilityDefinition;
-import com.shiver.chestcavity.script.registry.ScriptAbilityRegistry;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.AbilityDefinition;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.AbilityRegistry;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -537,7 +537,7 @@ public final class CCAbilityWheel {
         if (id == null) {
             return "";
         }
-        ScriptAbilityDefinition definition = ScriptAbilityRegistry.get(id);
+        AbilityDefinition definition = AbilityRegistry.get(id);
         if (definition != null) {
             if (definition.getDisplayName() != null && !definition.getDisplayName().isEmpty()) {
                 return definition.getDisplayName();
@@ -550,7 +550,7 @@ public final class CCAbilityWheel {
     }
 
     private static int getAbilitySortOrder(ResourceLocation id) {
-        ScriptAbilityDefinition definition = ScriptAbilityRegistry.get(id);
+        AbilityDefinition definition = AbilityRegistry.get(id);
         return definition == null ? 0 : definition.getSortOrder();
     }
 

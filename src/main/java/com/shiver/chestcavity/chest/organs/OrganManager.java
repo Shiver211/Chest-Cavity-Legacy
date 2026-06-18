@@ -2,7 +2,7 @@ package com.shiver.chestcavity.chest.organs;
 
 import com.google.gson.JsonObject;
 import com.shiver.chestcavity.ChestCavityLegacy;
-import com.shiver.chestcavity.script.registry.ScriptOrganRegistry;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.OrganRegistry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -41,7 +41,7 @@ public final class OrganManager {
     }
 
     public static OrganData get(ItemStack stack) {
-        OrganData data = ScriptOrganRegistry.getOrganData(stack);
+        OrganData data = OrganRegistry.getOrganData(stack);
         return data == null ? OrganData.fromRegistry(stack) : data;
     }
 

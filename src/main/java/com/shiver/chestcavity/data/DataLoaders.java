@@ -11,8 +11,9 @@ import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.chest.types.FallbackChestCavityType;
 import com.shiver.chestcavity.chest.types.GeneratedChestCavityType;
-import com.shiver.chestcavity.script.registry.ScriptChestCavityTypeRegistry;
-import com.shiver.chestcavity.script.registry.ScriptEntityAssignmentRegistry;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.ChestCavityTypeRegistry;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.EntityAssignment;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.EntityAssignmentRegistry;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -92,7 +93,7 @@ public final class DataLoaders {
     }
 
     public static ChestCavityType getType(ResourceLocation id) {
-        ChestCavityType scriptType = ScriptChestCavityTypeRegistry.get(id);
+        ChestCavityType scriptType = ChestCavityTypeRegistry.get(id);
         if (scriptType != null) {
             return scriptType;
         }
@@ -105,13 +106,13 @@ public final class DataLoaders {
     }
 
     public static ResourceLocation getAssignedTypeId(ResourceLocation entityId) {
-        ResourceLocation scriptAssigned = ScriptEntityAssignmentRegistry.getAssignedTypeId(entityId);
+        ResourceLocation scriptAssigned = EntityAssignmentRegistry.getAssignedTypeId(entityId);
         return scriptAssigned == null ? ENTITY_ASSIGNMENTS.get(entityId) : scriptAssigned;
     }
 
     public static Map<ResourceLocation, ChestCavityType> getTypes() {
         Map<ResourceLocation, ChestCavityType> combined = new LinkedHashMap<ResourceLocation, ChestCavityType>(CHEST_CAVITY_TYPES);
-        combined.putAll(ScriptChestCavityTypeRegistry.getDefinitions());
+        combined.putAll(ChestCavityTypeRegistry.getDefinitions());
         return Collections.unmodifiableMap(combined);
     }
 
@@ -123,8 +124,8 @@ public final class DataLoaders {
 
     private static Map<ResourceLocation, ResourceLocation> convertScriptAssignments() {
         Map<ResourceLocation, ResourceLocation> assignments = new LinkedHashMap<ResourceLocation, ResourceLocation>();
-        for (Map.Entry<ResourceLocation, com.shiver.chestcavity.script.model.ScriptEntityAssignment> entry
-                : ScriptEntityAssignmentRegistry.getDefinitions().entrySet()) {
+        for (Map.Entry<ResourceLocation, EntityAssignment> entry
+                : EntityAssignmentRegistry.getDefinitions().entrySet()) {
             assignments.put(entry.getKey(), entry.getValue().getTypeId());
         }
         return assignments;

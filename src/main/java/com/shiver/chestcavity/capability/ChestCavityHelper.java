@@ -4,12 +4,12 @@ import com.shiver.chestcavity.ability.ActiveOrganAbilities;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
-import com.shiver.chestcavity.compat.contenttweaker.IOrganDefinitionProvider;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.IOrganDefinitionProvider;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.EventDispatcher;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.potion.OrganRejection;
-import com.shiver.chestcavity.script.ScriptHooks;
 
 import com.shiver.chestcavity.registry.CCEnchantments;
 import com.shiver.chestcavity.registry.CCItems;
@@ -126,13 +126,13 @@ public final class ChestCavityHelper {
             tickProjectileQueue(entity, chestCavity);
             tickPassiveEffects(entity, chestCavity);
             tickOrganRejection(entity, chestCavity);
-            ScriptHooks.fireTick(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores(), false);
+            EventDispatcher.fireTick(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores(), false);
         } else {
-            ScriptHooks.fireTick(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores(), true);
+            EventDispatcher.fireTick(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores(), true);
         }
 
         if (scoreChanges) {
-            ScriptHooks.fireScoreChanged(entity, chestCavity.getOrganScores(), chestCavity.getOldOrganScores());
+            EventDispatcher.fireScoreChanged(entity, chestCavity.getOrganScores(), chestCavity.getOldOrganScores());
             onScoreChanged(chestCavity);
             chestCavity.copyCurrentScoresToOld();
             if (!entity.world.isRemote) {
@@ -232,7 +232,7 @@ public final class ChestCavityHelper {
         if (entity == null || chestCavity == null) {
             return currentSpeed;
         }
-        return ScriptHooks.modifyBreakSpeed(entity, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores(), currentSpeed);
+        return EventDispatcher.modifyBreakSpeed(entity, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores(), currentSpeed);
     }
 
     public static float applyDefense(IChestCavity chestCavity, DamageSource source, float damage) {
@@ -268,7 +268,7 @@ public final class ChestCavityHelper {
         if (entity == null || chestCavity == null) {
             return damage;
         }
-        return ScriptHooks.modifyIncomingDamage(entity, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores(), damage);
+        return EventDispatcher.modifyIncomingDamage(entity, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores(), damage);
     }
 
     public static boolean attemptProjectileDodge(EntityLivingBase entity, IChestCavity chestCavity, DamageSource source) {
@@ -301,7 +301,7 @@ public final class ChestCavityHelper {
             return;
         }
 
-        int duration = ScriptHooks.modifyPotionIncoming(entity, effect, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores());
+        int duration = EventDispatcher.modifyPotionIncoming(entity, effect, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores());
         if (duration > 0 && duration != effect.getDuration()) {
             setPotionDuration(effect, duration);
         }
@@ -346,7 +346,7 @@ public final class ChestCavityHelper {
             return damage;
         }
 
-        ScriptHooks.fireAttackTarget(attacker, target, attackerCavity.getOrganScores(), getChestCavityType(attackerCavity).getDefaultOrganScores());
+        EventDispatcher.fireAttackTarget(attacker, target, attackerCavity.getOrganScores(), getChestCavityType(attackerCavity).getDefaultOrganScores());
         applyLaunching(attacker, target, attackerCavity);
         applyVenom(attacker, target, attackerCavity);
         return damage;
@@ -467,7 +467,7 @@ public final class ChestCavityHelper {
         }
 
         ChestCavityType type = getChestCavityType(chestCavity);
-        ScriptHooks.fireJump(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores());
+        EventDispatcher.fireJump(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores());
         float leapingDiff = chestCavity.getOrganScore(CCOrganScores.LEAPING)
                 - type.getDefaultOrganScore(CCOrganScores.LEAPING);
         if (leapingDiff != 0.0F) {
@@ -488,7 +488,7 @@ public final class ChestCavityHelper {
             return;
         }
 
-        ScriptHooks.fireEat(player, eaten, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores());
+        EventDispatcher.fireEat(player, eaten, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores());
 
         ItemFood food = (ItemFood) eaten.getItem();
         int vanillaFood = food.getHealAmount(eaten);

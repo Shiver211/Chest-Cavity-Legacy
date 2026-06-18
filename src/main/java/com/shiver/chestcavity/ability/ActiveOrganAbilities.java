@@ -3,14 +3,14 @@ package com.shiver.chestcavity.ability;
 import com.shiver.chestcavity.ChestCavityLegacy;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
-import com.shiver.chestcavity.compat.crafttweaker.AbilityCallbacks;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.entity.EntityForcefulSpit;
+import com.shiver.chestcavity.integration.crafttweaker.callback.AbilityCallbacks;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.AbilityDefinition;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.AbilityRegistry;
 import com.shiver.chestcavity.potion.FurnacePower;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import com.shiver.chestcavity.registry.CCPotions;
-import com.shiver.chestcavity.script.model.ScriptAbilityDefinition;
-import com.shiver.chestcavity.script.registry.ScriptAbilityRegistry;
 import crafttweaker.api.minecraft.CraftTweakerMC;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -106,7 +106,7 @@ public final class ActiveOrganAbilities {
 
     public static List<ResourceLocation> getRegisteredAbilityIds() {
         List<ResourceLocation> result = new java.util.ArrayList<ResourceLocation>(ABILITIES.keySet());
-        for (ResourceLocation id : ScriptAbilityRegistry.getDefinitions().keySet()) {
+        for (ResourceLocation id : AbilityRegistry.getDefinitions().keySet()) {
             if (!result.contains(id)) {
                 result.add(id);
             }
@@ -465,7 +465,7 @@ public final class ActiveOrganAbilities {
     }
 
     private static boolean activateScriptAbility(EntityPlayerMP player, IChestCavity chestCavity, ResourceLocation abilityId) {
-        ScriptAbilityDefinition definition = ScriptAbilityRegistry.get(abilityId);
+        AbilityDefinition definition = AbilityRegistry.get(abilityId);
         if (definition == null) {
             ChestCavityLegacy.LOGGER.debug("Ignoring unknown active organ ability {}.", abilityId);
             return false;
