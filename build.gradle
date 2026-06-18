@@ -108,6 +108,10 @@ repositories {
         name 'CleanroomMC Maven'
         url 'https://maven.cleanroommc.com'
     }
+    maven {
+        name 'BlameJared Maven'
+        url 'https://maven.blamejared.com'
+    }
 }
 
 dependencies {

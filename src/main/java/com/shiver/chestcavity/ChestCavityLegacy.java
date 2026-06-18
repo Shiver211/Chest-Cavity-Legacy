@@ -1,6 +1,7 @@
 package com.shiver.chestcavity;
 
 import com.shiver.chestcavity.capability.ChestCavityCapability;
+import com.shiver.chestcavity.compat.crafttweaker.CraftTweakerCompatBootstrap;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
@@ -26,6 +27,7 @@ public class ChestCavityLegacy {
         gameDir = event.getModConfigurationDirectory().getParentFile();
         CCConfig.load(event.getSuggestedConfigurationFile());
         ChestCavityCapability.ensureRegistered();
+        CraftTweakerCompatBootstrap.preInit();
         ChestCavityNetwork.register();
         ChestCavityGuiFactory.register();
 

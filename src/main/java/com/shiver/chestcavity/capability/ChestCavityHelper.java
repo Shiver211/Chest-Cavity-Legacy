@@ -4,10 +4,12 @@ import com.shiver.chestcavity.ability.ActiveOrganAbilities;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
+import com.shiver.chestcavity.compat.contenttweaker.IOrganDefinitionProvider;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.potion.OrganRejection;
+import com.shiver.chestcavity.script.ScriptHooks;
 
 import com.shiver.chestcavity.registry.CCEnchantments;
 import com.shiver.chestcavity.registry.CCItems;
@@ -110,6 +112,7 @@ public final class ChestCavityHelper {
     public static void tick(EntityLivingBase entity, IChestCavity chestCavity) {
         recalculateOrganScores(chestCavity);
         boolean scoreChanges = hasScoreChanges(chestCavity);
+        ChestCavityType type = getChestCavityType(chestCavity);
 
         if (!entity.world.isRemote) {
             applyBasicAttributeModifiers(entity, chestCavity);
@@ -123,9 +126,13 @@ public final class ChestCavityHelper {
             tickProjectileQueue(entity, chestCavity);
             tickPassiveEffects(entity, chestCavity);
             tickOrganRejection(entity, chestCavity);
+            ScriptHooks.fireTick(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores(), false);
+        } else {
+            ScriptHooks.fireTick(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores(), true);
         }
 
         if (scoreChanges) {
+            ScriptHooks.fireScoreChanged(entity, chestCavity.getOrganScores(), chestCavity.getOldOrganScores());
             onScoreChanged(chestCavity);
             chestCavity.copyCurrentScoresToOld();
             if (!entity.world.isRemote) {
@@ -221,6 +228,13 @@ public final class ChestCavityHelper {
         return Math.max(0.0F, multiplier);
     }
 
+    public static float applyScriptBreakSpeed(EntityLivingBase entity, IChestCavity chestCavity, float currentSpeed) {
+        if (entity == null || chestCavity == null) {
+            return currentSpeed;
+        }
+        return ScriptHooks.modifyBreakSpeed(entity, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores(), currentSpeed);
+    }
+
     public static float applyDefense(IChestCavity chestCavity, DamageSource source, float damage) {
         if (chestCavity == null || !chestCavity.isOpened() || damage <= 0.0F) {
             return damage;
@@ -248,6 +262,13 @@ public final class ChestCavityHelper {
             }
         }
         return damage;
+    }
+
+    public static float applyScriptIncomingDamage(EntityLivingBase entity, IChestCavity chestCavity, float damage) {
+        if (entity == null || chestCavity == null) {
+            return damage;
+        }
+        return ScriptHooks.modifyIncomingDamage(entity, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores(), damage);
     }
 
     public static boolean attemptProjectileDodge(EntityLivingBase entity, IChestCavity chestCavity, DamageSource source) {
@@ -278,6 +299,11 @@ public final class ChestCavityHelper {
         IChestCavity chestCavity = getOrNull(entity);
         if (chestCavity == null || !chestCavity.isOpened()) {
             return;
+        }
+
+        int duration = ScriptHooks.modifyPotionIncoming(entity, effect, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores());
+        if (duration > 0 && duration != effect.getDuration()) {
+            setPotionDuration(effect, duration);
         }
 
         float factor = 1.0F;
@@ -320,6 +346,7 @@ public final class ChestCavityHelper {
             return damage;
         }
 
+        ScriptHooks.fireAttackTarget(attacker, target, attackerCavity.getOrganScores(), getChestCavityType(attackerCavity).getDefaultOrganScores());
         applyLaunching(attacker, target, attackerCavity);
         applyVenom(attacker, target, attackerCavity);
         return damage;
@@ -440,6 +467,7 @@ public final class ChestCavityHelper {
         }
 
         ChestCavityType type = getChestCavityType(chestCavity);
+        ScriptHooks.fireJump(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores());
         float leapingDiff = chestCavity.getOrganScore(CCOrganScores.LEAPING)
                 - type.getDefaultOrganScore(CCOrganScores.LEAPING);
         if (leapingDiff != 0.0F) {
@@ -459,6 +487,8 @@ public final class ChestCavityHelper {
         if (chestCavity == null || !chestCavity.isOpened()) {
             return;
         }
+
+        ScriptHooks.fireEat(player, eaten, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores());
 
         ItemFood food = (ItemFood) eaten.getItem();
         int vanillaFood = food.getHealAmount(eaten);
@@ -902,9 +932,18 @@ public final class ChestCavityHelper {
         if (stack == null || stack.isEmpty()) {
             return null;
         }
+        if (stack.getItem() instanceof IOrganDefinitionProvider) {
+            OrganData data = ((IOrganDefinitionProvider) stack.getItem()).getOrganData();
+            if (data != null) {
+                return data;
+            }
+        }
         OrganData data = type == null ? null : type.catchExceptionalOrgan(stack);
         if (data == null) {
             data = OrganData.fromStack(stack);
+        }
+        if (data == null) {
+            data = OrganManager.get(stack);
         }
         return data;
     }
@@ -946,7 +985,7 @@ public final class ChestCavityHelper {
 
     private static void processMalpractice(List<ItemStack> loot) {
         for (ItemStack stack : loot) {
-            OrganData data = OrganManager.get(stack);
+            OrganData data = resolveOrganData(null, stack);
             if (data != null && !data.isPseudoOrgan()) {
                 stack.addEnchantment(CCEnchantments.MALPRACTICE, 1);
             }
@@ -1077,7 +1116,7 @@ public final class ChestCavityHelper {
         List<PotionEffect> effects = new ArrayList<PotionEffect>();
         for (ItemStack stack : chestCavity.getOrgans()) {
             if (!stack.isEmpty()) {
-                OrganData data = OrganData.fromStack(stack);
+                OrganData data = resolveOrganData(getChestCavityType(chestCavity), stack);
                 if (data != null && data.getOrganScores().containsKey(CCOrganScores.VENOMOUS)) {
                     effects.addAll(PotionUtils.getFullEffectsFromItem(stack));
                 }

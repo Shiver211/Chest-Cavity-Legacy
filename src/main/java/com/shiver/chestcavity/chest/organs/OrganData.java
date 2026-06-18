@@ -1,5 +1,7 @@
 package com.shiver.chestcavity.chest.organs;
 
+import com.shiver.chestcavity.compat.contenttweaker.IOrganDefinitionProvider;
+import com.shiver.chestcavity.script.registry.ScriptOrganRegistry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -36,7 +38,14 @@ public class OrganData {
         if (stack == null || stack.isEmpty() || stack.getItem() == null) {
             return null;
         }
-        return get(stack.getItem().getRegistryName());
+        if (stack.getItem() instanceof IOrganDefinitionProvider) {
+            OrganData data = ((IOrganDefinitionProvider) stack.getItem()).getOrganData();
+            if (data != null) {
+                return data;
+            }
+        }
+        OrganData data = ScriptOrganRegistry.getOrganData(stack);
+        return data == null ? get(stack.getItem().getRegistryName()) : data;
     }
 
     public static Map<ResourceLocation, OrganData> getRegistry() {

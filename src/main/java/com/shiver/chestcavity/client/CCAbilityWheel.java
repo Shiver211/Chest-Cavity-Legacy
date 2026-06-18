@@ -2,6 +2,9 @@ package com.shiver.chestcavity.client;
 
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.ability.ActiveOrganAbilities;
+import com.shiver.chestcavity.script.model.ScriptAbilityDefinition;
+import com.shiver.chestcavity.script.registry.ScriptAbilityRegistry;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -25,7 +28,7 @@ import java.util.List;
 @SideOnly(Side.CLIENT)
 public final class CCAbilityWheel {
 
-    private static final ResourceLocation[] ABILITIES = {
+    private static final ResourceLocation[] DEFAULT_ABILITIES = {
             CCOrganScores.BUOYANT,
             CCOrganScores.FURNACE_POWERED,
             CCOrganScores.IRON_REPAIR,
@@ -194,11 +197,17 @@ public final class CCAbilityWheel {
             return result;
         }
 
-        for (ResourceLocation ability : ABILITIES) {
+        for (ResourceLocation ability : ActiveOrganAbilities.getRegisteredAbilityIds()) {
             if (chestCavity.getOrganScore(ability) > 0.0F) {
                 result.add(ability);
             }
         }
+        result.sort(new java.util.Comparator<ResourceLocation>() {
+            @Override
+            public int compare(ResourceLocation a, ResourceLocation b) {
+                return Integer.compare(getAbilitySortOrder(a), getAbilitySortOrder(b));
+            }
+        });
         if (!result.contains(selectedAbility) && !result.isEmpty()) {
             selectedAbility = result.get(0);
         }
@@ -398,7 +407,7 @@ public final class CCAbilityWheel {
         validScores.sort(new java.util.Comparator<java.util.Map.Entry<ResourceLocation, Float>>() {
             @Override
             public int compare(java.util.Map.Entry<ResourceLocation, Float> a, java.util.Map.Entry<ResourceLocation, Float> b) {
-                java.util.List<ResourceLocation> activeList = java.util.Arrays.asList(ABILITIES);
+                java.util.List<ResourceLocation> activeList = java.util.Arrays.asList(DEFAULT_ABILITIES);
                 boolean activeA = activeList.contains(a.getKey());
                 boolean activeB = activeList.contains(b.getKey());
                 if (activeA != activeB) {
@@ -528,7 +537,21 @@ public final class CCAbilityWheel {
         if (id == null) {
             return "";
         }
+        ScriptAbilityDefinition definition = ScriptAbilityRegistry.get(id);
+        if (definition != null) {
+            if (definition.getDisplayName() != null && !definition.getDisplayName().isEmpty()) {
+                return definition.getDisplayName();
+            }
+            if (definition.getTranslationKey() != null && I18n.hasKey(definition.getTranslationKey())) {
+                return I18n.format(definition.getTranslationKey());
+            }
+        }
         return I18n.format("key." + id.getNamespace() + "." + id.getPath());
+    }
+
+    private static int getAbilitySortOrder(ResourceLocation id) {
+        ScriptAbilityDefinition definition = ScriptAbilityRegistry.get(id);
+        return definition == null ? 0 : definition.getSortOrder();
     }
 
     private static String getScoreName(ResourceLocation id) {

@@ -11,6 +11,8 @@ import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.chest.types.FallbackChestCavityType;
 import com.shiver.chestcavity.chest.types.GeneratedChestCavityType;
+import com.shiver.chestcavity.script.registry.ScriptChestCavityTypeRegistry;
+import com.shiver.chestcavity.script.registry.ScriptEntityAssignmentRegistry;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -90,6 +92,10 @@ public final class DataLoaders {
     }
 
     public static ChestCavityType getType(ResourceLocation id) {
+        ChestCavityType scriptType = ScriptChestCavityTypeRegistry.get(id);
+        if (scriptType != null) {
+            return scriptType;
+        }
         ChestCavityType type = CHEST_CAVITY_TYPES.get(id);
         return type == null ? FALLBACK_TYPE : type;
     }
@@ -99,15 +105,29 @@ public final class DataLoaders {
     }
 
     public static ResourceLocation getAssignedTypeId(ResourceLocation entityId) {
-        return ENTITY_ASSIGNMENTS.get(entityId);
+        ResourceLocation scriptAssigned = ScriptEntityAssignmentRegistry.getAssignedTypeId(entityId);
+        return scriptAssigned == null ? ENTITY_ASSIGNMENTS.get(entityId) : scriptAssigned;
     }
 
     public static Map<ResourceLocation, ChestCavityType> getTypes() {
-        return Collections.unmodifiableMap(CHEST_CAVITY_TYPES);
+        Map<ResourceLocation, ChestCavityType> combined = new LinkedHashMap<ResourceLocation, ChestCavityType>(CHEST_CAVITY_TYPES);
+        combined.putAll(ScriptChestCavityTypeRegistry.getDefinitions());
+        return Collections.unmodifiableMap(combined);
     }
 
     public static Map<ResourceLocation, ResourceLocation> getEntityAssignments() {
-        return Collections.unmodifiableMap(ENTITY_ASSIGNMENTS);
+        Map<ResourceLocation, ResourceLocation> combined = new LinkedHashMap<ResourceLocation, ResourceLocation>(ENTITY_ASSIGNMENTS);
+        combined.putAll(convertScriptAssignments());
+        return Collections.unmodifiableMap(combined);
+    }
+
+    private static Map<ResourceLocation, ResourceLocation> convertScriptAssignments() {
+        Map<ResourceLocation, ResourceLocation> assignments = new LinkedHashMap<ResourceLocation, ResourceLocation>();
+        for (Map.Entry<ResourceLocation, com.shiver.chestcavity.script.model.ScriptEntityAssignment> entry
+                : ScriptEntityAssignmentRegistry.getDefinitions().entrySet()) {
+            assignments.put(entry.getKey(), entry.getValue().getTypeId());
+        }
+        return assignments;
     }
 
     private static List<File> getAssetDataDirectories(File gameDir) {

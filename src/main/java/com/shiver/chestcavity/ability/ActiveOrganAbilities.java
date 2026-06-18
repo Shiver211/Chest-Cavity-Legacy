@@ -3,11 +3,15 @@ package com.shiver.chestcavity.ability;
 import com.shiver.chestcavity.ChestCavityLegacy;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.compat.crafttweaker.AbilityCallbacks;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.entity.EntityForcefulSpit;
 import com.shiver.chestcavity.potion.FurnacePower;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import com.shiver.chestcavity.registry.CCPotions;
+import com.shiver.chestcavity.script.model.ScriptAbilityDefinition;
+import com.shiver.chestcavity.script.registry.ScriptAbilityRegistry;
+import crafttweaker.api.minecraft.CraftTweakerMC;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -90,15 +94,24 @@ public final class ActiveOrganAbilities {
 
     public static boolean activate(EntityPlayerMP player, IChestCavity chestCavity, ResourceLocation abilityId) {
         ActiveOrganAbility ability = ABILITIES.get(abilityId);
-        if (ability == null) {
-            ChestCavityLegacy.LOGGER.debug("Ignoring unknown active organ ability {}.", abilityId);
-            return false;
-        }
         if (chestCavity.getOrganScore(abilityId) <= 0.0F) {
             ChestCavityLegacy.LOGGER.debug("Ignoring inactive organ ability {} for {}.", abilityId, player.getName());
             return false;
         }
+        if (ability == null) {
+            return activateScriptAbility(player, chestCavity, abilityId);
+        }
         return ability.activate(player, chestCavity);
+    }
+
+    public static List<ResourceLocation> getRegisteredAbilityIds() {
+        List<ResourceLocation> result = new java.util.ArrayList<ResourceLocation>(ABILITIES.keySet());
+        for (ResourceLocation id : ScriptAbilityRegistry.getDefinitions().keySet()) {
+            if (!result.contains(id)) {
+                result.add(id);
+            }
+        }
+        return result;
     }
 
     public static boolean fireQueuedProjectile(EntityLivingBase entity, IChestCavity chestCavity, ResourceLocation abilityId) {
@@ -449,6 +462,23 @@ public final class ActiveOrganAbilities {
         }
         EntityShulkerBullet bullet = new EntityShulkerBullet(player.world, player, target, EnumFacing.Axis.Y);
         return player.world.spawnEntity(bullet);
+    }
+
+    private static boolean activateScriptAbility(EntityPlayerMP player, IChestCavity chestCavity, ResourceLocation abilityId) {
+        ScriptAbilityDefinition definition = ScriptAbilityRegistry.get(abilityId);
+        if (definition == null) {
+            ChestCavityLegacy.LOGGER.debug("Ignoring unknown active organ ability {}.", abilityId);
+            return false;
+        }
+        Object callback = definition.getActivateCallback();
+        if (!(callback instanceof AbilityCallbacks.OnActivate)) {
+            ChestCavityLegacy.LOGGER.debug("Ignoring script organ ability {} because no activate callback is registered.", abilityId);
+            return false;
+        }
+        return ((AbilityCallbacks.OnActivate) callback).handle(
+                CraftTweakerMC.getIPlayer(player),
+                abilityId.toString(),
+                chestCavity.getOrganScore(abilityId));
     }
 
     private static Vec3d getNormalizedLook(EntityPlayerMP player) {

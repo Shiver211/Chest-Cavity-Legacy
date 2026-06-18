@@ -95,7 +95,8 @@ public final class ForgeEvents {
     public static void livingHurt(LivingHurtEvent event) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityLiving());
         if (chestCavity != null) {
-            event.setAmount(ChestCavityHelper.applyDefense(chestCavity, event.getSource(), event.getAmount()));
+            float amount = ChestCavityHelper.applyScriptIncomingDamage(event.getEntityLiving(), chestCavity, event.getAmount());
+            event.setAmount(ChestCavityHelper.applyDefense(chestCavity, event.getSource(), amount));
         }
     }
 
@@ -204,7 +205,8 @@ public final class ForgeEvents {
     public static void breakSpeed(PlayerEvent.BreakSpeed event) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityPlayer());
         if (chestCavity != null) {
-            event.setNewSpeed(event.getNewSpeed() * ChestCavityHelper.getMiningSpeedMultiplier(chestCavity));
+            float speed = event.getNewSpeed() * ChestCavityHelper.getMiningSpeedMultiplier(chestCavity);
+            event.setNewSpeed(ChestCavityHelper.applyScriptBreakSpeed(event.getEntityPlayer(), chestCavity, speed));
         }
     }
 
