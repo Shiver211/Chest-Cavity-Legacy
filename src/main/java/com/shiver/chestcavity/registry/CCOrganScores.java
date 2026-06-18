@@ -31,7 +31,6 @@ public final class CCOrganScores {
     public static final ResourceLocation IRON_REPAIR = id("iron_repair");
     public static final ResourceLocation BREATH = id("breath");
     public static final ResourceLocation BREATH_CAPACITY = id("breath_capacity");
-    public static final ResourceLocation BREATH_RECOVERY = id("breath_recovery");
     public static final ResourceLocation WATER_BREATH = id("water_breath");
     public static final ResourceLocation BUOYANT = id("buoyant");
     public static final ResourceLocation CREEPY = id("creepy");

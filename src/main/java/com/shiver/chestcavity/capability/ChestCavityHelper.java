@@ -74,7 +74,6 @@ public final class ChestCavityHelper {
     private static final Field POTION_EFFECT_DURATION_FIELD = findPotionEffectDurationField();
     private static final float DEFENSE_HALF_DAMAGE_STEP = 4.0F;
     private static final DamageSource HEART_BLEED_DAMAGE = new DamageSource("cc_heartbleed").setDamageBypassesArmor();
-    private static final int NO_BREATH_DAMAGE_RATE_TICKS = 20;
     private static final int HYDROPHOBIA_INTERVAL_TICKS = 20;
     private static final String ENDURANCE_LAST_EXHAUSTION_KEY = "chestcavity:last_exhaustion";
     private static final String FOOD_EXHAUSTION_KEY = "foodExhaustionLevel";
@@ -766,9 +765,6 @@ public final class ChestCavityHelper {
             return;
         }
 
-        ChestCavityType type = getChestCavityType(chestCavity);
-        float defaultRecovery = type.getDefaultOrganScore(CCOrganScores.BREATH_RECOVERY);
-        float recovery = chestCavity.getOrganScore(CCOrganScores.BREATH_RECOVERY);
         float capacity = chestCavity.getOrganScore(CCOrganScores.BREATH_CAPACITY);
         float waterBreath = chestCavity.getOrganScore(CCOrganScores.WATER_BREATH);
 
@@ -780,13 +776,6 @@ public final class ChestCavityHelper {
             chestCavity.setLungRemainder(delta - whole);
             if (whole != 0) {
                 entity.setAir(Math.min(300, Math.max(-20, entity.getAir() - whole)));
-            }
-            return;
-        }
-
-        if (defaultRecovery > 0.0F && recovery <= 0.0F && !entity.isPotionActive(MobEffects.WATER_BREATHING)) {
-            if (entity.ticksExisted % NO_BREATH_DAMAGE_RATE_TICKS == 0) {
-                entity.attackEntityFrom(DamageSource.DROWN, 2.0F);
             }
             return;
         }

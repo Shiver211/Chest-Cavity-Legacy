@@ -57,7 +57,6 @@ item.chestcavity.venom_gland.name=毒腺
 message.chestcavity.chest_opener_unavailable=现在无法打开胸腔
 organscore.chestcavity.breath=%s呼吸
 organscore.chestcavity.breath_capacity=%s肺活量
-organscore.chestcavity.breath_recovery=%s呼吸恢复
 organscore.chestcavity.buoyant=%s浮力
 organscore.chestcavity.carnivorous_digestion=%s肉食消化
 organscore.chestcavity.carnivorous_nutrition=%s肉食营养

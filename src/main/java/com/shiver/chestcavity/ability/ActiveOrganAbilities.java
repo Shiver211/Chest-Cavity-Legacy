@@ -59,7 +59,7 @@ public final class ActiveOrganAbilities {
     public static final ResourceLocation SHULKER_BULLETS = CCOrganScores.SHULKER_BULLETS;
     public static final ResourceLocation SILK = CCOrganScores.SILK;
 
-    private static final float BUOYANT_BREATH_RECOVERY_COST = 4.5F;
+    private static final float BUOYANT_AIR_COST = 4.5F;
     private static final float DRAGON_BOMB_EXHAUSTION = 0.6F;
     private static final double DRAGON_BOMB_RECOIL = 0.2D;
     private static final float DRAGON_BREATH_EXHAUSTION = 0.6F;
@@ -189,12 +189,12 @@ public final class ActiveOrganAbilities {
             return false;
         }
 
-        float breathRecovery = chestCavity.getOrganScore(CCOrganScores.BREATH_RECOVERY);
-        if (breathRecovery <= 0.0F) {
+        float buoyancy = chestCavity.getOrganScore(BUOYANT);
+        if (buoyancy <= 0.0F) {
             return false;
         }
 
-        float airLoss = breathRecovery * BUOYANT_BREATH_RECOVERY_COST + chestCavity.getLungRemainder();
+        float airLoss = buoyancy * BUOYANT_AIR_COST + chestCavity.getLungRemainder();
         int wholeAirLoss = (int) airLoss;
         chestCavity.setLungRemainder(airLoss - wholeAirLoss);
         if (wholeAirLoss <= 0) {
@@ -202,7 +202,7 @@ public final class ActiveOrganAbilities {
         }
 
         player.setAir(Math.max(0, player.getAir() - wholeAirLoss));
-        player.motionY -= Math.min(0.5D, breathRecovery * CCConfig.BUOYANCY_LIFT * BUOYANT_BREATH_RECOVERY_COST);
+        player.motionY -= Math.min(0.5D, buoyancy * CCConfig.BUOYANCY_LIFT * BUOYANT_AIR_COST);
         player.velocityChanged = true;
         return true;
     }
