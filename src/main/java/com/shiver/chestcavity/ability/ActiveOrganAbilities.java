@@ -136,10 +136,11 @@ public final class ActiveOrganAbilities {
     }
 
     private static boolean activateFurnacePowered(EntityPlayerMP player, IChestCavity chestCavity) {
-        int furnacePowered = Math.round(chestCavity.getOrganScore(FURNACE_POWERED));
-        if (furnacePowered < 1) {
+        float furnacePoweredScore = chestCavity.getOrganScore(FURNACE_POWERED);
+        if (furnacePoweredScore <= 0.0F) {
             return false;
         }
+        int furnacePowered = Math.max(1, Math.round(furnacePoweredScore));
 
         if (FurnacePower.getActiveLayerCount(player) >= furnacePowered) {
             return false;
@@ -208,7 +209,7 @@ public final class ActiveOrganAbilities {
 
     private static boolean activateCreepy(EntityPlayerMP player, IChestCavity chestCavity) {
         float creepy = chestCavity.getOrganScore(CREEPY);
-        if (creepy < 1.0F || player.isPotionActive(CCPotions.EXPLOSION_COOLDOWN)) {
+        if (creepy <= 0.0F || player.isPotionActive(CCPotions.EXPLOSION_COOLDOWN)) {
             return false;
         }
 
@@ -253,11 +254,11 @@ public final class ActiveOrganAbilities {
 
     private static boolean activatePyromancy(EntityPlayerMP player, IChestCavity chestCavity) {
         float pyromancy = chestCavity.getOrganScore(PYROMANCY);
-        if (pyromancy < 1.0F || player.isPotionActive(CCPotions.PYROMANCY_COOLDOWN)) {
+        if (pyromancy <= 0.0F || player.isPotionActive(CCPotions.PYROMANCY_COOLDOWN)) {
             return false;
         }
 
-        int fireballs = (int) pyromancy;
+        int fireballs = Math.max(1, (int) pyromancy);
         Vec3d look = player.getLookVec().normalize();
         if (look == Vec3d.ZERO) {
             return false;
@@ -279,7 +280,7 @@ public final class ActiveOrganAbilities {
 
     private static boolean activateDragonBombs(EntityPlayerMP player, IChestCavity chestCavity) {
         float dragonBombs = chestCavity.getOrganScore(DRAGON_BOMBS);
-        if (dragonBombs < 1.0F || player.isPotionActive(CCPotions.DRAGON_BOMB_COOLDOWN)) {
+        if (dragonBombs <= 0.0F || player.isPotionActive(CCPotions.DRAGON_BOMB_COOLDOWN)) {
             return false;
         }
 
@@ -288,7 +289,7 @@ public final class ActiveOrganAbilities {
             return false;
         }
 
-        int bombs = (int) dragonBombs;
+        int bombs = Math.max(1, (int) dragonBombs);
         for (int i = 0; i < bombs; i++) {
             chestCavity.enqueueProjectileAbility(DRAGON_BOMBS);
         }
@@ -320,7 +321,7 @@ public final class ActiveOrganAbilities {
 
     private static boolean activateForcefulSpit(EntityPlayerMP player, IChestCavity chestCavity) {
         float forcefulSpit = chestCavity.getOrganScore(FORCEFUL_SPIT);
-        if (forcefulSpit < 1.0F || player.isPotionActive(CCPotions.FORCEFUL_SPIT_COOLDOWN)) {
+        if (forcefulSpit <= 0.0F || player.isPotionActive(CCPotions.FORCEFUL_SPIT_COOLDOWN)) {
             return false;
         }
 
@@ -329,7 +330,7 @@ public final class ActiveOrganAbilities {
             return false;
         }
 
-        int projectiles = (int) forcefulSpit;
+        int projectiles = Math.max(1, (int) forcefulSpit);
         for (int i = 0; i < projectiles; i++) {
             chestCavity.enqueueProjectileAbility(FORCEFUL_SPIT);
         }
@@ -343,7 +344,7 @@ public final class ActiveOrganAbilities {
 
     private static boolean activateGhastly(EntityPlayerMP player, IChestCavity chestCavity) {
         float ghastly = chestCavity.getOrganScore(GHASTLY);
-        if (ghastly < 1.0F || player.isPotionActive(CCPotions.GHASTLY_COOLDOWN)) {
+        if (ghastly <= 0.0F || player.isPotionActive(CCPotions.GHASTLY_COOLDOWN)) {
             return false;
         }
 
@@ -352,7 +353,7 @@ public final class ActiveOrganAbilities {
             return false;
         }
 
-        int fireballs = (int) ghastly;
+        int fireballs = Math.max(1, (int) ghastly);
         for (int i = 0; i < fireballs; i++) {
             chestCavity.enqueueProjectileAbility(GHASTLY);
         }
@@ -366,7 +367,7 @@ public final class ActiveOrganAbilities {
 
     private static boolean activateShulkerBullets(EntityPlayerMP player, IChestCavity chestCavity) {
         float shulkerBullets = chestCavity.getOrganScore(SHULKER_BULLETS);
-        if (shulkerBullets < 1.0F || player.isPotionActive(CCPotions.SHULKER_BULLET_COOLDOWN)) {
+        if (shulkerBullets <= 0.0F || player.isPotionActive(CCPotions.SHULKER_BULLET_COOLDOWN)) {
             return false;
         }
 
@@ -375,7 +376,7 @@ public final class ActiveOrganAbilities {
             return false;
         }
 
-        int bullets = (int) shulkerBullets;
+        int bullets = Math.max(1, (int) shulkerBullets);
         for (int i = 0; i < bullets; i++) {
             chestCavity.enqueueProjectileAbility(SHULKER_BULLETS);
         }
