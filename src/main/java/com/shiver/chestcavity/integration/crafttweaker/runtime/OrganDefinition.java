@@ -12,8 +12,15 @@ public class OrganDefinition {
     private final ResourceLocation itemId;
     private final boolean pseudoOrgan;
     private final Map<ResourceLocation, Float> organScores = new LinkedHashMap<ResourceLocation, Float>();
+    private final Object canInsertCallback;
+    private final Object canRemoveCallback;
+    private final Object insertedCallback;
+    private final Object removedCallback;
+    private final Object tickCallback;
 
-    public OrganDefinition(ResourceLocation itemId, boolean pseudoOrgan, Map<ResourceLocation, Float> organScores) {
+    public OrganDefinition(ResourceLocation itemId, boolean pseudoOrgan, Map<ResourceLocation, Float> organScores,
+                           Object canInsertCallback, Object canRemoveCallback, Object insertedCallback,
+                           Object removedCallback, Object tickCallback) {
         if (itemId == null) {
             throw new IllegalArgumentException("itemId cannot be null");
         }
@@ -22,6 +29,11 @@ public class OrganDefinition {
         if (organScores != null) {
             this.organScores.putAll(organScores);
         }
+        this.canInsertCallback = canInsertCallback;
+        this.canRemoveCallback = canRemoveCallback;
+        this.insertedCallback = insertedCallback;
+        this.removedCallback = removedCallback;
+        this.tickCallback = tickCallback;
     }
 
     public ResourceLocation getItemId() {
@@ -34,6 +46,26 @@ public class OrganDefinition {
 
     public Map<ResourceLocation, Float> getOrganScores() {
         return Collections.unmodifiableMap(organScores);
+    }
+
+    public Object getCanInsertCallback() {
+        return canInsertCallback;
+    }
+
+    public Object getCanRemoveCallback() {
+        return canRemoveCallback;
+    }
+
+    public Object getInsertedCallback() {
+        return insertedCallback;
+    }
+
+    public Object getRemovedCallback() {
+        return removedCallback;
+    }
+
+    public Object getTickCallback() {
+        return tickCallback;
     }
 
     public OrganData toOrganData() {

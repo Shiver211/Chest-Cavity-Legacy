@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.integration.crafttweaker.representation;
 
+import com.shiver.chestcavity.integration.crafttweaker.callback.OrganCallbacks;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.CtConstants;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.CtUtil;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.OrganDefinition;
@@ -23,6 +24,21 @@ public class OrganDefinitionRepresentation {
     @ZenProperty
     public boolean pseudoOrgan;
 
+    @ZenProperty
+    public OrganCallbacks.CanInsert canInsert;
+
+    @ZenProperty
+    public OrganCallbacks.CanRemove canRemove;
+
+    @ZenProperty
+    public OrganCallbacks.OnInserted onInserted;
+
+    @ZenProperty
+    public OrganCallbacks.OnRemoved onRemoved;
+
+    @ZenProperty
+    public OrganCallbacks.OnTick onTick;
+
     private final Map<ResourceLocation, Float> organScores = new LinkedHashMap<ResourceLocation, Float>();
 
     public OrganDefinitionRepresentation(IItemStack stack) {
@@ -45,7 +61,7 @@ public class OrganDefinitionRepresentation {
         if (itemId == null) {
             throw new IllegalArgumentException("defineOrgan 需要有效的物品");
         }
-        OrganRegistry.register(new OrganDefinition(itemId, pseudoOrgan, organScores));
+        OrganRegistry.register(new OrganDefinition(itemId, pseudoOrgan, organScores, canInsert, canRemove, onInserted, onRemoved, onTick));
         CtUtil.logRegistration("Registered Chest Cavity script organ for %s", itemId);
     }
 }

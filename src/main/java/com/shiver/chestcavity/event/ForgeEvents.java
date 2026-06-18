@@ -95,7 +95,7 @@ public final class ForgeEvents {
     public static void livingHurt(LivingHurtEvent event) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityLiving());
         if (chestCavity != null) {
-            float amount = ChestCavityHelper.applyScriptIncomingDamage(event.getEntityLiving(), chestCavity, event.getAmount());
+            float amount = ChestCavityHelper.applyScriptIncomingDamage(event.getEntityLiving(), chestCavity, event.getSource(), event.getAmount());
             event.setAmount(ChestCavityHelper.applyDefense(chestCavity, event.getSource(), amount));
         }
     }
@@ -128,6 +128,9 @@ public final class ForgeEvents {
     @SubscribeEvent
     public static void potionApplicable(PotionEvent.PotionApplicableEvent event) {
         ChestCavityHelper.adjustIncomingPotionEffect(event.getEntityLiving(), event.getPotionEffect());
+        if (event.getPotionEffect() == null || event.getPotionEffect().getPotion() == null) {
+            event.setResult(net.minecraftforge.fml.common.eventhandler.Event.Result.DENY);
+        }
     }
 
     @SubscribeEvent
@@ -206,7 +209,13 @@ public final class ForgeEvents {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityPlayer());
         if (chestCavity != null) {
             float speed = event.getNewSpeed() * ChestCavityHelper.getMiningSpeedMultiplier(chestCavity);
-            event.setNewSpeed(ChestCavityHelper.applyScriptBreakSpeed(event.getEntityPlayer(), chestCavity, speed));
+            event.setNewSpeed(ChestCavityHelper.applyScriptBreakSpeed(
+                    event.getEntityPlayer(),
+                    chestCavity,
+                    speed,
+                    event.getState(),
+                    event.getPos(),
+                    event.getEntityPlayer().getHeldItemMainhand()));
         }
     }
 

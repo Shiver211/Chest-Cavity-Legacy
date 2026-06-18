@@ -29,7 +29,12 @@ public class OrganItemContent extends ItemContent implements IOrganDefinitionPro
             OrganRegistry.register(new OrganDefinition(
                     getRegistryName(),
                     organData.isPseudoOrgan(),
-                    organData.getOrganScoresView()));
+                    organData.getOrganScoresView(),
+                    representation.canInsert,
+                    representation.canRemove,
+                    representation.onInserted,
+                    representation.onRemoved,
+                    representation.onTick));
         }
     }
 

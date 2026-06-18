@@ -1,6 +1,7 @@
 package com.shiver.chestcavity.integration.crafttweaker.representation;
 
 import com.shiver.chestcavity.chest.organs.OrganData;
+import com.shiver.chestcavity.integration.crafttweaker.callback.OrganCallbacks;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.CtConstants;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.CtUtil;
 import com.teamacronymcoders.base.registrysystem.ItemRegistry;
@@ -21,6 +22,21 @@ public class OrganItemRepresentation extends ItemRepresentation {
 
     @ZenProperty
     public boolean pseudoOrgan;
+
+    @ZenProperty
+    public OrganCallbacks.CanInsert canInsert;
+
+    @ZenProperty
+    public OrganCallbacks.CanRemove canRemove;
+
+    @ZenProperty
+    public OrganCallbacks.OnInserted onInserted;
+
+    @ZenProperty
+    public OrganCallbacks.OnRemoved onRemoved;
+
+    @ZenProperty
+    public OrganCallbacks.OnTick onTick;
 
     private final Map<ResourceLocation, Float> organScores = new LinkedHashMap<ResourceLocation, Float>();
 

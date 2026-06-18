@@ -6,12 +6,14 @@ import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.entity.EntityForcefulSpit;
 import com.shiver.chestcavity.integration.crafttweaker.callback.AbilityCallbacks;
+import com.shiver.chestcavity.integration.crafttweaker.context.SkillActivateContext;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.AbilityDefinition;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.AbilityRegistry;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.RuntimeStateRegistry;
+import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.potion.FurnacePower;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import com.shiver.chestcavity.registry.CCPotions;
-import crafttweaker.api.minecraft.CraftTweakerMC;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -112,6 +114,48 @@ public final class ActiveOrganAbilities {
             }
         }
         return result;
+    }
+
+    public static void tickScriptAbilities(EntityLivingBase entity, IChestCavity chestCavity) {
+        if (!(entity instanceof EntityPlayerMP) || chestCavity == null) {
+            return;
+        }
+        EntityPlayerMP player = (EntityPlayerMP) entity;
+        for (Map.Entry<ResourceLocation, AbilityDefinition> entry : AbilityRegistry.getDefinitions().entrySet()) {
+            ResourceLocation abilityId = entry.getKey();
+            AbilityDefinition definition = entry.getValue();
+            com.shiver.chestcavity.integration.crafttweaker.runtime.ScriptDataRuntime data =
+                    RuntimeStateRegistry.getAbilityData(player, abilityId);
+
+            int cooldown = data.getInt("__cooldown");
+            if (cooldown > 0) {
+                data.setInt("__cooldown", cooldown - 1);
+            }
+
+            int activeTicks = data.getInt("__active_ticks");
+            if (activeTicks <= 0) {
+                continue;
+            }
+
+            SkillActivateContext context = new SkillActivateContext(player, abilityId, chestCavity.getOrganScore(abilityId), 0.0F, data);
+            context.setActiveTicks(activeTicks);
+            int tickIndex = data.getInt("__active_tick_index");
+            data.setInt("__active_tick_index", tickIndex + 1);
+            if (definition.getActiveTickContextCallback() instanceof AbilityCallbacks.OnActiveTickContext) {
+                ((AbilityCallbacks.OnActiveTickContext) definition.getActiveTickContextCallback()).handle(context);
+            }
+            if (context.isCancelled()) {
+                data.setInt("__active_ticks", 0);
+            } else {
+                int nextTicks = context.getActiveTicks() > 0 ? context.getActiveTicks() - 1 : activeTicks - 1;
+                data.setInt("__active_ticks", Math.max(0, nextTicks));
+            }
+            if (data.getInt("__active_ticks") <= 0 && definition.getEndContextCallback() instanceof AbilityCallbacks.OnEndContext) {
+                SkillActivateContext endContext = new SkillActivateContext(player, abilityId, chestCavity.getOrganScore(abilityId), 0.0F, data);
+                ((AbilityCallbacks.OnEndContext) definition.getEndContextCallback()).handle(endContext);
+                data.setInt("__active_tick_index", 0);
+            }
+        }
     }
 
     public static boolean fireQueuedProjectile(EntityLivingBase entity, IChestCavity chestCavity, ResourceLocation abilityId) {
@@ -470,15 +514,54 @@ public final class ActiveOrganAbilities {
             ChestCavityLegacy.LOGGER.debug("Ignoring unknown active organ ability {}.", abilityId);
             return false;
         }
-        Object callback = definition.getActivateCallback();
-        if (!(callback instanceof AbilityCallbacks.OnActivate)) {
-            ChestCavityLegacy.LOGGER.debug("Ignoring script organ ability {} because no activate callback is registered.", abilityId);
+        com.shiver.chestcavity.integration.crafttweaker.runtime.ScriptDataRuntime abilityData = RuntimeStateRegistry.getAbilityData(player, abilityId);
+        if (abilityData.getInt("__cooldown") > 0) {
             return false;
         }
-        return ((AbilityCallbacks.OnActivate) callback).handle(
-                CraftTweakerMC.getIPlayer(player),
-                abilityId.toString(),
-                chestCavity.getOrganScore(abilityId));
+        SkillActivateContext context = new SkillActivateContext(player, abilityId, chestCavity.getOrganScore(abilityId), 0.0F, abilityData);
+        if (definition.getCanActivateContextCallback() instanceof AbilityCallbacks.CanActivateContext
+                && !((AbilityCallbacks.CanActivateContext) definition.getCanActivateContextCallback()).handle(context)) {
+            return false;
+        }
+        if (definition.getCooldownContextCallback() instanceof AbilityCallbacks.GetCooldownContext) {
+            context.setCooldown(((AbilityCallbacks.GetCooldownContext) definition.getCooldownContextCallback()).handle(context));
+        }
+        if (definition.getCostContextCallback() instanceof AbilityCallbacks.GetCostContext) {
+            context.setCost(((AbilityCallbacks.GetCostContext) definition.getCostContextCallback()).handle(context));
+        }
+        if (definition.getActivateClientContextCallback() instanceof AbilityCallbacks.OnActivateClientContext) {
+            ChestCavityNetwork.sendScriptAbilityClientActivation(player, abilityId);
+        }
+        if (definition.getActivateServerContextCallback() instanceof AbilityCallbacks.OnActivateServerContext) {
+            ((AbilityCallbacks.OnActivateServerContext) definition.getActivateServerContextCallback()).handle(context);
+            if (context.getCost() > 0.0F) {
+                player.addExhaustion(context.getCost());
+            }
+            if (context.getCooldown() > 0) {
+                abilityData.setInt("__cooldown", context.getCooldown());
+            }
+            if (context.getActiveTicks() > 0) {
+                abilityData.setInt("__active_ticks", context.getActiveTicks());
+                abilityData.setInt("__active_tick_index", 0);
+            }
+            return !context.isCancelled();
+        }
+        if (definition.getActivateContextCallback() instanceof AbilityCallbacks.OnActivateContext) {
+            ((AbilityCallbacks.OnActivateContext) definition.getActivateContextCallback()).handle(context);
+            if (context.getCost() > 0.0F) {
+                player.addExhaustion(context.getCost());
+            }
+            if (context.getCooldown() > 0) {
+                abilityData.setInt("__cooldown", context.getCooldown());
+            }
+            if (context.getActiveTicks() > 0) {
+                abilityData.setInt("__active_ticks", context.getActiveTicks());
+                abilityData.setInt("__active_tick_index", 0);
+            }
+            return !context.isCancelled();
+        }
+        ChestCavityLegacy.LOGGER.debug("Ignoring script organ ability {} because no activate callback is registered.", abilityId);
+        return false;
     }
 
     private static Vec3d getNormalizedLook(EntityPlayerMP player) {

@@ -3,42 +3,34 @@ package com.shiver.chestcavity.integration.crafttweaker.context;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.CtConstants;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.ScriptDataRuntime;
 import crafttweaker.annotations.ZenRegister;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenGetter;
 import stanhebben.zenscript.annotations.ZenMethod;
 
-@ZenClass(CtConstants.CT_NAMESPACE + "BreakSpeedContext")
+@ZenClass(CtConstants.CT_NAMESPACE + "SkillActivateContext")
 @ZenRegister
-public class BreakSpeedContext {
+public class SkillActivateContext {
 
     private final EntityPlayer player;
-    private final ResourceLocation scoreId;
+    private final ResourceLocation abilityId;
     private final float value;
     private final float baseValue;
     private final ScriptDataRuntime scriptData;
-    private final IBlockState blockState;
-    private final BlockPos pos;
-    private final ItemStack tool;
-    private final float originalSpeed;
-    private float currentSpeed;
+    private int cooldown;
+    private float cost;
+    private int activeTicks;
+    private boolean cancelled;
 
-    public BreakSpeedContext(EntityPlayer player, ResourceLocation scoreId, float value, float baseValue, ScriptDataRuntime scriptData, IBlockState blockState, BlockPos pos, ItemStack tool, float originalSpeed) {
+    public SkillActivateContext(EntityPlayer player, ResourceLocation abilityId, float value, float baseValue, ScriptDataRuntime scriptData) {
         this.player = player;
-        this.scoreId = scoreId;
+        this.abilityId = abilityId;
         this.value = value;
         this.baseValue = baseValue;
         this.scriptData = scriptData;
-        this.blockState = blockState;
-        this.pos = pos;
-        this.tool = tool;
-        this.originalSpeed = originalSpeed;
-        this.currentSpeed = originalSpeed;
     }
 
     @ZenGetter("player")
@@ -51,9 +43,9 @@ public class BreakSpeedContext {
         return player == null ? null : player.world;
     }
 
-    @ZenGetter("scoreId")
-    public ResourceLocation getScoreId() {
-        return scoreId;
+    @ZenGetter("abilityId")
+    public ResourceLocation getAbilityId() {
+        return abilityId;
     }
 
     @ZenGetter("value")
@@ -76,33 +68,48 @@ public class BreakSpeedContext {
         return scriptData;
     }
 
-    @ZenGetter("blockState")
-    public IBlockState getBlockState() {
-        return blockState;
+    @ZenGetter("lookVec")
+    public Vec3d getLookVec() {
+        return player == null ? Vec3d.ZERO : player.getLookVec();
     }
 
-    @ZenGetter("pos")
-    public BlockPos getPos() {
-        return pos;
-    }
-
-    @ZenGetter("tool")
-    public ItemStack getTool() {
-        return tool;
-    }
-
-    @ZenGetter("originalSpeed")
-    public float getOriginalSpeed() {
-        return originalSpeed;
-    }
-
-    @ZenGetter("currentSpeed")
-    public float getCurrentSpeed() {
-        return currentSpeed;
+    @ZenGetter("cooldown")
+    public int getCooldown() {
+        return cooldown;
     }
 
     @ZenMethod
-    public void setSpeed(float currentSpeed) {
-        this.currentSpeed = currentSpeed;
+    public void setCooldown(int cooldown) {
+        this.cooldown = cooldown;
+    }
+
+    @ZenGetter("cost")
+    public float getCost() {
+        return cost;
+    }
+
+    @ZenMethod
+    public void setCost(float cost) {
+        this.cost = cost;
+    }
+
+    @ZenGetter("cancelled")
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @ZenMethod
+    public void cancel() {
+        this.cancelled = true;
+    }
+
+    @ZenGetter("activeTicks")
+    public int getActiveTicks() {
+        return activeTicks;
+    }
+
+    @ZenMethod
+    public void setActiveTicks(int activeTicks) {
+        this.activeTicks = activeTicks;
     }
 }

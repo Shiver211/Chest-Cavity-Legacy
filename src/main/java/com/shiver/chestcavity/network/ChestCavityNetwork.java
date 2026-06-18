@@ -29,7 +29,8 @@ public final class ChestCavityNetwork {
             int id = 0;
             CHANNEL.registerMessage(MessageChestCavitySync.Handler.class, MessageChestCavitySync.class, id++, Side.CLIENT);
             CHANNEL.registerMessage(MessageHotkeyActivation.Handler.class, MessageHotkeyActivation.class, id++, Side.SERVER);
-            CHANNEL.registerMessage(MessageOrganDataSync.Handler.class, MessageOrganDataSync.class, id, Side.CLIENT);
+            CHANNEL.registerMessage(MessageOrganDataSync.Handler.class, MessageOrganDataSync.class, id++, Side.CLIENT);
+            CHANNEL.registerMessage(MessageScriptAbilityClientActivation.Handler.class, MessageScriptAbilityClientActivation.class, id, Side.CLIENT);
             registered = true;
         }
         return true;
@@ -69,6 +70,14 @@ public final class ChestCavityNetwork {
     public static void sendHotkeyActivation(ResourceLocation abilityId) {
         register();
         CHANNEL.sendToServer(new MessageHotkeyActivation(abilityId));
+    }
+
+    public static void sendScriptAbilityClientActivation(EntityPlayerMP player, ResourceLocation abilityId) {
+        if (player == null || abilityId == null) {
+            return;
+        }
+        register();
+        CHANNEL.sendTo(new MessageScriptAbilityClientActivation(abilityId), player);
     }
 
     static void handleClientMessage(String methodName, IMessage message) {

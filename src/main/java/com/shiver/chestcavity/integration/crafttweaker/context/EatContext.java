@@ -4,27 +4,28 @@ import com.shiver.chestcavity.integration.crafttweaker.runtime.CtConstants;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.ScriptDataRuntime;
 import crafttweaker.annotations.ZenRegister;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenGetter;
 
-@ZenClass(CtConstants.CT_NAMESPACE + "ScoreChangeContext")
+@ZenClass(CtConstants.CT_NAMESPACE + "EatContext")
 @ZenRegister
-public class ScoreChangeContext {
+public class EatContext {
 
     private final EntityLivingBase entity;
+    private final ItemStack food;
     private final ResourceLocation scoreId;
-    private final float oldValue;
-    private final float newValue;
+    private final float value;
     private final float baseValue;
     private final ScriptDataRuntime scriptData;
 
-    public ScoreChangeContext(EntityLivingBase entity, ResourceLocation scoreId, float oldValue, float newValue, float baseValue, ScriptDataRuntime scriptData) {
+    public EatContext(EntityLivingBase entity, ItemStack food, ResourceLocation scoreId, float value, float baseValue, ScriptDataRuntime scriptData) {
         this.entity = entity;
+        this.food = food;
         this.scoreId = scoreId;
-        this.oldValue = oldValue;
-        this.newValue = newValue;
+        this.value = value;
         this.baseValue = baseValue;
         this.scriptData = scriptData;
     }
@@ -39,19 +40,19 @@ public class ScoreChangeContext {
         return entity == null ? null : entity.world;
     }
 
+    @ZenGetter("food")
+    public ItemStack getFood() {
+        return food;
+    }
+
     @ZenGetter("scoreId")
     public ResourceLocation getScoreId() {
         return scoreId;
     }
 
-    @ZenGetter("oldValue")
-    public float getOldValue() {
-        return oldValue;
-    }
-
-    @ZenGetter("newValue")
-    public float getNewValue() {
-        return newValue;
+    @ZenGetter("value")
+    public float getValue() {
+        return value;
     }
 
     @ZenGetter("baseValue")
@@ -61,12 +62,7 @@ public class ScoreChangeContext {
 
     @ZenGetter("extraValue")
     public float getExtraValue() {
-        return newValue - baseValue;
-    }
-
-    @ZenGetter("deltaValue")
-    public float getDeltaValue() {
-        return newValue - oldValue;
+        return value - baseValue;
     }
 
     @ZenGetter("scriptData")

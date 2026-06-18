@@ -1,5 +1,11 @@
 package com.shiver.chestcavity.capability;
 
+import com.shiver.chestcavity.integration.crafttweaker.callback.OrganCallbacks;
+import com.shiver.chestcavity.integration.crafttweaker.context.OrganInsertContext;
+import com.shiver.chestcavity.integration.crafttweaker.context.OrganRemoveContext;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.OrganDefinition;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.OrganRegistry;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.RuntimeStateRegistry;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -371,7 +377,42 @@ public class ChestCavityData implements IChestCavity {
             if (ChestCavityHelper.isSlotForbidden(ChestCavityData.this, slot) && stack != null && !stack.isEmpty()) {
                 return;
             }
+            ItemStack existing = organs.get(slot);
+            if (!existing.isEmpty()) {
+                OrganDefinition existingDefinition = OrganRegistry.get(existing);
+                if (existingDefinition != null && existingDefinition.getCanRemoveCallback() instanceof OrganCallbacks.CanRemove) {
+                    OrganRemoveContext context = new OrganRemoveContext(owner, slot, existing, RuntimeStateRegistry.getEntityData(owner));
+                    ((OrganCallbacks.CanRemove) existingDefinition.getCanRemoveCallback()).handle(context);
+                    if (context.isCancelled()) {
+                        return;
+                    }
+                }
+            }
+            if (!stack.isEmpty()) {
+                OrganDefinition definition = OrganRegistry.get(stack);
+                if (definition != null && definition.getCanInsertCallback() instanceof OrganCallbacks.CanInsert) {
+                    OrganInsertContext context = new OrganInsertContext(owner, slot, stack, RuntimeStateRegistry.getEntityData(owner));
+                    ((OrganCallbacks.CanInsert) definition.getCanInsertCallback()).handle(context);
+                    if (context.isCancelled()) {
+                        return;
+                    }
+                }
+            }
             ChestCavityHelper.setOrganAndRecalculate(ChestCavityData.this, slot, stack);
+            if (!existing.isEmpty()) {
+                OrganDefinition existingDefinition = OrganRegistry.get(existing);
+                if (existingDefinition != null && existingDefinition.getRemovedCallback() instanceof OrganCallbacks.OnRemoved) {
+                    ((OrganCallbacks.OnRemoved) existingDefinition.getRemovedCallback()).handle(
+                            new OrganRemoveContext(owner, slot, existing, RuntimeStateRegistry.getEntityData(owner)));
+                }
+            }
+            if (!stack.isEmpty()) {
+                OrganDefinition insertedDefinition = OrganRegistry.get(stack);
+                if (insertedDefinition != null && insertedDefinition.getInsertedCallback() instanceof OrganCallbacks.OnInserted) {
+                    ((OrganCallbacks.OnInserted) insertedDefinition.getInsertedCallback()).handle(
+                            new OrganInsertContext(owner, slot, stack, RuntimeStateRegistry.getEntityData(owner)));
+                }
+            }
         }
 
         @Override
@@ -412,7 +453,20 @@ public class ChestCavityData implements IChestCavity {
             if (!simulate) {
                 ItemStack result = existing.isEmpty() ? stack.copy() : existing.copy();
                 result.setCount(existing.isEmpty() ? inserted : existing.getCount() + inserted);
+                OrganDefinition definition = OrganRegistry.get(result);
+                if (definition != null && definition.getCanInsertCallback() instanceof OrganCallbacks.CanInsert) {
+                    OrganInsertContext context = new OrganInsertContext(owner, slot, result, RuntimeStateRegistry.getEntityData(owner));
+                    ((OrganCallbacks.CanInsert) definition.getCanInsertCallback()).handle(context);
+                    if (context.isCancelled()) {
+                        return stack;
+                    }
+                }
                 ChestCavityHelper.setOrganAndRecalculate(ChestCavityData.this, slot, result);
+                OrganDefinition insertedDefinition = OrganRegistry.get(result);
+                if (insertedDefinition != null && insertedDefinition.getInsertedCallback() instanceof OrganCallbacks.OnInserted) {
+                    ((OrganCallbacks.OnInserted) insertedDefinition.getInsertedCallback()).handle(
+                            new OrganInsertContext(owner, slot, result, RuntimeStateRegistry.getEntityData(owner)));
+                }
             }
 
             if (inserted >= stack.getCount()) {
@@ -443,7 +497,20 @@ public class ChestCavityData implements IChestCavity {
             if (!simulate) {
                 ItemStack remaining = existing.copy();
                 remaining.shrink(extracted);
+                OrganDefinition definition = OrganRegistry.get(existing);
+                if (definition != null && definition.getCanRemoveCallback() instanceof OrganCallbacks.CanRemove) {
+                    OrganRemoveContext context = new OrganRemoveContext(owner, slot, existing, RuntimeStateRegistry.getEntityData(owner));
+                    ((OrganCallbacks.CanRemove) definition.getCanRemoveCallback()).handle(context);
+                    if (context.isCancelled()) {
+                        return ItemStack.EMPTY;
+                    }
+                }
                 ChestCavityHelper.setOrganAndRecalculate(ChestCavityData.this, slot, remaining.isEmpty() ? ItemStack.EMPTY : remaining);
+                OrganDefinition removedDefinition = OrganRegistry.get(existing);
+                if (removedDefinition != null && removedDefinition.getRemovedCallback() instanceof OrganCallbacks.OnRemoved) {
+                    ((OrganCallbacks.OnRemoved) removedDefinition.getRemovedCallback()).handle(
+                            new OrganRemoveContext(owner, slot, existing, RuntimeStateRegistry.getEntityData(owner)));
+                }
             }
 
             return result;

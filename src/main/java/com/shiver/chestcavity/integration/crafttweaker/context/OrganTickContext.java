@@ -4,27 +4,25 @@ import com.shiver.chestcavity.integration.crafttweaker.runtime.CtConstants;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.ScriptDataRuntime;
 import crafttweaker.annotations.ZenRegister;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenGetter;
 
-@ZenClass(CtConstants.CT_NAMESPACE + "ScoreTickContext")
+@ZenClass(CtConstants.CT_NAMESPACE + "OrganTickContext")
 @ZenRegister
-public class ScoreTickContext {
+public class OrganTickContext {
 
     private final EntityLivingBase entity;
-    private final ResourceLocation scoreId;
-    private final float value;
-    private final float baseValue;
+    private final int slot;
+    private final ItemStack stack;
     private final ScriptDataRuntime scriptData;
     private final boolean client;
 
-    public ScoreTickContext(EntityLivingBase entity, ResourceLocation scoreId, float value, float baseValue, ScriptDataRuntime scriptData, boolean client) {
+    public OrganTickContext(EntityLivingBase entity, int slot, ItemStack stack, ScriptDataRuntime scriptData, boolean client) {
         this.entity = entity;
-        this.scoreId = scoreId;
-        this.value = value;
-        this.baseValue = baseValue;
+        this.slot = slot;
+        this.stack = stack;
         this.scriptData = scriptData;
         this.client = client;
     }
@@ -39,24 +37,14 @@ public class ScoreTickContext {
         return entity == null ? null : entity.world;
     }
 
-    @ZenGetter("scoreId")
-    public ResourceLocation getScoreId() {
-        return scoreId;
+    @ZenGetter("slot")
+    public int getSlot() {
+        return slot;
     }
 
-    @ZenGetter("value")
-    public float getValue() {
-        return value;
-    }
-
-    @ZenGetter("baseValue")
-    public float getBaseValue() {
-        return baseValue;
-    }
-
-    @ZenGetter("extraValue")
-    public float getExtraValue() {
-        return value - baseValue;
+    @ZenGetter("stack")
+    public ItemStack getStack() {
+        return stack;
     }
 
     @ZenGetter("scriptData")

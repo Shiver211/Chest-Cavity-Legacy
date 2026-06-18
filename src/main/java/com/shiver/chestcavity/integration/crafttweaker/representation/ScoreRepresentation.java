@@ -32,31 +32,37 @@ public class ScoreRepresentation {
     public int sortOrder;
 
     @ZenProperty
-    public ScoreCallbacks.OnScoreChanged onScoreChanged;
+    public ScoreCallbacks.OnValueChangedContext onValueChangedContext;
 
     @ZenProperty
-    public ScoreCallbacks.OnServerTick onServerTick;
+    public ScoreCallbacks.OnBecameActiveContext onBecameActiveContext;
 
     @ZenProperty
-    public ScoreCallbacks.OnClientTick onClientTick;
+    public ScoreCallbacks.OnBecameInactiveContext onBecameInactiveContext;
 
     @ZenProperty
-    public ScoreCallbacks.OnBreakSpeed onBreakSpeed;
+    public ScoreCallbacks.OnServerTickContext onServerTickContext;
 
     @ZenProperty
-    public ScoreCallbacks.OnIncomingDamage onIncomingDamage;
+    public ScoreCallbacks.OnClientTickContext onClientTickContext;
 
     @ZenProperty
-    public ScoreCallbacks.OnAttackTarget onAttackTarget;
+    public ScoreCallbacks.OnBreakSpeedContext onBreakSpeedContext;
 
     @ZenProperty
-    public ScoreCallbacks.OnJump onJump;
+    public ScoreCallbacks.OnIncomingDamageContext onIncomingDamageContext;
 
     @ZenProperty
-    public ScoreCallbacks.OnEat onEat;
+    public ScoreCallbacks.OnAttackTargetContext onAttackTargetContext;
 
     @ZenProperty
-    public ScoreCallbacks.OnPotionIncoming onPotionIncoming;
+    public ScoreCallbacks.OnJumpContext onJumpContext;
+
+    @ZenProperty
+    public ScoreCallbacks.OnEatContext onEatContext;
+
+    @ZenProperty
+    public ScoreCallbacks.OnPotionIncomingContext onPotionIncomingContext;
 
     public ScoreRepresentation(String id) {
         this.id = CtUtil.requireId(id, "score");
@@ -65,15 +71,17 @@ public class ScoreRepresentation {
     @ZenMethod
     public void register() {
         ScoreCallbackSet callbacks = new ScoreCallbackSet();
-        callbacks.set(ScoreEvent.SCORE_CHANGED, onScoreChanged);
-        callbacks.set(ScoreEvent.SERVER_TICK, onServerTick);
-        callbacks.set(ScoreEvent.CLIENT_TICK, onClientTick);
-        callbacks.set(ScoreEvent.BREAK_SPEED, onBreakSpeed);
-        callbacks.set(ScoreEvent.INCOMING_DAMAGE, onIncomingDamage);
-        callbacks.set(ScoreEvent.ATTACK_TARGET, onAttackTarget);
-        callbacks.set(ScoreEvent.JUMP, onJump);
-        callbacks.set(ScoreEvent.EAT, onEat);
-        callbacks.set(ScoreEvent.POTION_INCOMING, onPotionIncoming);
+        callbacks.set(ScoreEvent.BECAME_ACTIVE, onBecameActiveContext);
+        callbacks.set(ScoreEvent.BECAME_INACTIVE, onBecameInactiveContext);
+        callbacks.set(ScoreEvent.SCORE_CHANGED, onValueChangedContext);
+        callbacks.set(ScoreEvent.SERVER_TICK, onServerTickContext);
+        callbacks.set(ScoreEvent.CLIENT_TICK, onClientTickContext);
+        callbacks.set(ScoreEvent.BREAK_SPEED, onBreakSpeedContext);
+        callbacks.set(ScoreEvent.INCOMING_DAMAGE, onIncomingDamageContext);
+        callbacks.set(ScoreEvent.ATTACK_TARGET, onAttackTargetContext);
+        callbacks.set(ScoreEvent.JUMP, onJumpContext);
+        callbacks.set(ScoreEvent.EAT, onEatContext);
+        callbacks.set(ScoreEvent.POTION_INCOMING, onPotionIncomingContext);
         ScoreRegistry.register(new ScoreDefinition(id, translationKey, displayName, negative, sortOrder, callbacks));
         CtUtil.logRegistration("Registered Chest Cavity script score %s", id);
     }

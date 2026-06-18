@@ -6,6 +6,11 @@ import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
+import com.shiver.chestcavity.integration.crafttweaker.callback.OrganCallbacks;
+import com.shiver.chestcavity.integration.crafttweaker.context.OrganTickContext;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.OrganDefinition;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.OrganRegistry;
+import com.shiver.chestcavity.integration.crafttweaker.runtime.RuntimeStateRegistry;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.IOrganDefinitionProvider;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.EventDispatcher;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
@@ -74,6 +79,7 @@ public final class ChestCavityHelper {
     private static final UUID KNOCKBACK_RESISTANCE_MODIFIER_ID = UUID.fromString("b54ff8c5-fb1d-40eb-9d41-c02580505470");
     private static final UUID SWIM_SPEED_MODIFIER_ID = UUID.fromString("32d5f52b-796a-4194-a8e3-1acb45f5a365");
     private static final Field POTION_EFFECT_DURATION_FIELD = findPotionEffectDurationField();
+    private static final Field POTION_EFFECT_AMPLIFIER_FIELD = findPotionEffectAmplifierField();
     private static final float DEFENSE_HALF_DAMAGE_STEP = 4.0F;
     private static final DamageSource HEART_BLEED_DAMAGE = new DamageSource("cc_heartbleed").setDamageBypassesArmor();
     private static final int HYDROPHOBIA_INTERVAL_TICKS = 20;
@@ -124,10 +130,13 @@ public final class ChestCavityHelper {
             tickBreathing(entity, chestCavity);
             tickMetabolism(entity, chestCavity);
             tickProjectileQueue(entity, chestCavity);
+            ActiveOrganAbilities.tickScriptAbilities(entity, chestCavity);
+            tickOrganCallbacks(entity, chestCavity, false);
             tickPassiveEffects(entity, chestCavity);
             tickOrganRejection(entity, chestCavity);
             EventDispatcher.fireTick(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores(), false);
         } else {
+            tickOrganCallbacks(entity, chestCavity, true);
             EventDispatcher.fireTick(entity, chestCavity.getOrganScores(), type.getDefaultOrganScores(), true);
         }
 
@@ -228,11 +237,11 @@ public final class ChestCavityHelper {
         return Math.max(0.0F, multiplier);
     }
 
-    public static float applyScriptBreakSpeed(EntityLivingBase entity, IChestCavity chestCavity, float currentSpeed) {
+    public static float applyScriptBreakSpeed(EntityPlayer entity, IChestCavity chestCavity, float currentSpeed, IBlockState blockState, BlockPos pos, ItemStack tool) {
         if (entity == null || chestCavity == null) {
             return currentSpeed;
         }
-        return EventDispatcher.modifyBreakSpeed(entity, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores(), currentSpeed);
+        return EventDispatcher.modifyBreakSpeed(entity, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores(), currentSpeed, blockState, pos, tool);
     }
 
     public static float applyDefense(IChestCavity chestCavity, DamageSource source, float damage) {
@@ -264,11 +273,11 @@ public final class ChestCavityHelper {
         return damage;
     }
 
-    public static float applyScriptIncomingDamage(EntityLivingBase entity, IChestCavity chestCavity, float damage) {
+    public static float applyScriptIncomingDamage(EntityLivingBase entity, IChestCavity chestCavity, DamageSource source, float damage) {
         if (entity == null || chestCavity == null) {
             return damage;
         }
-        return EventDispatcher.modifyIncomingDamage(entity, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores(), damage);
+        return EventDispatcher.modifyIncomingDamage(entity, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores(), source, damage);
     }
 
     public static boolean attemptProjectileDodge(EntityLivingBase entity, IChestCavity chestCavity, DamageSource source) {
@@ -302,6 +311,10 @@ public final class ChestCavityHelper {
         }
 
         int duration = EventDispatcher.modifyPotionIncoming(entity, effect, chestCavity.getOrganScores(), getChestCavityType(chestCavity).getDefaultOrganScores());
+        if (duration < 0) {
+            invalidatePotionEffect(effect);
+            return;
+        }
         if (duration > 0 && duration != effect.getDuration()) {
             setPotionDuration(effect, duration);
         }
@@ -882,6 +895,24 @@ public final class ChestCavityHelper {
         }
     }
 
+    private static void tickOrganCallbacks(EntityLivingBase entity, IChestCavity chestCavity, boolean client) {
+        if (entity == null || chestCavity == null) {
+            return;
+        }
+        for (int slot = 0; slot < chestCavity.getSlotCount(); slot++) {
+            ItemStack stack = chestCavity.getOrgan(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            OrganDefinition definition = OrganRegistry.get(stack);
+            if (definition == null || !(definition.getTickCallback() instanceof OrganCallbacks.OnTick)) {
+                continue;
+            }
+            ((OrganCallbacks.OnTick) definition.getTickCallback()).handle(
+                    new OrganTickContext(entity, slot, stack, RuntimeStateRegistry.getEntityData(entity), client));
+        }
+    }
+
     private static void onScoreChanged(IChestCavity chestCavity) {
         if (chestCavity.getOrganScore(CCOrganScores.FILTRATION) >= chestCavity.getOldOrganScore(CCOrganScores.FILTRATION)) {
             chestCavity.setBloodPoisonTimer(0);
@@ -902,6 +933,8 @@ public final class ChestCavityHelper {
         }
 
         if (hasScoreChanges(chestCavity)) {
+            EventDispatcher.fireScoreChanged(owner, chestCavity.getOrganScores(), chestCavity.getOldOrganScores());
+            onScoreChanged(chestCavity);
             chestCavity.copyCurrentScoresToOld();
             if (!owner.world.isRemote) {
                 ChestCavityNetwork.sendChestCavitySync(owner);
@@ -1352,9 +1385,36 @@ public final class ChestCavityHelper {
         }
     }
 
+    public static void setPotionAmplifier(PotionEffect effect, int amplifier) {
+        if (POTION_EFFECT_AMPLIFIER_FIELD == null) {
+            return;
+        }
+        try {
+            POTION_EFFECT_AMPLIFIER_FIELD.setInt(effect, amplifier);
+        } catch (IllegalAccessException ignored) {
+        }
+    }
+
+    private static void invalidatePotionEffect(PotionEffect effect) {
+        if (effect == null) {
+            return;
+        }
+        setPotionDuration(effect, 0);
+    }
+
     private static Field findPotionEffectDurationField() {
         try {
             Field field = ReflectionHelper.findField(PotionEffect.class, "duration", "field_76460_b");
+            field.setAccessible(true);
+            return field;
+        } catch (ReflectionHelper.UnableToFindFieldException ignored) {
+            return null;
+        }
+    }
+
+    private static Field findPotionEffectAmplifierField() {
+        try {
+            Field field = ReflectionHelper.findField(PotionEffect.class, "amplifier", "field_76461_c");
             field.setAccessible(true);
             return field;
         } catch (ReflectionHelper.UnableToFindFieldException ignored) {

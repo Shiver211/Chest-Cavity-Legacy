@@ -30,7 +30,28 @@ public class AbilityRepresentation {
     public int sortOrder;
 
     @ZenProperty
-    public AbilityCallbacks.OnActivate onActivate;
+    public AbilityCallbacks.OnActivateContext onActivateContext;
+
+    @ZenProperty
+    public AbilityCallbacks.CanActivateContext canActivateContext;
+
+    @ZenProperty
+    public AbilityCallbacks.GetCooldownContext getCooldownContext;
+
+    @ZenProperty
+    public AbilityCallbacks.GetCostContext getCostContext;
+
+    @ZenProperty
+    public AbilityCallbacks.OnActivateServerContext onActivateServerContext;
+
+    @ZenProperty
+    public AbilityCallbacks.OnActivateClientContext onActivateClientContext;
+
+    @ZenProperty
+    public AbilityCallbacks.OnActiveTickContext onActiveTickContext;
+
+    @ZenProperty
+    public AbilityCallbacks.OnEndContext onEndContext;
 
     public AbilityRepresentation(String id) {
         this.id = CtUtil.requireId(id, "ability");
@@ -38,7 +59,20 @@ public class AbilityRepresentation {
 
     @ZenMethod
     public void register() {
-        AbilityRegistry.register(new AbilityDefinition(id, translationKey, displayName, wheelVisible, sortOrder, onActivate));
+        AbilityRegistry.register(new AbilityDefinition(
+                id,
+                translationKey,
+                displayName,
+                wheelVisible,
+                sortOrder,
+                onActivateContext,
+                canActivateContext,
+                getCooldownContext,
+                getCostContext,
+                onActivateServerContext,
+                onActiveTickContext,
+                onEndContext,
+                onActivateClientContext));
         CtUtil.logRegistration("Registered Chest Cavity script ability %s", id);
     }
 }

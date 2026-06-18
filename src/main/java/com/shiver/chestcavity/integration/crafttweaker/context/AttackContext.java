@@ -9,34 +9,39 @@ import net.minecraft.world.World;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenGetter;
 
-@ZenClass(CtConstants.CT_NAMESPACE + "ScoreChangeContext")
+@ZenClass(CtConstants.CT_NAMESPACE + "AttackContext")
 @ZenRegister
-public class ScoreChangeContext {
+public class AttackContext {
 
-    private final EntityLivingBase entity;
+    private final EntityLivingBase attacker;
+    private final EntityLivingBase target;
     private final ResourceLocation scoreId;
-    private final float oldValue;
-    private final float newValue;
+    private final float value;
     private final float baseValue;
     private final ScriptDataRuntime scriptData;
 
-    public ScoreChangeContext(EntityLivingBase entity, ResourceLocation scoreId, float oldValue, float newValue, float baseValue, ScriptDataRuntime scriptData) {
-        this.entity = entity;
+    public AttackContext(EntityLivingBase attacker, EntityLivingBase target, ResourceLocation scoreId, float value, float baseValue, ScriptDataRuntime scriptData) {
+        this.attacker = attacker;
+        this.target = target;
         this.scoreId = scoreId;
-        this.oldValue = oldValue;
-        this.newValue = newValue;
+        this.value = value;
         this.baseValue = baseValue;
         this.scriptData = scriptData;
     }
 
-    @ZenGetter("entity")
-    public EntityLivingBase getEntity() {
-        return entity;
+    @ZenGetter("attacker")
+    public EntityLivingBase getAttacker() {
+        return attacker;
+    }
+
+    @ZenGetter("target")
+    public EntityLivingBase getTarget() {
+        return target;
     }
 
     @ZenGetter("world")
     public World getWorld() {
-        return entity == null ? null : entity.world;
+        return attacker == null ? null : attacker.world;
     }
 
     @ZenGetter("scoreId")
@@ -44,14 +49,9 @@ public class ScoreChangeContext {
         return scoreId;
     }
 
-    @ZenGetter("oldValue")
-    public float getOldValue() {
-        return oldValue;
-    }
-
-    @ZenGetter("newValue")
-    public float getNewValue() {
-        return newValue;
+    @ZenGetter("value")
+    public float getValue() {
+        return value;
     }
 
     @ZenGetter("baseValue")
@@ -61,12 +61,7 @@ public class ScoreChangeContext {
 
     @ZenGetter("extraValue")
     public float getExtraValue() {
-        return newValue - baseValue;
-    }
-
-    @ZenGetter("deltaValue")
-    public float getDeltaValue() {
-        return newValue - oldValue;
+        return value - baseValue;
     }
 
     @ZenGetter("scriptData")

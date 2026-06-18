@@ -1,10 +1,15 @@
 package com.shiver.chestcavity.integration.crafttweaker.callback;
 
+import com.shiver.chestcavity.integration.crafttweaker.context.AttackContext;
+import com.shiver.chestcavity.integration.crafttweaker.context.BreakSpeedContext;
+import com.shiver.chestcavity.integration.crafttweaker.context.DamageContext;
+import com.shiver.chestcavity.integration.crafttweaker.context.EatContext;
+import com.shiver.chestcavity.integration.crafttweaker.context.JumpContext;
+import com.shiver.chestcavity.integration.crafttweaker.context.PotionContext;
+import com.shiver.chestcavity.integration.crafttweaker.context.ScoreChangeContext;
+import com.shiver.chestcavity.integration.crafttweaker.context.ScoreTickContext;
 import com.shiver.chestcavity.integration.crafttweaker.runtime.CtConstants;
 import crafttweaker.annotations.ZenRegister;
-import crafttweaker.api.entity.IEntityLivingBase;
-import crafttweaker.api.item.IItemStack;
-import crafttweaker.api.potions.IPotionEffect;
 import stanhebben.zenscript.annotations.ZenClass;
 
 public final class ScoreCallbacks {
@@ -12,57 +17,69 @@ public final class ScoreCallbacks {
     private ScoreCallbacks() {
     }
 
-    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnScoreChanged")
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnBecameActiveContext")
     @ZenRegister
-    public interface OnScoreChanged {
-        void handle(IEntityLivingBase entity, String scoreId, float value, float previousValue);
+    public interface OnBecameActiveContext {
+        void handle(ScoreChangeContext context);
     }
 
-    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnServerTick")
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnBecameInactiveContext")
     @ZenRegister
-    public interface OnServerTick {
-        void handle(IEntityLivingBase entity, String scoreId, float value, float baseValue);
+    public interface OnBecameInactiveContext {
+        void handle(ScoreChangeContext context);
     }
 
-    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnClientTick")
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnValueChangedContext")
     @ZenRegister
-    public interface OnClientTick {
-        void handle(IEntityLivingBase entity, String scoreId, float value, float baseValue);
+    public interface OnValueChangedContext {
+        void handle(ScoreChangeContext context);
     }
 
-    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnBreakSpeed")
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnServerTickContext")
     @ZenRegister
-    public interface OnBreakSpeed {
-        float handle(IEntityLivingBase entity, String scoreId, float value, float baseValue, float currentSpeed);
+    public interface OnServerTickContext {
+        void handle(ScoreTickContext context);
     }
 
-    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnIncomingDamage")
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnClientTickContext")
     @ZenRegister
-    public interface OnIncomingDamage {
-        float handle(IEntityLivingBase entity, String scoreId, float value, float baseValue, float damage);
+    public interface OnClientTickContext {
+        void handle(ScoreTickContext context);
     }
 
-    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnAttackTarget")
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnBreakSpeedContext")
     @ZenRegister
-    public interface OnAttackTarget {
-        void handle(IEntityLivingBase attacker, IEntityLivingBase target, String scoreId, float value, float baseValue);
+    public interface OnBreakSpeedContext {
+        void handle(BreakSpeedContext context);
     }
 
-    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnJump")
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnIncomingDamageContext")
     @ZenRegister
-    public interface OnJump {
-        void handle(IEntityLivingBase entity, String scoreId, float value, float baseValue);
+    public interface OnIncomingDamageContext {
+        void handle(DamageContext context);
     }
 
-    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnEat")
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnAttackTargetContext")
     @ZenRegister
-    public interface OnEat {
-        void handle(IEntityLivingBase entity, IItemStack food, String scoreId, float value, float baseValue);
+    public interface OnAttackTargetContext {
+        void handle(AttackContext context);
     }
 
-    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnPotionIncoming")
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnJumpContext")
     @ZenRegister
-    public interface OnPotionIncoming {
-        int handle(IEntityLivingBase entity, IPotionEffect effect, String scoreId, float value, float baseValue, int currentDuration);
+    public interface OnJumpContext {
+        void handle(JumpContext context);
+    }
+
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnEatContext")
+    @ZenRegister
+    public interface OnEatContext {
+        void handle(EatContext context);
+    }
+
+    @ZenClass(CtConstants.CT_NAMESPACE + "scores.OnPotionIncomingContext")
+    @ZenRegister
+    public interface OnPotionIncomingContext {
+        void handle(PotionContext context);
     }
 }
