@@ -22,7 +22,6 @@ public final class CCPotions {
     public static final Potion RUMINATING = register("ruminating", new Ruminating());
     public static final Potion ARROW_DODGE_COOLDOWN = register("arrow_dodge_cooldown", new CCPotion(false, 0x000000));
     public static final Potion DRAGON_BOMB_COOLDOWN = register("dragon_bomb_cooldown", new CCPotion(false, 0x000000));
-    public static final Potion DRAGON_BREATH_COOLDOWN = register("dragon_breath_cooldown", new CCPotion(false, 0x000000));
     public static final Potion EXPLOSION_COOLDOWN = register("explosion_cooldown", new CCPotion(false, 0x000000));
     public static final Potion FORCEFUL_SPIT_COOLDOWN = register("forceful_spit_cooldown", new CCPotion(false, 0x000000));
     public static final Potion GHASTLY_COOLDOWN = register("ghastly_cooldown", new CCPotion(false, 0x000000));

@@ -51,7 +51,6 @@ public final class CCConfig {
 
     public static int ARROW_DODGE_COOLDOWN = 200;
     public static int DRAGON_BOMB_COOLDOWN = 200;
-    public static int DRAGON_BREATH_COOLDOWN = 200;
     public static int EXPLOSION_COOLDOWN = 200;
     public static int FORCEFUL_SPIT_COOLDOWN = 20;
     public static int GHASTLY_COOLDOWN = 60;
@@ -119,7 +118,6 @@ public final class CCConfig {
 
         ARROW_DODGE_COOLDOWN = getInt("cooldown", "ARROW_DODGE_COOLDOWN", ARROW_DODGE_COOLDOWN);
         DRAGON_BOMB_COOLDOWN = getInt("cooldown", "DRAGON_BOMB_COOLDOWN", DRAGON_BOMB_COOLDOWN);
-        DRAGON_BREATH_COOLDOWN = getInt("cooldown", "DRAGON_BREATH_COOLDOWN", DRAGON_BREATH_COOLDOWN);
         EXPLOSION_COOLDOWN = getInt("cooldown", "EXPLOSION_COOLDOWN", EXPLOSION_COOLDOWN);
         FORCEFUL_SPIT_COOLDOWN = getInt("cooldown", "FORCEFUL_SPIT_COOLDOWN", FORCEFUL_SPIT_COOLDOWN);
         GHASTLY_COOLDOWN = getInt("cooldown", "GHASTLY_COOLDOWN", GHASTLY_COOLDOWN);

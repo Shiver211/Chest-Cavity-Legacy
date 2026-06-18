@@ -11,7 +11,6 @@ import com.shiver.chestcavity.registry.CCPotions;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityAreaEffectCloud;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -22,7 +21,6 @@ import net.minecraft.entity.projectile.EntityShulkerBullet;
 import net.minecraft.entity.projectile.EntitySmallFireball;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -30,13 +28,11 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -53,7 +49,6 @@ public final class ActiveOrganAbilities {
     public static final ResourceLocation CREEPY = CCOrganScores.CREEPY;
     public static final ResourceLocation PYROMANCY = CCOrganScores.PYROMANCY;
     public static final ResourceLocation DRAGON_BOMBS = CCOrganScores.DRAGON_BOMBS;
-    public static final ResourceLocation DRAGON_BREATH = CCOrganScores.DRAGON_BREATH;
     public static final ResourceLocation FORCEFUL_SPIT = CCOrganScores.FORCEFUL_SPIT;
     public static final ResourceLocation GHASTLY = CCOrganScores.GHASTLY;
     public static final ResourceLocation SHULKER_BULLETS = CCOrganScores.SHULKER_BULLETS;
@@ -62,8 +57,6 @@ public final class ActiveOrganAbilities {
     private static final float BUOYANT_AIR_COST = 4.5F;
     private static final float DRAGON_BOMB_EXHAUSTION = 0.6F;
     private static final double DRAGON_BOMB_RECOIL = 0.2D;
-    private static final float DRAGON_BREATH_EXHAUSTION = 0.6F;
-    private static final int DRAGON_BREATH_DURATION_TICKS = 200;
     private static final float FORCEFUL_SPIT_EXHAUSTION = 0.1F;
     private static final double FORCEFUL_SPIT_RECOIL = 0.1D;
     private static final float FORCEFUL_SPIT_VELOCITY = 2.0F;
@@ -82,7 +75,6 @@ public final class ActiveOrganAbilities {
         register(CREEPY, ActiveOrganAbilities::activateCreepy);
         register(PYROMANCY, ActiveOrganAbilities::activatePyromancy);
         register(DRAGON_BOMBS, ActiveOrganAbilities::activateDragonBombs);
-        register(DRAGON_BREATH, ActiveOrganAbilities::activateDragonBreath);
         register(FORCEFUL_SPIT, ActiveOrganAbilities::activateForcefulSpit);
         register(GHASTLY, ActiveOrganAbilities::activateGhastly);
         register(SHULKER_BULLETS, ActiveOrganAbilities::activateShulkerBullets);
@@ -119,9 +111,6 @@ public final class ActiveOrganAbilities {
         }
         if (DRAGON_BOMBS.equals(abilityId)) {
             return spawnDragonBomb(player);
-        }
-        if (DRAGON_BREATH.equals(abilityId)) {
-            return spawnDragonBreath(player, chestCavity);
         }
         if (FORCEFUL_SPIT.equals(abilityId)) {
             return spawnForcefulSpit(player);
@@ -301,24 +290,6 @@ public final class ActiveOrganAbilities {
         return true;
     }
 
-    private static boolean activateDragonBreath(EntityPlayerMP player, IChestCavity chestCavity) {
-        float dragonBreath = chestCavity.getOrganScore(DRAGON_BREATH);
-        if (dragonBreath <= 0.0F || player.isPotionActive(CCPotions.DRAGON_BREATH_COOLDOWN)) {
-            return false;
-        }
-
-        Vec3d look = getNormalizedLook(player);
-        if (look == null) {
-            return false;
-        }
-
-        chestCavity.enqueueProjectileAbility(DRAGON_BREATH);
-        player.addExhaustion(dragonBreath * DRAGON_BREATH_EXHAUSTION);
-        player.addPotionEffect(new PotionEffect(CCPotions.DRAGON_BREATH_COOLDOWN,
-                CCConfig.DRAGON_BREATH_COOLDOWN, 0, false, false));
-        return true;
-    }
-
     private static boolean activateForcefulSpit(EntityPlayerMP player, IChestCavity chestCavity) {
         float forcefulSpit = chestCavity.getOrganScore(FORCEFUL_SPIT);
         if (forcefulSpit <= 0.0F || player.isPotionActive(CCPotions.FORCEFUL_SPIT_COOLDOWN)) {
@@ -449,31 +420,6 @@ public final class ActiveOrganAbilities {
         return player.world.spawnEntity(fireball);
     }
 
-    private static boolean spawnDragonBreath(EntityPlayerMP player, IChestCavity chestCavity) {
-        Vec3d look = getNormalizedLook(player);
-        if (look == null) {
-            return false;
-        }
-        float dragonBreath = chestCavity.getOrganScore(DRAGON_BREATH);
-        double range = Math.max(2.0D, Math.sqrt(dragonBreath / 2.0D) * 5.0D);
-        Vec3d start = new Vec3d(player.posX, player.posY + player.getEyeHeight(), player.posZ);
-        Vec3d end = start.add(look.scale(range));
-        RayTraceResult result = player.world.rayTraceBlocks(start, end, false, true, false);
-        Vec3d cloudVec = result == null || result.hitVec == null ? end : result.hitVec;
-        BlockPos cloudPos = findDragonBreathSurface(player.world, cloudVec);
-        if (cloudPos == null) {
-            return false;
-        }
-
-        EntityAreaEffectCloud cloud = new EntityAreaEffectCloud(player.world, cloudVec.x, cloudPos.getY(), cloudVec.z);
-        cloud.setOwner(player);
-        cloud.setRadius(MathHelper.clamp((float) (range / 2.0D), 2.0F, 7.0F));
-        cloud.setDuration(DRAGON_BREATH_DURATION_TICKS);
-        cloud.setParticle(EnumParticleTypes.DRAGON_BREATH);
-        cloud.addEffect(new PotionEffect(MobEffects.INSTANT_DAMAGE, 1, 1));
-        return player.world.spawnEntity(cloud);
-    }
-
     private static boolean spawnForcefulSpit(EntityPlayerMP player) {
         Vec3d look = getNormalizedLook(player);
         if (look == null) {
@@ -524,17 +470,6 @@ public final class ActiveOrganAbilities {
         player.motionY -= look.y * recoil;
         player.motionZ -= look.z * recoil;
         player.velocityChanged = true;
-    }
-
-    private static BlockPos findDragonBreathSurface(World world, Vec3d pos) {
-        BlockPos blockPos = new BlockPos(pos);
-        while (blockPos.getY() > 0 && world.isAirBlock(blockPos)) {
-            blockPos = blockPos.down();
-        }
-        if (blockPos.getY() <= 0 && world.isAirBlock(blockPos)) {
-            return null;
-        }
-        return blockPos.up();
     }
 
     private static EntityLivingBase findNearestTarget(EntityPlayerMP player, double range) {

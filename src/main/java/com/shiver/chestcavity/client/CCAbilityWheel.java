@@ -32,7 +32,6 @@ public final class CCAbilityWheel {
             CCOrganScores.GRAZING,
             CCOrganScores.SILK,
             CCOrganScores.CREEPY,
-            CCOrganScores.DRAGON_BREATH,
             CCOrganScores.DRAGON_BOMBS,
             CCOrganScores.FORCEFUL_SPIT,
             CCOrganScores.PYROMANCY,

@@ -3,6 +3,6 @@
   "organScores": [
     {"id":"chestcavity:breath_capacity","value": ".25"},
     {"id":"chestcavity:endurance","value": ".75"},
-    {"id":"chestcavity:dragon_breath","value": "1"}
+    {"id":"chestcavity:dragon_bombs","value": "1"}
   ]
 }

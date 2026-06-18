@@ -51,7 +51,6 @@ public final class CCOrganScores {
     public static final ResourceLocation BUFF_PURGING = id("buff_purging");
     public static final ResourceLocation WITHERED = id("withered");
     public static final ResourceLocation DRAGON_BOMBS = id("dragon_bombs");
-    public static final ResourceLocation DRAGON_BREATH = id("dragon_breath");
     public static final ResourceLocation FORCEFUL_SPIT = id("forceful_spit");
     public static final ResourceLocation GHASTLY = id("ghastly");
     public static final ResourceLocation SHULKER_BULLETS = id("shulker_bullets");
