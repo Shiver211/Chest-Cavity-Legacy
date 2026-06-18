@@ -500,10 +500,15 @@ public final class CCAbilityWheel {
             String name = getScoreName(entry.getKey());
             String val = String.format("%.1f", entry.getValue());
             
+            boolean isNegative = isNegativeScore(entry.getKey());
             int colorName = 0xCCCCCC;
             int colorVal = 0xFFFFFF;
-            if (entry.getValue() > 1.0F) colorVal = 0x55FF55;
-            else if (entry.getValue() < 1.0F) colorVal = 0xFF5555;
+            float floatVal = entry.getValue();
+            if (floatVal > 1.05f) {
+                colorVal = isNegative ? 0xFF5555 : 0x55FF55;
+            } else if (floatVal < 0.95f) {
+                colorVal = isNegative ? 0x55FF55 : 0xFF5555;
+            }
             
             drawStringWithAlpha(fontRenderer, name, curX, curY, colorName, alphaScale);
             drawStringWithAlpha(fontRenderer, val, curX + columnWidth - fontRenderer.getStringWidth(val) - 10, curY, colorVal, alphaScale);
@@ -538,6 +543,16 @@ public final class CCAbilityWheel {
             return I18n.format(abilityKey);
         }
         return id.getPath();
+    }
+
+    private static boolean isNegativeScore(ResourceLocation id) {
+        if (id == null) return false;
+        String path = id.getPath();
+        return path.equals("metabolism") || 
+               path.equals("incompatibility") || 
+               path.equals("hydroallergenic") || 
+               path.equals("hydrophobia") || 
+               path.equals("withered");
     }
 
     private static double normalizeAngle(double angle) {

@@ -4,7 +4,8 @@ import com.shiver.chestcavity.capability.ChestCavityCapability;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
-import com.shiver.chestcavity.registry.CCRecipes;
+
+
 import com.shiver.chestcavity.ui.ChestCavityGuiFactory;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -27,7 +28,7 @@ public class ChestCavityLegacy {
         ChestCavityCapability.ensureRegistered();
         ChestCavityNetwork.register();
         ChestCavityGuiFactory.register();
-        CCRecipes.registerFactories();
+
 
         if (event.getSide().isClient()) {
             registerClientKeyBindings();

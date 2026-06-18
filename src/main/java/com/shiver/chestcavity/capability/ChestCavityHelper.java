@@ -8,7 +8,7 @@ import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.potion.OrganRejection;
-import com.shiver.chestcavity.recipe.SalvageRecipe;
+
 import com.shiver.chestcavity.registry.CCEnchantments;
 import com.shiver.chestcavity.registry.CCItems;
 import com.shiver.chestcavity.registry.CCOrganScores;
@@ -34,7 +34,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.CraftingManager;
+
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.PotionEffect;
@@ -51,7 +51,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Iterator;
+
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -579,7 +579,7 @@ public final class ChestCavityHelper {
         }
 
         if (butcher) {
-            processButchering(loot);
+            // salvage recipes removed
         }
         if (malpractice) {
             processMalpractice(loot);
@@ -953,39 +953,6 @@ public final class ChestCavityHelper {
     private static boolean hasCompatibilityOwner(NBTTagCompound tag) {
         return tag.hasKey(COMPATIBILITY_OWNER_KEY + "Most", Constants.NBT.TAG_LONG)
                 && tag.hasKey(COMPATIBILITY_OWNER_KEY + "Least", Constants.NBT.TAG_LONG);
-    }
-
-    private static void processButchering(List<ItemStack> loot) {
-        Map<SalvageRecipe, Integer> salvageResults = new LinkedHashMap<SalvageRecipe, Integer>();
-        Iterator<ItemStack> iterator = loot.iterator();
-        while (iterator.hasNext()) {
-            ItemStack stack = iterator.next();
-            SalvageRecipe recipe = findSalvageRecipe(stack);
-            if (recipe != null) {
-                Integer old = salvageResults.get(recipe);
-                salvageResults.put(recipe, (old == null ? 0 : old) + stack.getCount());
-                iterator.remove();
-            }
-        }
-
-        for (Map.Entry<SalvageRecipe, Integer> entry : salvageResults.entrySet()) {
-            ItemStack result = entry.getKey().getResultForInputCount(entry.getValue());
-            if (!result.isEmpty()) {
-                loot.add(result);
-            }
-        }
-    }
-
-    private static SalvageRecipe findSalvageRecipe(ItemStack stack) {
-        if (stack.isEmpty()) {
-            return null;
-        }
-        for (IRecipe recipe : CraftingManager.REGISTRY) {
-            if (recipe instanceof SalvageRecipe && ((SalvageRecipe) recipe).getInput().apply(stack)) {
-                return (SalvageRecipe) recipe;
-            }
-        }
-        return null;
     }
 
     private static void processMalpractice(List<ItemStack> loot) {
