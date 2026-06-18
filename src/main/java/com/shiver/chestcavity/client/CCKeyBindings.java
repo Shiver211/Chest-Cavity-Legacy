@@ -2,10 +2,10 @@ package com.shiver.chestcavity.client;
 
 import com.shiver.chestcavity.Tags;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
-import com.shiver.chestcavity.registry.CCOrganScores;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -18,45 +18,13 @@ import org.lwjgl.input.Keyboard;
 public final class CCKeyBindings {
 
     private static final String CATEGORY = "category." + Tags.MOD_ID + ".organ_abilities";
-    private static final ResourceLocation UTILITY_ABILITIES_ID = id("utility_abilities");
-    private static final ResourceLocation ATTACK_ABILITIES_ID = id("attack_abilities");
+    private static final ResourceLocation ABILITY_WHEEL_ID = id("ability_wheel");
+    private static final ResourceLocation RELEASE_ABILITY_ID = id("release_ability");
 
-    private static final ResourceLocation[] UTILITY_ABILITIES = {
-            CCOrganScores.BUOYANT,
-            CCOrganScores.FURNACE_POWERED,
-            CCOrganScores.IRON_REPAIR,
-            CCOrganScores.GRAZING,
-            CCOrganScores.SILK
-    };
-
-    private static final ResourceLocation[] ATTACK_ABILITIES = {
-            CCOrganScores.CREEPY,
-            CCOrganScores.DRAGON_BREATH,
-            CCOrganScores.DRAGON_BOMBS,
-            CCOrganScores.FORCEFUL_SPIT,
-            CCOrganScores.PYROMANCY,
-            CCOrganScores.GHASTLY,
-            CCOrganScores.SHULKER_BULLETS
-    };
-
-    public static KeyBinding utilityAbilities;
-    public static KeyBinding attackAbilities;
-    public static KeyBinding buoyantExhale;
-    public static KeyBinding creepy;
-    public static KeyBinding dragonBreath;
-    public static KeyBinding dragonBombs;
-    public static KeyBinding forcefulSpit;
-    public static KeyBinding furnacePowered;
-    public static KeyBinding ironRepair;
-    public static KeyBinding pyromancy;
-    public static KeyBinding ghastly;
-    public static KeyBinding grazing;
-    public static KeyBinding shulkerBullets;
-    public static KeyBinding silk;
+    public static KeyBinding abilityWheel;
+    public static KeyBinding releaseAbility;
 
     private static boolean registered;
-    private static int utilityAbilityIndex;
-    private static int attackAbilityIndex;
 
     private CCKeyBindings() {
     }
@@ -66,22 +34,11 @@ public final class CCKeyBindings {
             return;
         }
 
-        utilityAbilities = register(UTILITY_ABILITIES_ID, Keyboard.KEY_V);
-        attackAbilities = register(ATTACK_ABILITIES_ID, Keyboard.KEY_R);
-        buoyantExhale = register(CCOrganScores.BUOYANT, Keyboard.KEY_NONE);
-        creepy = register(CCOrganScores.CREEPY, Keyboard.KEY_NONE);
-        dragonBreath = register(CCOrganScores.DRAGON_BREATH, Keyboard.KEY_NONE);
-        dragonBombs = register(CCOrganScores.DRAGON_BOMBS, Keyboard.KEY_NONE);
-        forcefulSpit = register(CCOrganScores.FORCEFUL_SPIT, Keyboard.KEY_NONE);
-        furnacePowered = register(CCOrganScores.FURNACE_POWERED, Keyboard.KEY_NONE);
-        ironRepair = register(CCOrganScores.IRON_REPAIR, Keyboard.KEY_NONE);
-        pyromancy = register(CCOrganScores.PYROMANCY, Keyboard.KEY_NONE);
-        ghastly = register(CCOrganScores.GHASTLY, Keyboard.KEY_NONE);
-        grazing = register(CCOrganScores.GRAZING, Keyboard.KEY_NONE);
-        shulkerBullets = register(CCOrganScores.SHULKER_BULLETS, Keyboard.KEY_NONE);
-        silk = register(CCOrganScores.SILK, Keyboard.KEY_NONE);
+        abilityWheel = register(ABILITY_WHEEL_ID, Keyboard.KEY_R);
+        releaseAbility = register(RELEASE_ABILITY_ID, Keyboard.KEY_X);
 
         FMLCommonHandler.instance().bus().register(new CCKeyBindings());
+        MinecraftForge.EVENT_BUS.register(new CCAbilityWheel());
         registered = true;
     }
 
@@ -91,40 +48,18 @@ public final class CCKeyBindings {
             return;
         }
 
-        utilityAbilityIndex = drainGroup(utilityAbilities, UTILITY_ABILITIES, utilityAbilityIndex);
-        attackAbilityIndex = drainGroup(attackAbilities, ATTACK_ABILITIES, attackAbilityIndex);
-        drain(buoyantExhale, CCOrganScores.BUOYANT);
-        drain(creepy, CCOrganScores.CREEPY);
-        drain(dragonBreath, CCOrganScores.DRAGON_BREATH);
-        drain(dragonBombs, CCOrganScores.DRAGON_BOMBS);
-        drain(forcefulSpit, CCOrganScores.FORCEFUL_SPIT);
-        drain(furnacePowered, CCOrganScores.FURNACE_POWERED);
-        drain(ironRepair, CCOrganScores.IRON_REPAIR);
-        drain(pyromancy, CCOrganScores.PYROMANCY);
-        drain(ghastly, CCOrganScores.GHASTLY);
-        drain(grazing, CCOrganScores.GRAZING);
-        drain(shulkerBullets, CCOrganScores.SHULKER_BULLETS);
-        drain(silk, CCOrganScores.SILK);
+        while (releaseAbility.isPressed()) {
+            ResourceLocation abilityId = CCAbilityWheel.getSelectedAbility();
+            if (abilityId != null) {
+                ChestCavityNetwork.sendHotkeyActivation(abilityId);
+            }
+        }
     }
 
     private static KeyBinding register(ResourceLocation id, int defaultKey) {
         KeyBinding keyBinding = new KeyBinding("key." + id.getNamespace() + "." + id.getPath(), defaultKey, CATEGORY);
         ClientRegistry.registerKeyBinding(keyBinding);
         return keyBinding;
-    }
-
-    private static int drainGroup(KeyBinding keyBinding, ResourceLocation[] abilityIds, int index) {
-        while (keyBinding.isPressed()) {
-            ChestCavityNetwork.sendHotkeyActivation(abilityIds[index]);
-            index = (index + 1) % abilityIds.length;
-        }
-        return index;
-    }
-
-    private static void drain(KeyBinding keyBinding, ResourceLocation abilityId) {
-        while (keyBinding.isPressed()) {
-            ChestCavityNetwork.sendHotkeyActivation(abilityId);
-        }
     }
 
     private static ResourceLocation id(String path) {
