@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/animals/small_herbivore.json",
+  "chestcavity": "small_herbivore",
   "entities": [
   ]
 }

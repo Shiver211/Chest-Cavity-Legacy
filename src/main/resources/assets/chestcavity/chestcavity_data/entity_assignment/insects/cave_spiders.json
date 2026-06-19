@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/insects/cave_spider.json",
+  "chestcavity": "cave_spider",
   "entities": [
     "minecraft:cave_spider"
   ]

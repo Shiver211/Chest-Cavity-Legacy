@@ -44,11 +44,11 @@ public final class DataLoaders {
     public static final String DATA_ROOT = "chestcavity_data";
     public static final String ASSET_DATA_PATH = "assets/" + Tags.MOD_ID + "/" + DATA_ROOT;
     public static final String CONFIG_DATA_PATH = "config/" + Tags.MOD_ID + "/data";
-    public static final ResourceLocation FALLBACK_ID = new ResourceLocation(Tags.MOD_ID, "fallback");
+    public static final String FALLBACK_ID = "fallback";
 
     private static final ChestCavityType FALLBACK_TYPE = new FallbackChestCavityType();
-    private static final Map<ResourceLocation, ChestCavityType> CHEST_CAVITY_TYPES = new LinkedHashMap<>();
-    private static final Map<ResourceLocation, ResourceLocation> ENTITY_ASSIGNMENTS = new LinkedHashMap<>();
+    private static final Map<String, ChestCavityType> CHEST_CAVITY_TYPES = new LinkedHashMap<>();
+    private static final Map<ResourceLocation, String> ENTITY_ASSIGNMENTS = new LinkedHashMap<>();
     private static final ResourceLocation PLAYER_ENTITY_ID = new ResourceLocation("minecraft", "player");
 
     private DataLoaders() {
@@ -77,19 +77,19 @@ public final class DataLoaders {
                 ENTITY_ASSIGNMENTS.size());
     }
 
-    public static void registerType(ResourceLocation id, ChestCavityType type) {
+    public static void registerType(String id, ChestCavityType type) {
         if (id != null && type != null) {
             CHEST_CAVITY_TYPES.put(id, type);
         }
     }
 
-    public static void registerEntityAssignment(ResourceLocation entityId, ResourceLocation typeId) {
+    public static void registerEntityAssignment(ResourceLocation entityId, String typeId) {
         if (entityId != null && typeId != null) {
             ENTITY_ASSIGNMENTS.put(entityId, typeId);
         }
     }
 
-    public static ChestCavityType getType(ResourceLocation id) {
+    public static ChestCavityType getType(String id) {
         ChestCavityType type = CHEST_CAVITY_TYPES.get(id);
         return type == null ? FALLBACK_TYPE : type;
     }
@@ -98,15 +98,15 @@ public final class DataLoaders {
         return FALLBACK_TYPE;
     }
 
-    public static ResourceLocation getAssignedTypeId(ResourceLocation entityId) {
+    public static String getAssignedTypeId(ResourceLocation entityId) {
         return ENTITY_ASSIGNMENTS.get(entityId);
     }
 
-    public static Map<ResourceLocation, ChestCavityType> getTypes() {
+    public static Map<String, ChestCavityType> getTypes() {
         return Collections.unmodifiableMap(CHEST_CAVITY_TYPES);
     }
 
-    public static Map<ResourceLocation, ResourceLocation> getEntityAssignments() {
+    public static Map<ResourceLocation, String> getEntityAssignments() {
         return Collections.unmodifiableMap(ENTITY_ASSIGNMENTS);
     }
 
@@ -214,13 +214,18 @@ public final class DataLoaders {
         if (relativePath.startsWith("organs/")) {
             OrganManager.load(id, json);
         } else if (relativePath.startsWith("types/")) {
-            loadType(id, json);
+            loadType(typeIdFromPath(relativePath), id, json);
         } else if (relativePath.startsWith("entity_assignment/")) {
             loadEntityAssignment(id, json);
         }
     }
 
-    private static void loadType(ResourceLocation id, JsonObject json) {
+    private static String typeIdFromPath(String relativePath) {
+        String fileName = relativePath.substring(relativePath.lastIndexOf('/') + 1);
+        return fileName.endsWith(".json") ? fileName.substring(0, fileName.length() - 5) : fileName;
+    }
+
+    private static void loadType(String typeId, ResourceLocation id, JsonObject json) {
         GeneratedChestCavityType type = new GeneratedChestCavityType();
         List<Integer> forbiddenSlots = readForbiddenSlots(id, json.get("forbiddenSlots"));
         type.setForbiddenSlots(forbiddenSlots);
@@ -242,7 +247,7 @@ public final class DataLoaders {
         if (json.has("dropRateMultiplier")) {
             type.setDropRateMultiplier(json.get("dropRateMultiplier").getAsFloat());
         }
-        registerType(id, type);
+        registerType(typeId, type);
     }
 
     private static void loadEntityAssignment(ResourceLocation id, JsonObject json) {
@@ -251,7 +256,7 @@ public final class DataLoaders {
             return;
         }
 
-        ResourceLocation typeId = new ResourceLocation(json.get("chestcavity").getAsString());
+        String typeId = json.get("chestcavity").getAsString();
         JsonElement entitiesElement = json.get("entities");
         if (!entitiesElement.isJsonArray()) {
             ChestCavityLegacy.LOGGER.warn("Skipping entity assignment {} because entities is not an array.", id);

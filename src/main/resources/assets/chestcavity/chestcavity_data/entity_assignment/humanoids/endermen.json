@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/humanoids/enderman.json",
+  "chestcavity": "enderman",
   "entities": [
     "minecraft:enderman"
   ]

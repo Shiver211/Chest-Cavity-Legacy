@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/animals/small_omnivore.json",
+  "chestcavity": "small_omnivore",
   "entities": [
     "minecraft:bat",
     "minecraft:chicken",

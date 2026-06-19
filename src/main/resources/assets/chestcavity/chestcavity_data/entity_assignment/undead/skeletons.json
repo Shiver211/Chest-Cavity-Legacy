@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/undead/skeleton.json",
+  "chestcavity": "skeleton",
   "entities": [
     "minecraft:skeleton",
     "minecraft:skeleton_horse",

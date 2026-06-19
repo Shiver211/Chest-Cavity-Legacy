@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/animals/small_carnivore.json",
+  "chestcavity": "small_carnivore",
   "entities": [
     "minecraft:ocelot"
   ]

@@ -1,14 +1,12 @@
 package com.shiver.chestcavity.config;
 
-import com.shiver.chestcavity.Tags;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Configuration;
 
 import java.io.File;
 
 public final class CCConfig {
 
-    public static String DEFAULT_CHEST_CAVITY = "chestcavity:types/dirt.json";
+    public static String DEFAULT_CHEST_CAVITY = "dirt";
     public static float ORGAN_BUNDLE_LOOTING_BOOST = 0.04F;
     public static float UNIVERSAL_DONOR_RATE = 0.1F;
     public static int ORGAN_REJECTION_DAMAGE = 2;
@@ -132,12 +130,8 @@ public final class CCConfig {
         }
     }
 
-    public static ResourceLocation getDefaultChestCavityId() {
-        try {
-            return new ResourceLocation(DEFAULT_CHEST_CAVITY);
-        } catch (RuntimeException ignored) {
-            return new ResourceLocation(Tags.MOD_ID, "fallback");
-        }
+    public static String getDefaultChestCavityId() {
+        return DEFAULT_CHEST_CAVITY;
     }
 
     private static int getInt(String category, String name, int defaultValue) {

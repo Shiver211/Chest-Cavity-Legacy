@@ -535,7 +535,7 @@ public final class ChestCavityHelper {
             ResourceLocation entityId = owner instanceof EntityPlayer
                     ? new ResourceLocation("minecraft", "player")
                     : EntityList.getKey(owner);
-            ResourceLocation typeId = DataLoaders.getAssignedTypeId(entityId);
+            String typeId = DataLoaders.getAssignedTypeId(entityId);
             if (typeId != null) {
                 return DataLoaders.getType(typeId);
             }

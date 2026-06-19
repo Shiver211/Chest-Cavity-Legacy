@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/animals/herbivore.json",
+  "chestcavity": "herbivore",
   "entities": [
     "minecraft:donkey",
     "minecraft:horse",

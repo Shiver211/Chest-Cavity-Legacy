@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/humanoids/human.json",
+  "chestcavity": "human",
   "entities": [
     "minecraft:evocation_illager",
     "minecraft:illusion_illager",

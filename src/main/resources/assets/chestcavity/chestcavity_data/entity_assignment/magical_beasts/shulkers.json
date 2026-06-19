@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/magical_beasts/shulker.json",
+  "chestcavity": "shulker",
   "entities": [
     "minecraft:shulker"
   ]

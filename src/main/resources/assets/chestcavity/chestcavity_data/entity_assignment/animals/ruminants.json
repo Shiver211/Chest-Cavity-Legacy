@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/animals/ruminant.json",
+  "chestcavity": "ruminant",
   "entities": [
     "minecraft:cow",
     "minecraft:sheep",

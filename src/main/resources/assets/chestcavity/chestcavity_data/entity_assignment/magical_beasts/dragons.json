@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/magical_beasts/dragon.json",
+  "chestcavity": "dragon",
   "entities": [
     "minecraft:ender_dragon"
   ]

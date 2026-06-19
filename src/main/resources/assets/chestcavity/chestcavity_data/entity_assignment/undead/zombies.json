@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/undead/zombie.json",
+  "chestcavity": "zombie",
   "entities": [
     "minecraft:giant",
     "minecraft:husk",

@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/animals/large_fish.json",
+  "chestcavity": "large_fish",
   "entities": [
     "minecraft:squid",
     "minecraft:guardian",

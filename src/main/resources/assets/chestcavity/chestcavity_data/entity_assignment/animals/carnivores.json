@@ -1,5 +1,5 @@
 {
-  "chestcavity": "chestcavity:types/animals/carnivore.json",
+  "chestcavity": "carnivore",
   "entities": [
     "minecraft:polar_bear",
     "minecraft:wolf"
