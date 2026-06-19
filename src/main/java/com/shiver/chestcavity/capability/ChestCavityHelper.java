@@ -167,7 +167,11 @@ public final class ChestCavityHelper {
     }
 
     public static void setOrganAndRecalculate(IChestCavity chestCavity, int slot, ItemStack stack) {
+        ItemStack oldStack = chestCavity.getOrgan(slot);
+        ItemStack oldCopy = oldStack.isEmpty() ? ItemStack.EMPTY : oldStack.copy();
+        ItemStack newCopy = stack == null || stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
         chestCavity.setOrgan(slot, stack);
+        publishOrganChange(chestCavity, slot, oldCopy, newCopy);
         applyAndSyncScoreChanges(chestCavity);
     }
 
@@ -907,6 +911,31 @@ public final class ChestCavityHelper {
             data = OrganData.fromStack(stack);
         }
         return data;
+    }
+
+    private static void publishOrganChange(IChestCavity chestCavity, int slot, ItemStack oldStack, ItemStack newStack) {
+        EntityLivingBase owner = chestCavity.getOwner();
+        if (owner == null) {
+            return;
+        }
+        ChestCavityType type = getChestCavityType(chestCavity);
+        if (oldStack != null && !oldStack.isEmpty()) {
+            OrganData oldData = resolveOrganData(type, oldStack);
+            publishCrTOrganEvent("publishOrganUnequipped", owner, slot, oldStack, oldData != null && oldData.isPseudoOrgan());
+        }
+        if (newStack != null && !newStack.isEmpty()) {
+            OrganData newData = resolveOrganData(type, newStack);
+            publishCrTOrganEvent("publishOrganEquipped", owner, slot, newStack, newData != null && newData.isPseudoOrgan());
+        }
+    }
+
+    private static void publishCrTOrganEvent(String methodName, EntityLivingBase owner, int slot, ItemStack stack, boolean pseudoOrgan) {
+        try {
+            Class.forName("com.shiver.chestcavity.crt.CrTChestCavityEvents")
+                    .getMethod(methodName, EntityLivingBase.class, int.class, ItemStack.class, boolean.class)
+                    .invoke(null, owner, slot, stack, pseudoOrgan);
+        } catch (ReflectiveOperationException ignored) {
+        }
     }
 
     private static void setCompatibilityTag(IChestCavity chestCavity, ItemStack stack, EntityLivingBase owner) {

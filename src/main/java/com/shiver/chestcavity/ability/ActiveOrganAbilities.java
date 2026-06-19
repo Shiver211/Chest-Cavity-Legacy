@@ -97,7 +97,20 @@ public final class ActiveOrganAbilities {
             ChestCavityLegacy.LOGGER.debug("Ignoring inactive organ ability {} for {}.", abilityId, player.getName());
             return false;
         }
-        return ability.activate(player, chestCavity);
+        boolean activated = ability.activate(player, chestCavity);
+        if (activated) {
+            publishAbilityActivated(player, abilityId, chestCavity.getOrganScore(abilityId));
+        }
+        return activated;
+    }
+
+    private static void publishAbilityActivated(EntityLivingBase entity, String abilityId, float score) {
+        try {
+            Class.forName("com.shiver.chestcavity.crt.CrTChestCavityEvents")
+                    .getMethod("publishAbilityActivated", EntityLivingBase.class, String.class, float.class)
+                    .invoke(null, entity, abilityId, score);
+        } catch (ReflectiveOperationException ignored) {
+        }
     }
 
     public static boolean fireQueuedProjectile(EntityLivingBase entity, IChestCavity chestCavity, String abilityId) {

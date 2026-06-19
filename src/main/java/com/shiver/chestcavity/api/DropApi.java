@@ -27,7 +27,7 @@ public final class DropApi {
 
     public void setDropProbability(ResourceLocation entityId, float value) {
         if (entityId != null) {
-            table(entityId).probability = value;
+            table(entityId).probability = Math.max(0.0F, Math.min(1.0F, value));
         }
     }
 
@@ -37,7 +37,8 @@ public final class DropApi {
             return;
         }
         for (Iterator<DropEntry> iterator = table.entries.iterator(); iterator.hasNext();) {
-            if (ItemStack.areItemsEqual(iterator.next().stack, stack)) {
+            ItemStack registered = iterator.next().stack;
+            if (ItemStack.areItemsEqual(registered, stack) && ItemStack.areItemStackTagsEqual(registered, stack)) {
                 iterator.remove();
             }
         }
