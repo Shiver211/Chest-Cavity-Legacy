@@ -1,6 +1,5 @@
 package com.shiver.chestcavity.client;
 
-import com.shiver.chestcavity.api.AbilityApi;
 import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
@@ -534,15 +533,19 @@ public final class CCAbilityWheel {
         if (id == null) {
             return "";
         }
-        AbilityApi.AbilityWheelEntry entry = ChestCavityApis.ABILITIES.getWheelEntries().get(id);
-        if (entry != null && entry.getName() != null && !entry.getName().isEmpty()) {
-            return entry.getName();
+        String displayName = ChestCavityApis.SCORES.getDisplayName(id);
+        if (displayName != null && !displayName.isEmpty()) {
+            return displayName;
         }
         return I18n.format("key.chestcavity." + id);
     }
 
     private static String getScoreName(String id) {
         if (id == null) return "";
+        String displayName = ChestCavityApis.SCORES.getDisplayName(id);
+        if (displayName != null && !displayName.isEmpty()) {
+            return displayName;
+        }
         String key = "organscore.chestcavity." + id;
         if (I18n.hasKey(key)) {
             return I18n.format(key, "").trim();

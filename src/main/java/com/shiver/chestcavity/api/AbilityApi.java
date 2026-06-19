@@ -16,20 +16,14 @@ public final class AbilityApi {
     }
 
     public void registerAbility(String scoreId, ActiveOrganAbilityHandler handler) {
+        registerAbility(scoreId, null, handler);
+    }
+
+    public void registerAbility(String scoreId, String displayName, ActiveOrganAbilityHandler handler) {
         if (scoreId != null && handler != null) {
+            ChestCavityApis.SCORES.addScore(scoreId, displayName);
+            wheelEntries.put(scoreId, new AbilityWheelEntry(scoreId));
             ActiveOrganAbilities.register(scoreId, (player, chestCavity) -> handler.activate(player, new ChestCavityView(chestCavity)));
-        }
-    }
-
-    public void addToWheel(String scoreId, String name, int color) {
-        if (scoreId != null) {
-            wheelEntries.put(scoreId, new AbilityWheelEntry(scoreId, name, color));
-        }
-    }
-
-    public void removeFromWheel(String scoreId) {
-        if (scoreId != null) {
-            wheelEntries.remove(scoreId);
         }
     }
 
@@ -43,25 +37,13 @@ public final class AbilityApi {
 
     public static final class AbilityWheelEntry {
         private final String scoreId;
-        private final String name;
-        private final int color;
 
-        private AbilityWheelEntry(String scoreId, String name, int color) {
+        private AbilityWheelEntry(String scoreId) {
             this.scoreId = scoreId;
-            this.name = name;
-            this.color = color;
         }
 
         public String getScoreId() {
             return scoreId;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public int getColor() {
-            return color;
         }
     }
 }

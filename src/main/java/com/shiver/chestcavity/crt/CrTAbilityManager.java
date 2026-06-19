@@ -14,27 +14,17 @@ public final class CrTAbilityManager {
     }
 
     @ZenMethod
-    public static void registerAbility(String scoreId) {
-        ChestCavityApis.ABILITIES.registerAbility(scoreId, (player, chestCavity) -> true);
+    public static void registerAbility(String scoreId, String displayName) {
+        ChestCavityApis.ABILITIES.registerAbility(scoreId, displayName, (player, chestCavity) -> true);
     }
 
     @ZenMethod
-    public static void registerAbility(String scoreId, IEventHandler<CrTAbilityActivatedEvent> handler) {
-        ChestCavityApis.ABILITIES.registerAbility(scoreId, (player, chestCavity) -> {
+    public static void registerAbility(String scoreId, String displayName, IEventHandler<CrTAbilityActivatedEvent> handler) {
+        ChestCavityApis.ABILITIES.registerAbility(scoreId, displayName, (player, chestCavity) -> {
             if (handler != null) {
                 handler.handle(new CrTAbilityActivatedEvent(player, scoreId, chestCavity.getOrganScore(scoreId)));
             }
             return true;
         });
-    }
-
-    @ZenMethod
-    public static void addToWheel(String scoreId, String name, int color) {
-        ChestCavityApis.ABILITIES.addToWheel(scoreId, name, color);
-    }
-
-    @ZenMethod
-    public static void removeFromWheel(String scoreId) {
-        ChestCavityApis.ABILITIES.removeFromWheel(scoreId);
     }
 }

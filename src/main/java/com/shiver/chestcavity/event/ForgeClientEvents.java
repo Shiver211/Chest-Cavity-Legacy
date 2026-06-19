@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.event;
 
+import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.organs.OrganData;
@@ -71,6 +72,10 @@ public final class ForgeClientEvents {
     }
 
     private static String getScoreName(String id, float value) {
+        String displayName = ChestCavityApis.SCORES.getDisplayName(id);
+        if (displayName != null && !displayName.isEmpty()) {
+            return displayName;
+        }
         String key = "organscore.chestcavity." + id;
         if (I18n.hasKey(key)) {
             String format = value > 0.0F ? "+" : "";
