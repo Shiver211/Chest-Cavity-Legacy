@@ -28,6 +28,12 @@ public class OrganData {
         }
     }
 
+    public static void unregister(ResourceLocation itemId) {
+        if (itemId != null) {
+            ORGAN_DATA.remove(itemId);
+        }
+    }
+
     public static OrganData get(ResourceLocation itemId) {
         return ORGAN_DATA.get(itemId);
     }

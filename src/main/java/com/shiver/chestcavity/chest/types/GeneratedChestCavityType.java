@@ -60,11 +60,37 @@ public class GeneratedChestCavityType implements ChestCavityType {
         return Collections.unmodifiableMap(baseOrganScores);
     }
 
+    public void addBaseOrganScore(String id, float value) {
+        if (id != null) {
+            baseOrganScores.put(id, value);
+            clearDerivedCache();
+        }
+    }
+
+    public void removeBaseOrganScore(String id) {
+        if (id != null) {
+            baseOrganScores.remove(id);
+            clearDerivedCache();
+        }
+    }
+
     public void setBaseOrganScores(Map<String, Float> scores) {
         baseOrganScores.clear();
         if (scores != null) {
             baseOrganScores.putAll(scores);
         }
+        clearDerivedCache();
+    }
+
+    public void setSlot(int index, ItemStack stack) {
+        if (index >= 0 && index < defaultChestCavity.size()) {
+            defaultChestCavity.setStack(index, stack == null ? ItemStack.EMPTY : stack.copy());
+            clearDerivedCache();
+        }
+    }
+
+    public void clearSlots() {
+        defaultChestCavity.clear();
         clearDerivedCache();
     }
 
@@ -78,6 +104,19 @@ public class GeneratedChestCavityType implements ChestCavityType {
             forbiddenSlots.addAll(slots);
         }
         clearDerivedCache();
+    }
+
+    public void addForbiddenSlot(int slot) {
+        if (!forbiddenSlots.contains(slot)) {
+            forbiddenSlots.add(slot);
+            clearDerivedCache();
+        }
+    }
+
+    public void removeForbiddenSlot(int slot) {
+        if (forbiddenSlots.remove(Integer.valueOf(slot))) {
+            clearDerivedCache();
+        }
     }
 
     @Override
@@ -175,6 +214,16 @@ public class GeneratedChestCavityType implements ChestCavityType {
         if (organs != null) {
             exceptionalOrgans.addAll(organs);
         }
+        clearDerivedCache();
+    }
+
+    public void addExceptionalOrgan(Item item, String oreName, Map<String, Float> scores) {
+        exceptionalOrgans.add(new ExceptionalOrgan(item, oreName, scores));
+        clearDerivedCache();
+    }
+
+    public void clearExceptionalOrgans() {
+        exceptionalOrgans.clear();
         clearDerivedCache();
     }
 

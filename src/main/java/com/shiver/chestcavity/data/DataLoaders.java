@@ -83,9 +83,21 @@ public final class DataLoaders {
         }
     }
 
+    public static void unregisterType(String id) {
+        if (id != null && !FALLBACK_ID.equals(id)) {
+            CHEST_CAVITY_TYPES.remove(id);
+        }
+    }
+
     public static void registerEntityAssignment(ResourceLocation entityId, String typeId) {
         if (entityId != null && typeId != null) {
             ENTITY_ASSIGNMENTS.put(entityId, typeId);
+        }
+    }
+
+    public static void unregisterEntityAssignment(ResourceLocation entityId) {
+        if (entityId != null) {
+            ENTITY_ASSIGNMENTS.remove(entityId);
         }
     }
 
@@ -426,7 +438,7 @@ public final class DataLoaders {
         return slots;
     }
 
-    private static boolean isEntityPresent(ResourceLocation entityId) {
+    public static boolean isEntityPresent(ResourceLocation entityId) {
         return PLAYER_ENTITY_ID.equals(entityId) || ForgeRegistries.ENTITIES.getValue(entityId) != null;
     }
 }

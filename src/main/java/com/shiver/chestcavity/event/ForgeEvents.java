@@ -3,6 +3,7 @@ package com.shiver.chestcavity.event;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.ChestCavityProvider;
 import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.item.ChestOpener;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.potion.FurnacePower;
@@ -10,6 +11,7 @@ import com.shiver.chestcavity.registry.CCItems;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import com.shiver.chestcavity.Tags;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.MultiPartEntityPart;
 import net.minecraft.entity.boss.EntityDragon;
@@ -27,6 +29,7 @@ import net.minecraft.init.PotionTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.storage.loot.LootEntry;
 import net.minecraft.world.storage.loot.LootEntryItem;
 import net.minecraft.world.storage.loot.LootPool;
@@ -136,6 +139,8 @@ public final class ForgeEvents {
             return;
         }
 
+        addApiDrops(event);
+
         if (chestCavity.isOpened()) {
             removeTakenWitherStar(event, chestCavity);
             for (ItemStack stack : ChestCavityHelper.removeUnboundOrgansForDeath(chestCavity)) {
@@ -156,6 +161,20 @@ public final class ForgeEvents {
                 event.getLootingLevel(),
                 killer);
         for (ItemStack stack : generatedLoot) {
+            event.getDrops().add(new EntityItem(event.getEntityLiving().world,
+                    event.getEntityLiving().posX,
+                    event.getEntityLiving().posY,
+                    event.getEntityLiving().posZ,
+                    stack));
+        }
+    }
+
+    private static void addApiDrops(LivingDropsEvent event) {
+        ResourceLocation entityId = EntityList.getKey(event.getEntityLiving());
+        if (entityId == null) {
+            return;
+        }
+        for (ItemStack stack : ChestCavityApis.DROPS.generateDrops(entityId, event.getEntityLiving(), event.getEntityLiving().world.rand)) {
             event.getDrops().add(new EntityItem(event.getEntityLiving().world,
                     event.getEntityLiving().posX,
                     event.getEntityLiving().posY,

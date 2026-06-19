@@ -861,7 +861,7 @@ public final class ChestCavityHelper {
         }
     }
 
-    private static void applyAndSyncScoreChanges(IChestCavity chestCavity) {
+    public static void applyAndSyncScoreChanges(IChestCavity chestCavity) {
         EntityLivingBase owner = chestCavity.getOwner();
         if (owner == null) {
             return;
