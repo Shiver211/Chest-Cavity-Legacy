@@ -5,6 +5,7 @@ import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.config.CCConfig;
+import com.shiver.chestcavity.crt.CrTChestCavityEvents;
 import com.shiver.chestcavity.data.DataLoaders;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.potion.OrganRejection;
@@ -921,20 +922,11 @@ public final class ChestCavityHelper {
         ChestCavityType type = getChestCavityType(chestCavity);
         if (oldStack != null && !oldStack.isEmpty()) {
             OrganData oldData = resolveOrganData(type, oldStack);
-            publishCrTOrganEvent("publishOrganUnequipped", owner, slot, oldStack, oldData != null && oldData.isPseudoOrgan());
+            CrTChestCavityEvents.publishOrganUnequipped(owner, slot, oldStack, oldData != null && oldData.isPseudoOrgan());
         }
         if (newStack != null && !newStack.isEmpty()) {
             OrganData newData = resolveOrganData(type, newStack);
-            publishCrTOrganEvent("publishOrganEquipped", owner, slot, newStack, newData != null && newData.isPseudoOrgan());
-        }
-    }
-
-    private static void publishCrTOrganEvent(String methodName, EntityLivingBase owner, int slot, ItemStack stack, boolean pseudoOrgan) {
-        try {
-            Class.forName("com.shiver.chestcavity.crt.CrTChestCavityEvents")
-                    .getMethod(methodName, EntityLivingBase.class, int.class, ItemStack.class, boolean.class)
-                    .invoke(null, owner, slot, stack, pseudoOrgan);
-        } catch (ReflectiveOperationException ignored) {
+            CrTChestCavityEvents.publishOrganEquipped(owner, slot, newStack, newData != null && newData.isPseudoOrgan());
         }
     }
 

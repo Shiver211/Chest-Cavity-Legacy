@@ -4,6 +4,7 @@ import com.shiver.chestcavity.ChestCavityLegacy;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.config.CCConfig;
+import com.shiver.chestcavity.crt.CrTChestCavityEvents;
 import com.shiver.chestcavity.entity.EntityForcefulSpit;
 import com.shiver.chestcavity.potion.FurnacePower;
 import com.shiver.chestcavity.registry.CCOrganScores;
@@ -99,18 +100,9 @@ public final class ActiveOrganAbilities {
         }
         boolean activated = ability.activate(player, chestCavity);
         if (activated) {
-            publishAbilityActivated(player, abilityId, chestCavity.getOrganScore(abilityId));
+            CrTChestCavityEvents.publishAbilityActivated(player, abilityId, chestCavity.getOrganScore(abilityId));
         }
         return activated;
-    }
-
-    private static void publishAbilityActivated(EntityLivingBase entity, String abilityId, float score) {
-        try {
-            Class.forName("com.shiver.chestcavity.crt.CrTChestCavityEvents")
-                    .getMethod("publishAbilityActivated", EntityLivingBase.class, String.class, float.class)
-                    .invoke(null, entity, abilityId, score);
-        } catch (ReflectiveOperationException ignored) {
-        }
     }
 
     public static boolean fireQueuedProjectile(EntityLivingBase entity, IChestCavity chestCavity, String abilityId) {

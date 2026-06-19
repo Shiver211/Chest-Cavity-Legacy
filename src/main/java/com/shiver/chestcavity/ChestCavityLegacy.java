@@ -15,7 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 
-@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, dependencies = "required-after:modularui")
+@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, dependencies = "required-after:modularui;required-after:crafttweaker")
 public class ChestCavityLegacy {
 
     public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
