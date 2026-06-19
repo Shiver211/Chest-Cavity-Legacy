@@ -1,8 +1,8 @@
 {
   "itemID": "chestcavity:gas_bladder",
   "organScores": [
-    {"id":"chestcavity:breath_capacity","value": "1.25"},
-    {"id":"chestcavity:buoyant","value": "1"},
-    {"id":"chestcavity:fire_resistant","value": "1"}
+    {"id":"breath_capacity","value": "1.25"},
+    {"id":"buoyant","value": "1"},
+    {"id":"fire_resistant","value": "1"}
   ]
 }

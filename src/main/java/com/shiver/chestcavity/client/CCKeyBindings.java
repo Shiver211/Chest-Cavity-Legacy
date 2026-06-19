@@ -49,7 +49,7 @@ public final class CCKeyBindings {
         }
 
         while (releaseAbility.isPressed()) {
-            ResourceLocation abilityId = CCAbilityWheel.getSelectedAbility();
+            String abilityId = CCAbilityWheel.getSelectedAbility();
             if (abilityId != null) {
                 ChestCavityNetwork.sendHotkeyActivation(abilityId);
             }

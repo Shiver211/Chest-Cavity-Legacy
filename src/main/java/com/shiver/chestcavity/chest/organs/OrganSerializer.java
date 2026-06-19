@@ -24,8 +24,8 @@ public final class OrganSerializer {
         return new OrganEntry(new ResourceLocation(json.get("itemID").getAsString()), data);
     }
 
-    private Map<ResourceLocation, Float> readOrganScores(ResourceLocation id, JsonElement element) {
-        Map<ResourceLocation, Float> scores = new LinkedHashMap<>();
+    private Map<String, Float> readOrganScores(ResourceLocation id, JsonElement element) {
+        Map<String, Float> scores = new LinkedHashMap<>();
         if (element == null || !element.isJsonArray()) {
             ChestCavityLegacy.LOGGER.warn("Skipping organ scores in {} because they are not an array.", id);
             return scores;
@@ -41,7 +41,7 @@ public final class OrganSerializer {
                     ChestCavityLegacy.LOGGER.warn("Skipping organ score entry in {} because id or value is missing.", id);
                     continue;
                 }
-                scores.put(new ResourceLocation(object.get("id").getAsString()), object.get("value").getAsFloat());
+                scores.put(object.get("id").getAsString(), object.get("value").getAsFloat());
             } catch (Exception e) {
                 ChestCavityLegacy.LOGGER.warn("Unable to parse organ score entry in {}.", id, e);
             }

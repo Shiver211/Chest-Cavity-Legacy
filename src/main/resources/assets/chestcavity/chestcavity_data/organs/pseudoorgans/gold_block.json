@@ -2,9 +2,9 @@
   "itemID": "minecraft:gold_block",
   "pseudoOrgan": true,
   "organScores": [
-    {"id": "chestcavity:luck", "value": "1.25"},
-    {"id": "chestcavity:lightweight", "value": "-1"},
-    {"id": "chestcavity:speed", "value": "-1"},
-    {"id": "chestcavity:fire_resistant", "value": "1"}
+    {"id": "luck", "value": "1.25"},
+    {"id": "lightweight", "value": "-1"},
+    {"id": "speed", "value": "-1"},
+    {"id": "fire_resistant", "value": "1"}
   ]
 }

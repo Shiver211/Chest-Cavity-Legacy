@@ -1,68 +1,61 @@
 package com.shiver.chestcavity.registry;
 
-import com.shiver.chestcavity.Tags;
-import net.minecraft.util.ResourceLocation;
-
 public final class CCOrganScores {
 
-    public static final ResourceLocation HEALTH = id("health");
-    public static final ResourceLocation LUCK = id("luck");
-    public static final ResourceLocation STRENGTH = id("strength");
-    public static final ResourceLocation SPEED = id("speed");
-    public static final ResourceLocation DEFENSE = id("defense");
-    public static final ResourceLocation NERVES = id("nerves");
-    public static final ResourceLocation MINING_SPEED = id("mining_speed");
-    public static final ResourceLocation EASE_OF_ACCESS = id("ease_of_access");
-    public static final ResourceLocation INCOMPATIBILITY = id("incompatibility");
-    public static final ResourceLocation DIGESTION = id("digestion");
-    public static final ResourceLocation NUTRITION = id("nutrition");
-    public static final ResourceLocation FILTRATION = id("filtration");
-    public static final ResourceLocation DETOXIFICATION = id("detoxification");
-    public static final ResourceLocation METABOLISM = id("metabolism");
-    public static final ResourceLocation ENDURANCE = id("endurance");
-    public static final ResourceLocation ROT_DIGESTION = id("rot_digestion");
-    public static final ResourceLocation ROTGUT = id("rotgut");
-    public static final ResourceLocation CARNIVOROUS_DIGESTION = id("carnivorous_digestion");
-    public static final ResourceLocation CARNIVOROUS_NUTRITION = id("carnivorous_nutrition");
-    public static final ResourceLocation HERBIVOROUS_DIGESTION = id("herbivorous_digestion");
-    public static final ResourceLocation HERBIVOROUS_NUTRITION = id("herbivorous_nutrition");
-    public static final ResourceLocation FURNACE_POWERED = id("furnace_powered");
-    public static final ResourceLocation GRAZING = id("grazing");
-    public static final ResourceLocation IRON_REPAIR = id("iron_repair");
-    public static final ResourceLocation BREATH = id("breath");
-    public static final ResourceLocation BREATH_CAPACITY = id("breath_capacity");
-    public static final ResourceLocation WATER_BREATH = id("water_breath");
-    public static final ResourceLocation BUOYANT = id("buoyant");
-    public static final ResourceLocation CREEPY = id("creepy");
-    public static final ResourceLocation EXPLOSIVE = id("explosive");
-    public static final ResourceLocation FIRE_RESISTANT = id("fire_resistant");
-    public static final ResourceLocation HYDROALLERGENIC = id("hydroallergenic");
-    public static final ResourceLocation HYDROPHOBIA = id("hydrophobia");
-    public static final ResourceLocation IMPACT_RESISTANT = id("impact_resistant");
-    public static final ResourceLocation KNOCKBACK_RESISTANT = id("knockback_resistant");
-    public static final ResourceLocation LEAPING = id("leaping");
-    public static final ResourceLocation LIGHTWEIGHT = id("lightweight");
-    public static final ResourceLocation SWIM_SPEED = id("swim_speed");
-    public static final ResourceLocation GLOWING = id("glowing");
-    public static final ResourceLocation PYROMANCY = id("pyromancy");
-    public static final ResourceLocation LAUNCHING = id("launching");
-    public static final ResourceLocation VENOMOUS = id("venomous");
-    public static final ResourceLocation ARROW_DODGING = id("arrow_dodging");
-    public static final ResourceLocation BUFF_PURGING = id("buff_purging");
-    public static final ResourceLocation WITHERED = id("withered");
-    public static final ResourceLocation DRAGON_BOMBS = id("dragon_bombs");
-    public static final ResourceLocation FORCEFUL_SPIT = id("forceful_spit");
-    public static final ResourceLocation GHASTLY = id("ghastly");
-    public static final ResourceLocation SHULKER_BULLETS = id("shulker_bullets");
-    public static final ResourceLocation SILK = id("silk");
-    public static final ResourceLocation CRYSTALSYNTHESIS = id("crystalsynthesis");
-    public static final ResourceLocation PHOTOSYNTHESIS = id("photosynthesis");
-    public static final ResourceLocation DESTRUCTIVE_COLLISIONS = id("destructive_collisions");
+    public static final String HEALTH = "health";
+    public static final String LUCK = "luck";
+    public static final String STRENGTH = "strength";
+    public static final String SPEED = "speed";
+    public static final String DEFENSE = "defense";
+    public static final String NERVES = "nerves";
+    public static final String MINING_SPEED = "mining_speed";
+    public static final String EASE_OF_ACCESS = "ease_of_access";
+    public static final String INCOMPATIBILITY = "incompatibility";
+    public static final String DIGESTION = "digestion";
+    public static final String NUTRITION = "nutrition";
+    public static final String FILTRATION = "filtration";
+    public static final String DETOXIFICATION = "detoxification";
+    public static final String METABOLISM = "metabolism";
+    public static final String ENDURANCE = "endurance";
+    public static final String ROT_DIGESTION = "rot_digestion";
+    public static final String ROTGUT = "rotgut";
+    public static final String CARNIVOROUS_DIGESTION = "carnivorous_digestion";
+    public static final String CARNIVOROUS_NUTRITION = "carnivorous_nutrition";
+    public static final String HERBIVOROUS_DIGESTION = "herbivorous_digestion";
+    public static final String HERBIVOROUS_NUTRITION = "herbivorous_nutrition";
+    public static final String FURNACE_POWERED = "furnace_powered";
+    public static final String GRAZING = "grazing";
+    public static final String IRON_REPAIR = "iron_repair";
+    public static final String BREATH = "breath";
+    public static final String BREATH_CAPACITY = "breath_capacity";
+    public static final String WATER_BREATH = "water_breath";
+    public static final String BUOYANT = "buoyant";
+    public static final String CREEPY = "creepy";
+    public static final String EXPLOSIVE = "explosive";
+    public static final String FIRE_RESISTANT = "fire_resistant";
+    public static final String HYDROALLERGENIC = "hydroallergenic";
+    public static final String HYDROPHOBIA = "hydrophobia";
+    public static final String IMPACT_RESISTANT = "impact_resistant";
+    public static final String KNOCKBACK_RESISTANT = "knockback_resistant";
+    public static final String LEAPING = "leaping";
+    public static final String LIGHTWEIGHT = "lightweight";
+    public static final String SWIM_SPEED = "swim_speed";
+    public static final String GLOWING = "glowing";
+    public static final String PYROMANCY = "pyromancy";
+    public static final String LAUNCHING = "launching";
+    public static final String VENOMOUS = "venomous";
+    public static final String ARROW_DODGING = "arrow_dodging";
+    public static final String BUFF_PURGING = "buff_purging";
+    public static final String WITHERED = "withered";
+    public static final String DRAGON_BOMBS = "dragon_bombs";
+    public static final String FORCEFUL_SPIT = "forceful_spit";
+    public static final String GHASTLY = "ghastly";
+    public static final String SHULKER_BULLETS = "shulker_bullets";
+    public static final String SILK = "silk";
+    public static final String CRYSTALSYNTHESIS = "crystalsynthesis";
+    public static final String PHOTOSYNTHESIS = "photosynthesis";
+    public static final String DESTRUCTIVE_COLLISIONS = "destructive_collisions";
 
     private CCOrganScores() {
-    }
-
-    private static ResourceLocation id(String path) {
-        return new ResourceLocation(Tags.MOD_ID, path);
     }
 }

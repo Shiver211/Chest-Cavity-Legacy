@@ -2,8 +2,8 @@
   "itemID": "minecraft:obsidian",
   "pseudoOrgan": true,
   "organScores": [
-    {"id": "chestcavity:defense", "value": ".5"},
-    {"id": "chestcavity:impact_resistant", "value": "1"},
-    {"id": "chestcavity:fire_resistant", "value": "1"}
+    {"id": "defense", "value": ".5"},
+    {"id": "impact_resistant", "value": "1"},
+    {"id": "fire_resistant", "value": "1"}
   ]
 }

@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -25,7 +24,7 @@ import java.util.List;
 @SideOnly(Side.CLIENT)
 public final class CCAbilityWheel {
 
-    private static final ResourceLocation[] ABILITIES = {
+    private static final String[] ABILITIES = {
             CCOrganScores.BUOYANT,
             CCOrganScores.FURNACE_POWERED,
             CCOrganScores.IRON_REPAIR,
@@ -44,29 +43,29 @@ public final class CCAbilityWheel {
     private static final int INNER_RADIUS = 24;
     private static final int SEGMENT_STEPS = 16;
 
-    private static ResourceLocation selectedAbility;
-    private static ResourceLocation hoveredAbility;
+    private static String selectedAbility;
+    private static String hoveredAbility;
     private static boolean wheelOpenLastFrame;
     private static boolean wasMouseDown;
     private static double pointerX;
     private static double pointerY = -RADIUS;
 
     private static long lastFrameTime = 0;
-    private static final java.util.Map<ResourceLocation, Double> hoverProgress = new java.util.HashMap<ResourceLocation, Double>();
+    private static final java.util.Map<String, Double> hoverProgress = new java.util.HashMap<String, Double>();
     private static double wheelAlphaProgress = 0.0;
     private static double currentPointerX = 0;
     private static double currentPointerY = -RADIUS;
 
-    public static ResourceLocation getSelectedAbility() {
+    public static String getSelectedAbility() {
         return selectedAbility;
     }
 
-    private static final java.util.List<ResourceLocation> SCORE_ORDER = new java.util.ArrayList<ResourceLocation>();
+    private static final java.util.List<String> SCORE_ORDER = new java.util.ArrayList<String>();
     static {
         for (java.lang.reflect.Field field : com.shiver.chestcavity.registry.CCOrganScores.class.getDeclaredFields()) {
-            if (field.getType() == ResourceLocation.class) {
+            if (field.getType() == String.class) {
                 try {
-                    SCORE_ORDER.add((ResourceLocation) field.get(null));
+                    SCORE_ORDER.add((String) field.get(null));
                 } catch (Exception e) {}
             }
         }
@@ -97,7 +96,7 @@ public final class CCAbilityWheel {
         ScaledResolution resolution = event.getResolution();
         int centerX = resolution.getScaledWidth() / 2;
         int centerY = resolution.getScaledHeight() / 2;
-        List<ResourceLocation> availableAbilities = getAvailableAbilities(minecraft);
+        List<String> availableAbilities = getAvailableAbilities(minecraft);
 
         if (!wheelOpenLastFrame) {
             if (minecraft.currentScreen == null) {
@@ -162,7 +161,7 @@ public final class CCAbilityWheel {
         drawScoreSummary(minecraft.fontRenderer, centerX, centerY, minecraft, resolution, alphaScale);
     }
 
-    private static void updateAnimations(List<ResourceLocation> abilities) {
+    private static void updateAnimations(List<String> abilities) {
         long currentTime = Minecraft.getSystemTime();
         if (lastFrameTime == 0) lastFrameTime = currentTime;
         double delta = (currentTime - lastFrameTime) / 1000.0;
@@ -172,7 +171,7 @@ public final class CCAbilityWheel {
 
         wheelAlphaProgress = Math.min(1.0, wheelAlphaProgress + delta * 8.0);
 
-        for (ResourceLocation ability : abilities) {
+        for (String ability : abilities) {
             double current = hoverProgress.containsKey(ability) ? hoverProgress.get(ability) : 0.0;
             if (ability.equals(hoveredAbility)) {
                 current = Math.min(1.0, current + delta * 12.0);
@@ -187,14 +186,14 @@ public final class CCAbilityWheel {
         currentPointerY += (pointerY - currentPointerY) * lerpFactor;
     }
 
-    private static List<ResourceLocation> getAvailableAbilities(Minecraft minecraft) {
+    private static List<String> getAvailableAbilities(Minecraft minecraft) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(minecraft.player);
-        List<ResourceLocation> result = new ArrayList<ResourceLocation>();
+        List<String> result = new ArrayList<String>();
         if (chestCavity == null) {
             return result;
         }
 
-        for (ResourceLocation ability : ABILITIES) {
+        for (String ability : ABILITIES) {
             if (chestCavity.getOrganScore(ability) > 0.0F) {
                 result.add(ability);
             }
@@ -205,7 +204,7 @@ public final class CCAbilityWheel {
         return result;
     }
 
-    private static void resetPointer(List<ResourceLocation> abilities) {
+    private static void resetPointer(List<String> abilities) {
         int index = selectedAbility == null ? 0 : abilities.indexOf(selectedAbility);
         if (index < 0) {
             index = 0;
@@ -242,7 +241,7 @@ public final class CCAbilityWheel {
         }
     }
 
-    private static ResourceLocation getAbilityAtPointer(List<ResourceLocation> abilities) {
+    private static String getAbilityAtPointer(List<String> abilities) {
         if (pointerX * pointerX + pointerY * pointerY < INNER_RADIUS * INNER_RADIUS) {
             return hoveredAbility == null ? (selectedAbility == null ? abilities.get(0) : selectedAbility) : hoveredAbility;
         }
@@ -252,7 +251,7 @@ public final class CCAbilityWheel {
         return abilities.get((int) (normalized / step) % abilities.size());
     }
 
-    private static void drawAbilitySegments(int centerX, int centerY, List<ResourceLocation> abilities, double alphaScale) {
+    private static void drawAbilitySegments(int centerX, int centerY, List<String> abilities, double alphaScale) {
         double step = TWO_PI / abilities.size();
         double gap = Math.toRadians(2.0);
         
@@ -261,7 +260,7 @@ public final class CCAbilityWheel {
         }
 
         for (int i = 0; i < abilities.size(); i++) {
-            ResourceLocation ability = abilities.get(i);
+            String ability = abilities.get(i);
             double mid = -Math.PI / 2.0D + i * step;
             double start = mid - step / 2.0D + gap / 2.0D;
             double end = mid + step / 2.0D - gap / 2.0D;
@@ -292,10 +291,10 @@ public final class CCAbilityWheel {
         }
     }
 
-    private static void drawAbilityLabels(FontRenderer fontRenderer, int centerX, int centerY, List<ResourceLocation> abilities, double alphaScale) {
+    private static void drawAbilityLabels(FontRenderer fontRenderer, int centerX, int centerY, List<String> abilities, double alphaScale) {
         double step = TWO_PI / abilities.size();
         for (int i = 0; i < abilities.size(); i++) {
-            ResourceLocation ability = abilities.get(i);
+            String ability = abilities.get(i);
             double angle = -Math.PI / 2.0D + i * step;
             
             double progress = hoverProgress.containsKey(ability) ? hoverProgress.get(ability) : 0.0;
@@ -385,9 +384,9 @@ public final class CCAbilityWheel {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(minecraft.player);
         if (chestCavity == null) return;
         
-        java.util.Map<ResourceLocation, Float> rawScores = chestCavity.getOrganScores();
-        java.util.List<java.util.Map.Entry<ResourceLocation, Float>> validScores = new java.util.ArrayList<java.util.Map.Entry<ResourceLocation, Float>>();
-        for (java.util.Map.Entry<ResourceLocation, Float> entry : rawScores.entrySet()) {
+        java.util.Map<String, Float> rawScores = chestCavity.getOrganScores();
+        java.util.List<java.util.Map.Entry<String, Float>> validScores = new java.util.ArrayList<java.util.Map.Entry<String, Float>>();
+        for (java.util.Map.Entry<String, Float> entry : rawScores.entrySet()) {
             if (entry.getValue() > 0.0F) {
                 validScores.add(entry);
             }
@@ -395,10 +394,10 @@ public final class CCAbilityWheel {
         
         if (validScores.isEmpty()) return;
         
-        validScores.sort(new java.util.Comparator<java.util.Map.Entry<ResourceLocation, Float>>() {
+        validScores.sort(new java.util.Comparator<java.util.Map.Entry<String, Float>>() {
             @Override
-            public int compare(java.util.Map.Entry<ResourceLocation, Float> a, java.util.Map.Entry<ResourceLocation, Float> b) {
-                java.util.List<ResourceLocation> activeList = java.util.Arrays.asList(ABILITIES);
+            public int compare(java.util.Map.Entry<String, Float> a, java.util.Map.Entry<String, Float> b) {
+                java.util.List<String> activeList = java.util.Arrays.asList(ABILITIES);
                 boolean activeA = activeList.contains(a.getKey());
                 boolean activeB = activeList.contains(b.getKey());
                 if (activeA != activeB) {
@@ -427,7 +426,7 @@ public final class CCAbilityWheel {
         
         int maxNameWidth = 0;
         int maxValWidth = 0;
-        for (java.util.Map.Entry<ResourceLocation, Float> entry : validScores) {
+        for (java.util.Map.Entry<String, Float> entry : validScores) {
             int w1 = fontRenderer.getStringWidth(getScoreName(entry.getKey()));
             int w2 = fontRenderer.getStringWidth(String.format("%.1f", entry.getValue()));
             if (w1 > maxNameWidth) maxNameWidth = w1;
@@ -495,7 +494,7 @@ public final class CCAbilityWheel {
         int curY = startY + padding + titleSpace;
         int rowCount = 0;
         
-        for (java.util.Map.Entry<ResourceLocation, Float> entry : validScores) {
+        for (java.util.Map.Entry<String, Float> entry : validScores) {
             String name = getScoreName(entry.getKey());
             String val = String.format("%.1f", entry.getValue());
             
@@ -524,34 +523,33 @@ public final class CCAbilityWheel {
         GlStateManager.popMatrix();
     }
 
-    private static String getAbilityName(ResourceLocation id) {
+    private static String getAbilityName(String id) {
         if (id == null) {
             return "";
         }
-        return I18n.format("key." + id.getNamespace() + "." + id.getPath());
+        return I18n.format("key.chestcavity." + id);
     }
 
-    private static String getScoreName(ResourceLocation id) {
+    private static String getScoreName(String id) {
         if (id == null) return "";
-        String key = "organscore." + id.getNamespace() + "." + id.getPath();
+        String key = "organscore.chestcavity." + id;
         if (I18n.hasKey(key)) {
             return I18n.format(key, "").trim();
         }
-        String abilityKey = "key." + id.getNamespace() + "." + id.getPath();
+        String abilityKey = "key.chestcavity." + id;
         if (I18n.hasKey(abilityKey)) {
             return I18n.format(abilityKey);
         }
-        return id.getPath();
+        return id;
     }
 
-    private static boolean isNegativeScore(ResourceLocation id) {
+    private static boolean isNegativeScore(String id) {
         if (id == null) return false;
-        String path = id.getPath();
-        return path.equals("metabolism") || 
-               path.equals("incompatibility") || 
-               path.equals("hydroallergenic") || 
-               path.equals("hydrophobia") || 
-               path.equals("withered");
+        return id.equals("metabolism") ||
+               id.equals("incompatibility") ||
+               id.equals("hydroallergenic") ||
+               id.equals("hydrophobia") ||
+               id.equals("withered");
     }
 
     private static double normalizeAngle(double angle) {

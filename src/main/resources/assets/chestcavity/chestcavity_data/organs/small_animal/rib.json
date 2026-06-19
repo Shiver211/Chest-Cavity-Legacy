@@ -1,7 +1,7 @@
 {
   "itemID": "chestcavity:small_animal_rib",
   "organScores": [
-    {"id":"chestcavity:defense","value": ".5"},
-    {"id":"chestcavity:lightweight","value": "1"}
+    {"id":"defense","value": ".5"},
+    {"id":"lightweight","value": "1"}
   ]
 }

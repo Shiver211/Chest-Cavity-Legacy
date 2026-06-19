@@ -1,8 +1,8 @@
 {
   "itemID": "chestcavity:inner_furnace",
   "organScores": [
-    {"id":"chestcavity:metabolism","value": ".25"},
-    {"id":"chestcavity:defense","value": ".25"},
-    {"id":"chestcavity:furnace_powered","value": "1"}
+    {"id":"metabolism","value": ".25"},
+    {"id":"defense","value": ".25"},
+    {"id":"furnace_powered","value": "1"}
   ]
 }

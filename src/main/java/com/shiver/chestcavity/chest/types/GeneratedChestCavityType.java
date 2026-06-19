@@ -9,7 +9,6 @@ import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemDoor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.ArrayList;
@@ -22,17 +21,17 @@ import java.util.Map;
 public class GeneratedChestCavityType implements ChestCavityType {
 
     private ChestCavityInventory defaultChestCavity = new ChestCavityInventory();
-    private final Map<ResourceLocation, Float> baseOrganScores = new LinkedHashMap<>();
+    private final Map<String, Float> baseOrganScores = new LinkedHashMap<>();
     private final List<ExceptionalOrgan> exceptionalOrgans = new ArrayList<>();
     private final List<Integer> forbiddenSlots = new ArrayList<>();
-    private Map<ResourceLocation, Float> defaultOrganScores;
+    private Map<String, Float> defaultOrganScores;
     private List<ItemStack> droppableOrgans;
     private float dropRateMultiplier = 1.0F;
     private boolean bossChestCavity;
     private boolean playerChestCavity;
 
     @Override
-    public Map<ResourceLocation, Float> getDefaultOrganScores() {
+    public Map<String, Float> getDefaultOrganScores() {
         if (defaultOrganScores == null) {
             defaultOrganScores = new LinkedHashMap<>();
             loadBaseOrganScores(defaultOrganScores);
@@ -42,7 +41,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
     }
 
     @Override
-    public float getDefaultOrganScore(ResourceLocation id) {
+    public float getDefaultOrganScore(String id) {
         Float score = getDefaultOrganScores().get(id);
         return score == null ? 0.0F : score;
     }
@@ -57,11 +56,11 @@ public class GeneratedChestCavityType implements ChestCavityType {
         clearDerivedCache();
     }
 
-    public Map<ResourceLocation, Float> getBaseOrganScores() {
+    public Map<String, Float> getBaseOrganScores() {
         return Collections.unmodifiableMap(baseOrganScores);
     }
 
-    public void setBaseOrganScores(Map<ResourceLocation, Float> scores) {
+    public void setBaseOrganScores(Map<String, Float> scores) {
         baseOrganScores.clear();
         if (scores != null) {
             baseOrganScores.putAll(scores);
@@ -99,7 +98,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
     }
 
     @Override
-    public void loadBaseOrganScores(Map<ResourceLocation, Float> organScores) {
+    public void loadBaseOrganScores(Map<String, Float> organScores) {
         organScores.clear();
         organScores.putAll(baseOrganScores);
     }
@@ -116,7 +115,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
         }
         if (isDoorOrTrapdoor(stack)) {
             OrganData data = new OrganData();
-            Map<ResourceLocation, Float> scores = new LinkedHashMap<>();
+            Map<String, Float> scores = new LinkedHashMap<>();
             scores.put(CCOrganScores.EASE_OF_ACCESS, (float) stack.getMaxStackSize());
             data.setPseudoOrgan(true);
             data.setOrganScores(scores);
@@ -179,7 +178,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
         clearDerivedCache();
     }
 
-    private void addInventoryOrganScores(Map<ResourceLocation, Float> scores, ChestCavityInventory inventory) {
+    private void addInventoryOrganScores(Map<String, Float> scores, ChestCavityInventory inventory) {
         for (int i = 0; i < inventory.size(); i++) {
             ItemStack stack = inventory.getStack(i);
             if (stack.isEmpty()) {
@@ -192,7 +191,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
             }
 
             float stackRatio = Math.min((float) stack.getCount() / (float) stack.getMaxStackSize(), 1.0F);
-            for (Map.Entry<ResourceLocation, Float> entry : data.getOrganScores().entrySet()) {
+            for (Map.Entry<String, Float> entry : data.getOrganScores().entrySet()) {
                 Float old = scores.get(entry.getKey());
                 float value = entry.getValue() * stackRatio;
                 scores.put(entry.getKey(), old == null ? value : old + value);
@@ -211,9 +210,9 @@ public class GeneratedChestCavityType implements ChestCavityType {
     public static final class ExceptionalOrgan {
         private final Item item;
         private final String oreName;
-        private final Map<ResourceLocation, Float> scores;
+        private final Map<String, Float> scores;
 
-        public ExceptionalOrgan(Item item, String oreName, Map<ResourceLocation, Float> scores) {
+        public ExceptionalOrgan(Item item, String oreName, Map<String, Float> scores) {
             this.item = item;
             this.oreName = oreName;
             this.scores = new LinkedHashMap<>();

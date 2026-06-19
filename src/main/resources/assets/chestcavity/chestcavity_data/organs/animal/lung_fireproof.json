@@ -1,8 +1,8 @@
 {
   "itemID": "chestcavity:fireproof_lung",
   "organScores": [
-    {"id":"chestcavity:breath_capacity","value": ".75"},
-    {"id":"chestcavity:endurance","value": ".75"},
-    {"id":"chestcavity:fire_resistant","value": "1"}
+    {"id":"breath_capacity","value": ".75"},
+    {"id":"endurance","value": ".75"},
+    {"id":"fire_resistant","value": "1"}
   ]
 }

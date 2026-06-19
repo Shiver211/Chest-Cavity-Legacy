@@ -1,7 +1,7 @@
 {
   "itemID": "chestcavity:insect_heart",
   "organScores": [
-    {"id":"chestcavity:health","value": ".5"},
-    {"id":"chestcavity:filtration","value": ".5"}
+    {"id":"health","value": ".5"},
+    {"id":"filtration","value": ".5"}
   ]
 }

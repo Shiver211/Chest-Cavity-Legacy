@@ -3,16 +3,15 @@ package com.shiver.chestcavity.chest.types;
 import com.shiver.chestcavity.chest.ChestCavityInventory;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 
 import java.util.List;
 import java.util.Map;
 
 public interface ChestCavityType {
 
-    Map<ResourceLocation, Float> getDefaultOrganScores();
+    Map<String, Float> getDefaultOrganScores();
 
-    float getDefaultOrganScore(ResourceLocation id);
+    float getDefaultOrganScore(String id);
 
     ChestCavityInventory getDefaultChestCavity();
 
@@ -20,7 +19,7 @@ public interface ChestCavityType {
 
     void fillChestCavityInventory(ChestCavityInventory chestCavity);
 
-    void loadBaseOrganScores(Map<ResourceLocation, Float> organScores);
+    void loadBaseOrganScores(Map<String, Float> organScores);
 
     OrganData catchExceptionalOrgan(ItemStack stack);
 

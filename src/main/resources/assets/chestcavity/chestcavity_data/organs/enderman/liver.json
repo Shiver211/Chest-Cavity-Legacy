@@ -1,7 +1,7 @@
 {
   "itemID": "chestcavity:ender_liver",
   "organScores": [
-    {"id":"chestcavity:detoxification","value": "1"},
-    {"id":"chestcavity:hydroallergenic","value": "1"}
+    {"id":"detoxification","value": "1"},
+    {"id":"hydroallergenic","value": "1"}
   ]
 }

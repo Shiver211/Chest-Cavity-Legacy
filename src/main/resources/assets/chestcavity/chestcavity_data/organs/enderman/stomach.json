@@ -1,7 +1,7 @@
 {
   "itemID": "chestcavity:ender_stomach",
   "organScores": [
-    {"id":"chestcavity:digestion","value": "1.25"},
-    {"id":"chestcavity:hydroallergenic","value": "1"}
+    {"id":"digestion","value": "1.25"},
+    {"id":"hydroallergenic","value": "1"}
   ]
 }

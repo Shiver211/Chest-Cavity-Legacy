@@ -9,7 +9,6 @@ import net.minecraft.inventory.IInventoryChangedListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.ResourceLocation;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -23,8 +22,8 @@ public class ChestCavityInstance implements IInventoryChangedListener {
     private ChestCavityType type;
     private EntityLivingBase owner;
     private UUID compatibilityId;
-    private final Map<ResourceLocation, Float> organScores = new LinkedHashMap<>();
-    private final Map<ResourceLocation, Float> oldOrganScores = new LinkedHashMap<>();
+    private final Map<String, Float> organScores = new LinkedHashMap<>();
+    private final Map<String, Float> oldOrganScores = new LinkedHashMap<>();
 
     public boolean opened;
     public final ChestCavityInventory inventory;
@@ -73,15 +72,15 @@ public class ChestCavityInstance implements IInventoryChangedListener {
         return compatibilityId;
     }
 
-    public Map<ResourceLocation, Float> getOrganScores() {
+    public Map<String, Float> getOrganScores() {
         return organScores;
     }
 
-    public Map<ResourceLocation, Float> getOldOrganScores() {
+    public Map<String, Float> getOldOrganScores() {
         return oldOrganScores;
     }
 
-    public float getOrganScore(ResourceLocation id) {
+    public float getOrganScore(String id) {
         Float value = organScores.get(id);
         return value == null ? 0.0F : value;
     }
@@ -183,7 +182,7 @@ public class ChestCavityInstance implements IInventoryChangedListener {
 
     private void addScores(OrganData data, ItemStack stack) {
         float stackRatio = Math.min((float) stack.getCount() / (float) stack.getMaxStackSize(), 1.0F);
-        for (Map.Entry<ResourceLocation, Float> entry : data.getOrganScores().entrySet()) {
+        for (Map.Entry<String, Float> entry : data.getOrganScores().entrySet()) {
             Float old = organScores.get(entry.getKey());
             float value = entry.getValue() * stackRatio;
             organScores.put(entry.getKey(), old == null ? value : old + value);

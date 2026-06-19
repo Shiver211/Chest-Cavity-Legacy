@@ -53,7 +53,7 @@ public final class ForgeClientEvents {
         }
 
         event.getToolTip().add(TextFormatting.DARK_GREEN + "Organ scores:");
-        for (Map.Entry<ResourceLocation, Float> entry : organData.getOrganScoresView().entrySet()) {
+        for (Map.Entry<String, Float> entry : organData.getOrganScoresView().entrySet()) {
             event.getToolTip().add(TextFormatting.GRAY + "  " + getScoreName(entry.getKey(), entry.getValue()) + ": " + formatScore(entry.getValue()));
         }
         addCompatibilityTooltip(event, stack);
@@ -70,13 +70,13 @@ public final class ForgeClientEvents {
         }
     }
 
-    private static String getScoreName(ResourceLocation id, float value) {
-        String key = "organscore." + id.getNamespace() + "." + id.getPath();
+    private static String getScoreName(String id, float value) {
+        String key = "organscore.chestcavity." + id;
         if (I18n.hasKey(key)) {
             String format = value > 0.0F ? "+" : "";
             return I18n.format(key, format);
         }
-        return id.getPath();
+        return id;
     }
 
     private static String formatScore(float value) {

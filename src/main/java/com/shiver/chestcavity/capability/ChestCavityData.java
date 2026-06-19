@@ -5,7 +5,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
@@ -23,8 +22,8 @@ public class ChestCavityData implements IChestCavity {
     private boolean opened;
     private UUID compatibilityId = UUID.randomUUID();
     private NonNullList<ItemStack> organs = NonNullList.withSize(DEFAULT_SLOT_COUNT, ItemStack.EMPTY);
-    private final Map<ResourceLocation, Float> organScores = new HashMap<>();
-    private final Map<ResourceLocation, Float> oldOrganScores = new HashMap<>();
+    private final Map<String, Float> organScores = new HashMap<>();
+    private final Map<String, Float> oldOrganScores = new HashMap<>();
     private final IItemHandlerModifiable organInventory = new OrganItemHandler();
 
     private int heartBleedTimer;
@@ -35,7 +34,7 @@ public class ChestCavityData implements IChestCavity {
     private int furnaceProgress;
     private int photosynthesisProgress;
     private int connectedCrystalId = -1;
-    private final Queue<ResourceLocation> projectileQueue = new LinkedList<>();
+    private final Queue<String> projectileQueue = new LinkedList<>();
 
     @Override
     public EntityLivingBase getOwner() {
@@ -99,34 +98,34 @@ public class ChestCavityData implements IChestCavity {
     }
 
     @Override
-    public Map<ResourceLocation, Float> getOrganScores() {
+    public Map<String, Float> getOrganScores() {
         return organScores;
     }
 
     @Override
-    public Map<ResourceLocation, Float> getOldOrganScores() {
+    public Map<String, Float> getOldOrganScores() {
         return oldOrganScores;
     }
 
     @Override
-    public float getOrganScore(ResourceLocation id) {
+    public float getOrganScore(String id) {
         Float value = organScores.get(id);
         return value == null ? 0.0F : value;
     }
 
     @Override
-    public float getOldOrganScore(ResourceLocation id) {
+    public float getOldOrganScore(String id) {
         Float value = oldOrganScores.get(id);
         return value == null ? 0.0F : value;
     }
 
     @Override
-    public void setOrganScore(ResourceLocation id, float value) {
+    public void setOrganScore(String id, float value) {
         organScores.put(id, value);
     }
 
     @Override
-    public void addOrganScore(ResourceLocation id, float value) {
+    public void addOrganScore(String id, float value) {
         setOrganScore(id, getOrganScore(id) + value);
     }
 
@@ -136,7 +135,7 @@ public class ChestCavityData implements IChestCavity {
     }
 
     @Override
-    public void replaceOrganScores(Map<ResourceLocation, Float> scores) {
+    public void replaceOrganScores(Map<String, Float> scores) {
         organScores.clear();
         organScores.putAll(scores);
     }
@@ -228,14 +227,14 @@ public class ChestCavityData implements IChestCavity {
     }
 
     @Override
-    public void enqueueProjectileAbility(ResourceLocation abilityId) {
+    public void enqueueProjectileAbility(String abilityId) {
         if (abilityId != null) {
             projectileQueue.add(abilityId);
         }
     }
 
     @Override
-    public ResourceLocation pollProjectileAbility() {
+    public String pollProjectileAbility() {
         return projectileQueue.poll();
     }
 
@@ -331,21 +330,21 @@ public class ChestCavityData implements IChestCavity {
         }
     }
 
-    private NBTTagList writeScores(Map<ResourceLocation, Float> scores) {
+    private NBTTagList writeScores(Map<String, Float> scores) {
         NBTTagList list = new NBTTagList();
-        for (Map.Entry<ResourceLocation, Float> entry : scores.entrySet()) {
+        for (Map.Entry<String, Float> entry : scores.entrySet()) {
             NBTTagCompound scoreTag = new NBTTagCompound();
-            scoreTag.setString("Id", entry.getKey().toString());
+            scoreTag.setString("Id", entry.getKey());
             scoreTag.setFloat("Value", entry.getValue());
             list.appendTag(scoreTag);
         }
         return list;
     }
 
-    private void readScores(NBTTagList list, Map<ResourceLocation, Float> scores) {
+    private void readScores(NBTTagList list, Map<String, Float> scores) {
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound scoreTag = list.getCompoundTagAt(i);
-            scores.put(new ResourceLocation(scoreTag.getString("Id")), scoreTag.getFloat("Value"));
+            scores.put(scoreTag.getString("Id"), scoreTag.getFloat("Value"));
         }
     }
 

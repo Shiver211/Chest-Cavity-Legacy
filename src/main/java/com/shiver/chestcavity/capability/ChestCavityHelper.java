@@ -140,7 +140,7 @@ public final class ChestCavityHelper {
 
     public static void recalculateOrganScores(IChestCavity chestCavity) {
         ChestCavityType type = getChestCavityType(chestCavity);
-        Map<ResourceLocation, Float> scores = new LinkedHashMap<>();
+        Map<String, Float> scores = new LinkedHashMap<>();
 
         if (!chestCavity.isOpened()) {
             scores.putAll(type.getDefaultOrganScores());
@@ -350,7 +350,7 @@ public final class ChestCavityHelper {
         breakWeakCollisionBlocks(entity, center, budget, maxHardness);
     }
 
-    public static void destroyOrgansWithScore(IChestCavity chestCavity, ResourceLocation scoreId) {
+    public static void destroyOrgansWithScore(IChestCavity chestCavity, String scoreId) {
         if (chestCavity == null || scoreId == null) {
             return;
         }
@@ -631,9 +631,9 @@ public final class ChestCavityHelper {
         return tag == null ? "" : tag.getString(COMPATIBILITY_NAME_KEY);
     }
 
-    private static void addOrganScores(Map<ResourceLocation, Float> scores, OrganData data, ItemStack stack) {
+    private static void addOrganScores(Map<String, Float> scores, OrganData data, ItemStack stack) {
         float stackRatio = Math.min((float) stack.getCount() / (float) stack.getMaxStackSize(), 1.0F);
-        for (Map.Entry<ResourceLocation, Float> entry : data.getOrganScores().entrySet()) {
+        for (Map.Entry<String, Float> entry : data.getOrganScores().entrySet()) {
             Float old = scores.get(entry.getKey());
             float value = entry.getValue() * stackRatio;
             scores.put(entry.getKey(), old == null ? value : old + value);
@@ -846,7 +846,7 @@ public final class ChestCavityHelper {
         if (entity.ticksExisted % 5 != 0) {
             return;
         }
-        ResourceLocation abilityId = chestCavity.pollProjectileAbility();
+        String abilityId = chestCavity.pollProjectileAbility();
         if (abilityId != null) {
             ActiveOrganAbilities.fireQueuedProjectile(entity, chestCavity, abilityId);
         }

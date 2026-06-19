@@ -22,22 +22,22 @@
     {
       "ingredient": {"ore": "treeLeaves"},
       "value": [
-        {"id": "chestcavity:speed", "value": "1"},
-        {"id": "chestcavity:photosynthesis", "value": "1"}
+        {"id": "speed", "value": "1"},
+        {"id": "photosynthesis", "value": "1"}
       ]
     },
     {
       "ingredient": {"item": "minecraft:stick"},
       "value": [
-        {"id": "chestcavity:defense", "value": "16"}
+        {"id": "defense", "value": "16"}
       ]
     },
     {
       "ingredient": {"ore": "logWood"},
       "value": [
-        {"id": "chestcavity:health", "value": "64"},
-        {"id": "chestcavity:defense", "value": "48"},
-        {"id": "chestcavity:nerves", "value": "64"}
+        {"id": "health", "value": "64"},
+        {"id": "defense", "value": "48"},
+        {"id": "nerves", "value": "64"}
       ]
     }
   ]

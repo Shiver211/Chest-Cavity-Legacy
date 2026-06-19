@@ -34,21 +34,21 @@ public interface IChestCavity {
 
     void setOrgan(int slot, ItemStack stack);
 
-    Map<ResourceLocation, Float> getOrganScores();
+    Map<String, Float> getOrganScores();
 
-    Map<ResourceLocation, Float> getOldOrganScores();
+    Map<String, Float> getOldOrganScores();
 
-    float getOrganScore(ResourceLocation id);
+    float getOrganScore(String id);
 
-    float getOldOrganScore(ResourceLocation id);
+    float getOldOrganScore(String id);
 
-    void setOrganScore(ResourceLocation id, float value);
+    void setOrganScore(String id, float value);
 
-    void addOrganScore(ResourceLocation id, float value);
+    void addOrganScore(String id, float value);
 
     void clearOrganScores();
 
-    void replaceOrganScores(Map<ResourceLocation, Float> scores);
+    void replaceOrganScores(Map<String, Float> scores);
 
     void copyCurrentScoresToOld();
 
@@ -84,9 +84,9 @@ public interface IChestCavity {
 
     void setConnectedCrystalId(int entityId);
 
-    void enqueueProjectileAbility(ResourceLocation abilityId);
+    void enqueueProjectileAbility(String abilityId);
 
-    ResourceLocation pollProjectileAbility();
+    String pollProjectileAbility();
 
     void clearProjectileQueue();
 

@@ -1,8 +1,8 @@
 {
   "itemID": "chestcavity:small_animal_muscle",
   "organScores": [
-    {"id":"chestcavity:strength","value": ".5"},
-    {"id":"chestcavity:speed","value": ".5"},
-    {"id":"chestcavity:lightweight","value": "1"}
+    {"id":"strength","value": ".5"},
+    {"id":"speed","value": ".5"},
+    {"id":"lightweight","value": "1"}
   ]
 }

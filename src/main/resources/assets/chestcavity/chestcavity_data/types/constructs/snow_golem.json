@@ -29,6 +29,6 @@
     {"item": "minecraft:snowball", "position": 26}
   ],
   "baseOrganScores": [
-    {"id": "chestcavity:breath", "value": "2"}
+    {"id": "breath", "value": "2"}
   ]
 }

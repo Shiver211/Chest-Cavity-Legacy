@@ -1,6 +1,6 @@
 {
   "itemID": "chestcavity:rotten_spleen",
   "organScores": [
-    {"id":"chestcavity:metabolism","value": ".5"}
+    {"id":"metabolism","value": ".5"}
   ]
 }

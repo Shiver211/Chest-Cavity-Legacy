@@ -1,8 +1,8 @@
 {
   "itemID": "chestcavity:active_blaze_rod",
   "organScores": [
-    {"id":"chestcavity:pyromancy","value": "3"},
-    {"id":"chestcavity:fire_resistant","value": "1"},
-    {"id":"chestcavity:hydroallergenic","value": "3"}
+    {"id":"pyromancy","value": "3"},
+    {"id":"fire_resistant","value": "1"},
+    {"id":"hydroallergenic","value": "3"}
   ]
 }

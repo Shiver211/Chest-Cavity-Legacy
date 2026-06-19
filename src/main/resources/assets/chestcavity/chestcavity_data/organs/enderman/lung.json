@@ -1,8 +1,8 @@
 {
   "itemID": "chestcavity:ender_lung",
   "organScores": [
-    {"id":"chestcavity:breath_capacity","value": "1.25"},
-    {"id":"chestcavity:endurance","value": "1.25"},
-    {"id":"chestcavity:hydroallergenic","value": "1"}
+    {"id":"breath_capacity","value": "1.25"},
+    {"id":"endurance","value": "1.25"},
+    {"id":"hydroallergenic","value": "1"}
   ]
 }

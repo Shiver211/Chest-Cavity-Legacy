@@ -1,7 +1,7 @@
 {
   "itemID": "chestcavity:small_animal_kidney",
   "organScores": [
-    {"id":"chestcavity:filtration","value": ".5"},
-    {"id":"chestcavity:lightweight","value": "1"}
+    {"id":"filtration","value": ".5"},
+    {"id":"lightweight","value": "1"}
   ]
 }

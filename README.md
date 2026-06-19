@@ -248,8 +248,8 @@ assets/chestcavity/chestcavity_data/
 {
   "itemID": "minecraft:golden_apple",
   "organScores": [
-    { "id": "chestcavity:health", "value": 2.0 },
-    { "id": "chestcavity:luck", "value": 1.5 }
+    { "id": "health", "value": 2.0 },
+    { "id": "luck", "value": 1.5 }
   ],
   "pseudoOrgan": true
 }

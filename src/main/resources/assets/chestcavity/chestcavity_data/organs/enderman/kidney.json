@@ -1,8 +1,8 @@
 {
   "itemID": "chestcavity:ender_kidney",
   "organScores": [
-    {"id":"chestcavity:filtration","value": "1"},
-    {"id":"chestcavity:hydroallergenic","value": "1"},
-    {"id":"chestcavity:hydrophobia","value": "1"}
+    {"id":"filtration","value": "1"},
+    {"id":"hydroallergenic","value": "1"},
+    {"id":"hydrophobia","value": "1"}
   ]
 }

@@ -1,6 +1,6 @@
 {
   "itemID": "chestcavity:intestine",
   "organScores": [
-    {"id": "chestcavity:nutrition", "value": "1"}
+    {"id": "nutrition", "value": "1"}
   ]
 }

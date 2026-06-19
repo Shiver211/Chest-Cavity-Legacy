@@ -2,7 +2,7 @@
   "itemID": "minecraft:gunpowder",
   "pseudoOrgan": true,
   "organScores": [
-    {"id": "chestcavity:creepy", "value": "1"},
-    {"id": "chestcavity:explosive", "value": "192"}
+    {"id": "creepy", "value": "1"},
+    {"id": "explosive", "value": "192"}
   ]
 }

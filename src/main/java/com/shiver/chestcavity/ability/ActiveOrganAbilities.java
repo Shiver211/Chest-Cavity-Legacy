@@ -28,7 +28,6 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -42,17 +41,17 @@ import java.util.Map;
 
 public final class ActiveOrganAbilities {
 
-    public static final ResourceLocation FURNACE_POWERED = CCOrganScores.FURNACE_POWERED;
-    public static final ResourceLocation GRAZING = CCOrganScores.GRAZING;
-    public static final ResourceLocation IRON_REPAIR = CCOrganScores.IRON_REPAIR;
-    public static final ResourceLocation BUOYANT = CCOrganScores.BUOYANT;
-    public static final ResourceLocation CREEPY = CCOrganScores.CREEPY;
-    public static final ResourceLocation PYROMANCY = CCOrganScores.PYROMANCY;
-    public static final ResourceLocation DRAGON_BOMBS = CCOrganScores.DRAGON_BOMBS;
-    public static final ResourceLocation FORCEFUL_SPIT = CCOrganScores.FORCEFUL_SPIT;
-    public static final ResourceLocation GHASTLY = CCOrganScores.GHASTLY;
-    public static final ResourceLocation SHULKER_BULLETS = CCOrganScores.SHULKER_BULLETS;
-    public static final ResourceLocation SILK = CCOrganScores.SILK;
+    public static final String FURNACE_POWERED = CCOrganScores.FURNACE_POWERED;
+    public static final String GRAZING = CCOrganScores.GRAZING;
+    public static final String IRON_REPAIR = CCOrganScores.IRON_REPAIR;
+    public static final String BUOYANT = CCOrganScores.BUOYANT;
+    public static final String CREEPY = CCOrganScores.CREEPY;
+    public static final String PYROMANCY = CCOrganScores.PYROMANCY;
+    public static final String DRAGON_BOMBS = CCOrganScores.DRAGON_BOMBS;
+    public static final String FORCEFUL_SPIT = CCOrganScores.FORCEFUL_SPIT;
+    public static final String GHASTLY = CCOrganScores.GHASTLY;
+    public static final String SHULKER_BULLETS = CCOrganScores.SHULKER_BULLETS;
+    public static final String SILK = CCOrganScores.SILK;
 
     private static final float BUOYANT_AIR_COST = 4.5F;
     private static final float DRAGON_BOMB_EXHAUSTION = 0.6F;
@@ -65,7 +64,7 @@ public final class ActiveOrganAbilities {
     private static final float PYROMANCY_EXHAUSTION = 0.1F;
     private static final double PYROMANCY_RECOIL = 0.2D;
     private static final float SHULKER_BULLET_EXHAUSTION = 0.3F;
-    private static final Map<ResourceLocation, ActiveOrganAbility> ABILITIES = new LinkedHashMap<ResourceLocation, ActiveOrganAbility>();
+    private static final Map<String, ActiveOrganAbility> ABILITIES = new LinkedHashMap<String, ActiveOrganAbility>();
 
     static {
         register(FURNACE_POWERED, ActiveOrganAbilities::activateFurnacePowered);
@@ -84,11 +83,11 @@ public final class ActiveOrganAbilities {
     private ActiveOrganAbilities() {
     }
 
-    public static void register(ResourceLocation id, ActiveOrganAbility ability) {
+    public static void register(String id, ActiveOrganAbility ability) {
         ABILITIES.put(id, ability);
     }
 
-    public static boolean activate(EntityPlayerMP player, IChestCavity chestCavity, ResourceLocation abilityId) {
+    public static boolean activate(EntityPlayerMP player, IChestCavity chestCavity, String abilityId) {
         ActiveOrganAbility ability = ABILITIES.get(abilityId);
         if (ability == null) {
             ChestCavityLegacy.LOGGER.debug("Ignoring unknown active organ ability {}.", abilityId);
@@ -101,7 +100,7 @@ public final class ActiveOrganAbilities {
         return ability.activate(player, chestCavity);
     }
 
-    public static boolean fireQueuedProjectile(EntityLivingBase entity, IChestCavity chestCavity, ResourceLocation abilityId) {
+    public static boolean fireQueuedProjectile(EntityLivingBase entity, IChestCavity chestCavity, String abilityId) {
         if (!(entity instanceof EntityPlayerMP)) {
             return false;
         }

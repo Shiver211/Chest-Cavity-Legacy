@@ -1,6 +1,6 @@
 {
   "itemID": "chestcavity:rib",
   "organScores": [
-    {"id": "chestcavity:defense", "value": "1"}
+    {"id": "defense", "value": "1"}
   ]
 }

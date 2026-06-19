@@ -1,8 +1,8 @@
 {
   "itemID": "chestcavity:dragon_lung",
   "organScores": [
-    {"id":"chestcavity:breath_capacity","value": ".25"},
-    {"id":"chestcavity:endurance","value": ".75"},
-    {"id":"chestcavity:dragon_bombs","value": "1"}
+    {"id":"breath_capacity","value": ".25"},
+    {"id":"endurance","value": ".75"},
+    {"id":"dragon_bombs","value": "1"}
   ]
 }

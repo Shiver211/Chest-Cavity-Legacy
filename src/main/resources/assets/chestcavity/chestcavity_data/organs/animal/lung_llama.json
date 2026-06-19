@@ -1,8 +1,8 @@
 {
   "itemID": "chestcavity:llama_lung",
   "organScores": [
-    {"id":"chestcavity:breath_capacity","value": ".75"},
-    {"id":"chestcavity:endurance","value": ".75"},
-    {"id":"chestcavity:forceful_spit","value": "1"}
+    {"id":"breath_capacity","value": ".75"},
+    {"id":"endurance","value": ".75"},
+    {"id":"forceful_spit","value": "1"}
   ]
 }

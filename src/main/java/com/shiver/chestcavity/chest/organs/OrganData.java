@@ -16,7 +16,7 @@ public class OrganData {
     private static final Map<ResourceLocation, OrganData> ORGAN_DATA = new LinkedHashMap<>();
 
     private boolean pseudoOrgan;
-    private Map<ResourceLocation, Float> organScores = new LinkedHashMap<>();
+    private Map<String, Float> organScores = new LinkedHashMap<>();
 
     public static void clearRegistry() {
         ORGAN_DATA.clear();
@@ -51,18 +51,18 @@ public class OrganData {
         this.pseudoOrgan = pseudoOrgan;
     }
 
-    public Map<ResourceLocation, Float> getOrganScores() {
+    public Map<String, Float> getOrganScores() {
         return organScores;
     }
 
-    public void setOrganScores(Map<ResourceLocation, Float> organScores) {
+    public void setOrganScores(Map<String, Float> organScores) {
         this.organScores = new LinkedHashMap<>();
         if (organScores != null) {
             this.organScores.putAll(organScores);
         }
     }
 
-    public Map<ResourceLocation, Float> getOrganScoresView() {
+    public Map<String, Float> getOrganScoresView() {
         return Collections.unmodifiableMap(organScores);
     }
 
@@ -82,7 +82,7 @@ public class OrganData {
         NBTTagCompound tag = new NBTTagCompound();
         tag.setBoolean(PSEUDO_TAG, pseudoOrgan);
         NBTTagCompound scoresTag = new NBTTagCompound();
-        for (Map.Entry<ResourceLocation, Float> entry : organScores.entrySet()) {
+        for (Map.Entry<String, Float> entry : organScores.entrySet()) {
             scoresTag.setFloat(entry.getKey().toString(), entry.getValue());
         }
         tag.setTag(SCORES_TAG, scoresTag);
@@ -105,8 +105,7 @@ public class OrganData {
         data.pseudoOrgan = tag.getBoolean(PSEUDO_TAG);
         NBTTagCompound scoresTag = tag.getCompoundTag(SCORES_TAG);
         for (String key : scoresTag.getKeySet()) {
-            ResourceLocation id = new ResourceLocation(key);
-            data.organScores.put(id, scoresTag.getFloat(key));
+            data.organScores.put(key, scoresTag.getFloat(key));
         }
         return data;
     }

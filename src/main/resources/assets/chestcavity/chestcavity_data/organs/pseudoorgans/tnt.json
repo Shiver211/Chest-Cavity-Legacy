@@ -2,7 +2,7 @@
   "itemID": "minecraft:tnt",
   "pseudoOrgan": true,
   "organScores": [
-    {"id": "chestcavity:creepy", "value": "1"},
-    {"id": "chestcavity:explosive", "value": "1024"}
+    {"id": "creepy", "value": "1"},
+    {"id": "explosive", "value": "1024"}
   ]
 }

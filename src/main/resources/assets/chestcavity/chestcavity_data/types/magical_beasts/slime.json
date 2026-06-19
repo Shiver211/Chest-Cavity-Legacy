@@ -3,6 +3,6 @@
     {"item": "minecraft:slime_ball", "position": 4, "count": 1}
   ],
   "baseOrganScores": [
-    {"id": "chestcavity:health", "value": ".5"}
+    {"id": "health", "value": ".5"}
   ]
 }

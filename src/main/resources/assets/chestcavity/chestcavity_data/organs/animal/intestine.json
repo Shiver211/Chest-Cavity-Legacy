@@ -1,6 +1,6 @@
 {
   "itemID": "chestcavity:animal_intestine",
   "organScores": [
-    {"id":"chestcavity:nutrition","value": ".75"}
+    {"id":"nutrition","value": ".75"}
   ]
 }

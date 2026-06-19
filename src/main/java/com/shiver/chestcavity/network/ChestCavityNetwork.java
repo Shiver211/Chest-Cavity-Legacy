@@ -66,7 +66,7 @@ public final class ChestCavityNetwork {
         sendOrganDataSync(player, OrganManager.writeRegistryToNbt());
     }
 
-    public static void sendHotkeyActivation(ResourceLocation abilityId) {
+    public static void sendHotkeyActivation(String abilityId) {
         register();
         CHANNEL.sendToServer(new MessageHotkeyActivation(abilityId));
     }
@@ -80,7 +80,7 @@ public final class ChestCavityNetwork {
         }
     }
 
-    static void handleHotkeyActivation(EntityPlayerMP player, ResourceLocation abilityId) {
+    static void handleHotkeyActivation(EntityPlayerMP player, String abilityId) {
         ChestCavityHelper.get(player).ifPresent(chestCavity -> {
             ChestCavityHelper.recalculateOrganScores(chestCavity);
             ActiveOrganAbilities.activate(player, chestCavity, abilityId);

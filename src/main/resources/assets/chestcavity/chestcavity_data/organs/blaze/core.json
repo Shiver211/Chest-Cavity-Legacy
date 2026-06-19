@@ -1,9 +1,9 @@
 {
   "itemID": "chestcavity:blaze_core",
   "organScores": [
-    {"id":"chestcavity:health","value": "1"},
-    {"id":"chestcavity:nerves","value": ".25"},
-    {"id":"chestcavity:fire_resistant","value": "1"},
-    {"id":"chestcavity:hydroallergenic","value": "3"}
+    {"id":"health","value": "1"},
+    {"id":"nerves","value": ".25"},
+    {"id":"fire_resistant","value": "1"},
+    {"id":"hydroallergenic","value": "3"}
   ]
 }
