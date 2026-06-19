@@ -43,7 +43,6 @@ public final class CCAbilityWheel {
     private static final double TWO_PI = Math.PI * 2.0D;
     private static final int RADIUS = 82;
     private static final int INNER_RADIUS = 24;
-    private static final int SEGMENT_STEPS = 16;
 
     private static String selectedAbility;
     private static String hoveredAbility;
@@ -324,8 +323,8 @@ public final class CCAbilityWheel {
         BufferBuilder buffer = tessellator.getBuffer();
         buffer.begin(GL11.GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
         buffer.pos(centerX, centerY, 0).color(red, green, blue, alpha).endVertex();
-        for (int i = 0; i <= 64; i++) {
-            double angle = TWO_PI * i / 64.0D;
+        for (int i = 0; i <= 128; i++) {
+            double angle = TWO_PI * i / 128.0D;
             buffer.pos(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius, 0)
                     .color(red, green, blue, alpha)
                     .endVertex();
@@ -340,9 +339,10 @@ public final class CCAbilityWheel {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-        for (int i = 0; i < SEGMENT_STEPS; i++) {
-            double angle1 = start + (end - start) * i / SEGMENT_STEPS;
-            double angle2 = start + (end - start) * (i + 1) / SEGMENT_STEPS;
+        int steps = Math.max(4, (int) Math.ceil(128.0 * (end - start) / TWO_PI));
+        for (int i = 0; i < steps; i++) {
+            double angle1 = start + (end - start) * i / steps;
+            double angle2 = start + (end - start) * (i + 1) / steps;
             
             buffer.pos(centerX + Math.cos(angle1) * outerRadius, centerY + Math.sin(angle1) * outerRadius, 0)
                     .color(outR, outG, outB, outA)
