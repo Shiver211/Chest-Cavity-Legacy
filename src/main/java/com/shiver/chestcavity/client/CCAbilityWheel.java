@@ -51,7 +51,7 @@ public final class CCAbilityWheel {
     private static double pointerY = -RADIUS;
 
     private static long lastFrameTime = 0;
-    private static final java.util.Map<String, Double> hoverProgress = new java.util.HashMap<String, Double>();
+    private static final java.util.Map<String, Double> hoverProgress = new java.util.HashMap<>();
     private static double wheelAlphaProgress = 0.0;
     private static double currentPointerX = 0;
     private static double currentPointerY = -RADIUS;
@@ -60,7 +60,7 @@ public final class CCAbilityWheel {
         return selectedAbility;
     }
 
-    private static final java.util.List<String> SCORE_ORDER = new java.util.ArrayList<String>();
+    private static final java.util.List<String> SCORE_ORDER = new java.util.ArrayList<>();
     static {
         for (java.lang.reflect.Field field : com.shiver.chestcavity.registry.CCOrganScores.class.getDeclaredFields()) {
             if (field.getType() == String.class) {
@@ -172,7 +172,7 @@ public final class CCAbilityWheel {
         wheelAlphaProgress = Math.min(1.0, wheelAlphaProgress + delta * 8.0);
 
         for (String ability : abilities) {
-            double current = hoverProgress.containsKey(ability) ? hoverProgress.get(ability) : 0.0;
+            double current = hoverProgress.getOrDefault(ability, 0.0);
             if (ability.equals(hoveredAbility)) {
                 current = Math.min(1.0, current + delta * 12.0);
             } else {
@@ -188,7 +188,7 @@ public final class CCAbilityWheel {
 
     private static List<String> getAvailableAbilities(Minecraft minecraft) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(minecraft.player);
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         if (chestCavity == null) {
             return result;
         }
@@ -270,7 +270,7 @@ public final class CCAbilityWheel {
             double start = mid - step / 2.0D + gap / 2.0D;
             double end = mid + step / 2.0D - gap / 2.0D;
             
-            double progress = hoverProgress.containsKey(ability) ? hoverProgress.get(ability) : 0.0;
+            double progress = hoverProgress.getOrDefault(ability, 0.0);
             
             int currentOuterRadius = RADIUS + (int)(progress * 6);
             
@@ -302,7 +302,7 @@ public final class CCAbilityWheel {
             String ability = abilities.get(i);
             double angle = -Math.PI / 2.0D + i * step;
             
-            double progress = hoverProgress.containsKey(ability) ? hoverProgress.get(ability) : 0.0;
+            double progress = hoverProgress.getOrDefault(ability, 0.0);
             int radiusOffset = (int)(progress * 6);
             
             int x = centerX + (int) (Math.cos(angle) * (RADIUS - 24 + radiusOffset));
@@ -391,7 +391,7 @@ public final class CCAbilityWheel {
         if (chestCavity == null) return;
         
         java.util.Map<String, Float> rawScores = chestCavity.getOrganScores();
-        java.util.List<java.util.Map.Entry<String, Float>> validScores = new java.util.ArrayList<java.util.Map.Entry<String, Float>>();
+        java.util.List<java.util.Map.Entry<String, Float>> validScores = new java.util.ArrayList<>();
         for (java.util.Map.Entry<String, Float> entry : rawScores.entrySet()) {
             if (entry.getValue() > 0.0F) {
                 validScores.add(entry);
@@ -400,26 +400,23 @@ public final class CCAbilityWheel {
         
         if (validScores.isEmpty()) return;
         
-        validScores.sort(new java.util.Comparator<java.util.Map.Entry<String, Float>>() {
-            @Override
-            public int compare(java.util.Map.Entry<String, Float> a, java.util.Map.Entry<String, Float> b) {
-                java.util.List<String> activeList = java.util.Arrays.asList(ABILITIES);
-                boolean activeA = activeList.contains(a.getKey());
-                boolean activeB = activeList.contains(b.getKey());
-                if (activeA != activeB) {
-                    return activeA ? 1 : -1;
-                }
-                
-                int indexA = SCORE_ORDER.indexOf(a.getKey());
-                int indexB = SCORE_ORDER.indexOf(b.getKey());
-                if (indexA == -1) indexA = 999;
-                if (indexB == -1) indexB = 999;
-                if (indexA != indexB) {
-                    return Integer.compare(indexA, indexB);
-                }
-                
-                return getScoreName(a.getKey()).compareTo(getScoreName(b.getKey()));
+        validScores.sort((a, b) -> {
+            List<String> activeList = java.util.Arrays.asList(ABILITIES);
+            boolean activeA = activeList.contains(a.getKey());
+            boolean activeB = activeList.contains(b.getKey());
+            if (activeA != activeB) {
+                return activeA ? 1 : -1;
             }
+
+            int indexA = SCORE_ORDER.indexOf(a.getKey());
+            int indexB = SCORE_ORDER.indexOf(b.getKey());
+            if (indexA == -1) indexA = 999;
+            if (indexB == -1) indexB = 999;
+            if (indexA != indexB) {
+                return Integer.compare(indexA, indexB);
+            }
+
+            return getScoreName(a.getKey()).compareTo(getScoreName(b.getKey()));
         });
         
         int alpha = (int)(255 * alphaScale);

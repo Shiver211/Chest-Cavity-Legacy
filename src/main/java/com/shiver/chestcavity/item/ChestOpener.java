@@ -32,13 +32,13 @@ public class ChestOpener extends Item {
         ItemStack stack = playerIn.getHeldItem(handIn);
 
         if (openChestCavity(playerIn, playerIn, false)) {
-            return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, stack);
+            return new ActionResult<>(EnumActionResult.SUCCESS, stack);
         }
 
         if (!worldIn.isRemote) {
             playerIn.sendStatusMessage(new TextComponentTranslation("message.chestcavity.chest_opener_unavailable"), true);
         }
-        return new ActionResult<ItemStack>(EnumActionResult.PASS, stack);
+        return new ActionResult<>(EnumActionResult.PASS, stack);
     }
 
     public boolean openChestCavity(EntityPlayer player, EntityLivingBase target) {

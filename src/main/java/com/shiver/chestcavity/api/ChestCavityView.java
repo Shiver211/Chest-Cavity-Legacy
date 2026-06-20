@@ -55,7 +55,7 @@ public final class ChestCavityView {
     }
 
     public int[] getOrganSlots(ResourceLocation itemId) {
-        List<Integer> slots = new ArrayList<Integer>();
+        List<Integer> slots = new ArrayList<>();
         for (int i = 0; i < chestCavity.getSlotCount(); i++) {
             if (matches(chestCavity.getOrgan(i), itemId)) {
                 slots.add(i);

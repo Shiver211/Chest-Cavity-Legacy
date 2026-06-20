@@ -89,7 +89,7 @@ public class OrganData {
         tag.setBoolean(PSEUDO_TAG, pseudoOrgan);
         NBTTagCompound scoresTag = new NBTTagCompound();
         for (Map.Entry<String, Float> entry : organScores.entrySet()) {
-            scoresTag.setFloat(entry.getKey().toString(), entry.getValue());
+            scoresTag.setFloat(entry.getKey(), entry.getValue());
         }
         tag.setTag(SCORES_TAG, scoresTag);
         return tag;

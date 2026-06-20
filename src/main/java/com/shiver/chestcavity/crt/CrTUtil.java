@@ -88,7 +88,7 @@ final class CrTUtil {
         if (scores == null || scores.isEmpty()) {
             return scores;
         }
-        Map<String, Float> result = new LinkedHashMap<String, Float>();
+        Map<String, Float> result = new LinkedHashMap<>();
         for (Map.Entry<String, ?> entry : ((Map<String, ?>) scores).entrySet()) {
             Object val = entry.getValue();
             if (val instanceof Number) {

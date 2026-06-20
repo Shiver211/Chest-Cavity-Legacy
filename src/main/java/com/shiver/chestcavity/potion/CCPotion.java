@@ -22,29 +22,27 @@ public class CCPotion extends Potion {
     }
 
     @Override
-    @Deprecated
     @SideOnly(Side.CLIENT)
-    public void renderInventoryEffect(int x, int y, PotionEffect effect, Minecraft mc) {
-        renderIcon(mc, x + 6, y + 7, 1.0F);
+    public void renderInventoryEffect(PotionEffect effect, Gui gui, int x, int y, float z) {
+        renderIcon(x + 6, y + 7, 1.0F);
     }
 
     @Override
-    @Deprecated
     @SideOnly(Side.CLIENT)
-    public void renderHUDEffect(int x, int y, PotionEffect effect, Minecraft mc, float alpha) {
-        renderIcon(mc, x + 3, y + 3, alpha);
+    public void renderHUDEffect(PotionEffect effect, Gui gui, int x, int y, float z, float alpha) {
+        renderIcon(x + 3, y + 3, alpha);
     }
 
     @SideOnly(Side.CLIENT)
-    private void renderIcon(Minecraft mc, int x, int y, float alpha) {
+    private void renderIcon(int x, int y, float alpha) {
         ResourceLocation id = getRegistryName();
-        if (id == null) {
-            return;
-        }
+        if (id == null) return;
 
-        mc.getTextureManager().bindTexture(new ResourceLocation(id.getNamespace(), "textures/mob_effect/" + id.getPath() + ".png"));
+        Minecraft.getMinecraft().getTextureManager().bindTexture(
+                new ResourceLocation(id.getNamespace(), "textures/mob_effect/" + id.getPath() + ".png")
+        );
         GlStateManager.color(1.0F, 1.0F, 1.0F, alpha);
-        Gui.drawModalRectWithCustomSizedTexture(x, y, 0.0F, 0.0F, 16, 16, 16.0F, 16.0F);
+        Gui.drawModalRectWithCustomSizedTexture(x, y, 0, 0, 16, 16, 16, 16);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 }

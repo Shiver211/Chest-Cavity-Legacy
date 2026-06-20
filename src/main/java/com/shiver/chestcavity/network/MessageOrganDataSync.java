@@ -38,7 +38,7 @@ public class MessageOrganDataSync implements IMessage {
         @Override
         public IMessage onMessage(MessageOrganDataSync message, MessageContext ctx) {
             if (ChestCavityNetwork.isClient(ctx)) {
-                ChestCavityNetwork.handleClientMessage("handleOrganDataSync", message);
+                ChestCavityNetwork.handleClientOrganDataSync(message);
             }
             return null;
         }

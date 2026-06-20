@@ -13,7 +13,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 
 public final class CCEnchantments {
 
-    private static final List<Enchantment> ENCHANTMENTS = new ArrayList<Enchantment>();
+    private static final List<Enchantment> ENCHANTMENTS = new ArrayList<>();
     private static final EntityEquipmentSlot[] MAIN_HAND = new EntityEquipmentSlot[] {EntityEquipmentSlot.MAINHAND};
 
     public static final Enchantment O_NEGATIVE = register("o_negative", new ChestCavityEnchantment(Enchantment.Rarity.RARE, EnumEnchantmentType.ALL, EntityEquipmentSlot.values(), 50, 100, 2, true, false, false));
@@ -25,7 +25,7 @@ public final class CCEnchantments {
     }
 
     public static void register(IForgeRegistry<Enchantment> registry) {
-        registry.registerAll(ENCHANTMENTS.toArray(new Enchantment[ENCHANTMENTS.size()]));
+        registry.registerAll(ENCHANTMENTS.toArray(new Enchantment[0]));
     }
 
     private static Enchantment register(String name, Enchantment enchantment) {

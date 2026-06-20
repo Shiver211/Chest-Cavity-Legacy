@@ -223,7 +223,7 @@ public final class ChestCavityTypeApi {
     }
 
     private Map<String, Float> copyScores(Map<String, Float> scores) {
-        Map<String, Float> copy = new LinkedHashMap<String, Float>();
+        Map<String, Float> copy = new LinkedHashMap<>();
         if (scores != null) {
             copy.putAll(scores);
         }

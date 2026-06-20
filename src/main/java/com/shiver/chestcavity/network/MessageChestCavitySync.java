@@ -46,7 +46,7 @@ public class MessageChestCavitySync implements IMessage {
         @Override
         public IMessage onMessage(MessageChestCavitySync message, MessageContext ctx) {
             if (ChestCavityNetwork.isClient(ctx)) {
-                ChestCavityNetwork.handleClientMessage("handleChestCavitySync", message);
+                ChestCavityNetwork.handleClientChestCavitySync(message);
             }
             return null;
         }

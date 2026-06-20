@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.network;
 
+import com.shiver.chestcavity.ChestCavityLegacy;
 import com.shiver.chestcavity.ability.ActiveOrganAbilities;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
@@ -7,9 +8,7 @@ import com.shiver.chestcavity.chest.organs.OrganManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
@@ -71,13 +70,12 @@ public final class ChestCavityNetwork {
         CHANNEL.sendToServer(new MessageHotkeyActivation(abilityId));
     }
 
-    static void handleClientMessage(String methodName, IMessage message) {
-        try {
-            Class<?> hooks = Class.forName("com.shiver.chestcavity.network.ClientNetworkHooks");
-            hooks.getMethod(methodName, message.getClass()).invoke(null, message);
-        } catch (ReflectiveOperationException ignored) {
-            // Dedicated server never loads client hooks. Client failures should not crash the network thread.
-        }
+    static void handleClientChestCavitySync(MessageChestCavitySync message) {
+        ChestCavityLegacy.proxy.handleChestCavitySync(message);
+    }
+
+    static void handleClientOrganDataSync(MessageOrganDataSync message) {
+        ChestCavityLegacy.proxy.handleOrganDataSync(message);
     }
 
     static void handleHotkeyActivation(EntityPlayerMP player, String abilityId) {

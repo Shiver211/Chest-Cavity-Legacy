@@ -13,7 +13,7 @@ import java.util.Random;
 
 public final class DropApi {
 
-    private final Map<ResourceLocation, DropTable> drops = new LinkedHashMap<ResourceLocation, DropTable>();
+    private final Map<ResourceLocation, DropTable> drops = new LinkedHashMap<>();
 
     DropApi() {
     }
@@ -51,7 +51,7 @@ public final class DropApi {
     }
 
     public List<ItemStack> generateDrops(ResourceLocation entityId, EntityLivingBase entity, Random random) {
-        List<ItemStack> result = new ArrayList<ItemStack>();
+        List<ItemStack> result = new ArrayList<>();
         DropTable table = drops.get(entityId);
         if (table == null || table.entries.isEmpty() || random == null) {
             return result;
@@ -76,7 +76,7 @@ public final class DropApi {
     }
 
     private static final class DropTable {
-        private final List<DropEntry> entries = new ArrayList<DropEntry>();
+        private final List<DropEntry> entries = new ArrayList<>();
         private float probability = 1.0F;
 
         private DropEntry roll(Random random) {

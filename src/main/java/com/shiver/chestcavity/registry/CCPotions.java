@@ -15,7 +15,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 
 public final class CCPotions {
 
-    private static final List<Potion> POTIONS = new ArrayList<Potion>();
+    private static final List<Potion> POTIONS = new ArrayList<>();
 
     public static final Potion ORGAN_REJECTION = register("organ_rejection", new OrganRejection());
     public static final Potion FURNACE_POWER = register("furnace_power", new FurnacePower());
@@ -36,7 +36,7 @@ public final class CCPotions {
     }
 
     public static void register(IForgeRegistry<Potion> registry) {
-        registry.registerAll(POTIONS.toArray(new Potion[POTIONS.size()]));
+        registry.registerAll(POTIONS.toArray(new Potion[0]));
     }
 
     private static Potion register(String name, Potion potion) {

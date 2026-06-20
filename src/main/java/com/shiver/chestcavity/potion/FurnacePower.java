@@ -68,7 +68,7 @@ public class FurnacePower extends CCPotion {
             return false;
         }
 
-        layers.add(Integer.valueOf(burnTime));
+        layers.add(burnTime);
         writeFuelLayers(player, layers);
         syncVisibleEffect(player, layers);
         return true;
@@ -87,11 +87,11 @@ public class FurnacePower extends CCPotion {
         }
 
         List<Integer> layers = readFuelLayers(player, true);
-        List<Integer> remaining = new ArrayList<Integer>();
+        List<Integer> remaining = new ArrayList<>();
         for (Integer layer : layers) {
-            int duration = layer.intValue() - 1;
+            int duration = layer - 1;
             if (duration > 0) {
-                remaining.add(Integer.valueOf(duration));
+                remaining.add(duration);
             }
         }
 
@@ -108,12 +108,12 @@ public class FurnacePower extends CCPotion {
 
     private static List<Integer> readFuelLayers(EntityPlayer player, boolean seedFromPotion) {
         NBTTagCompound data = player.getEntityData();
-        List<Integer> layers = new ArrayList<Integer>();
+        List<Integer> layers = new ArrayList<>();
         if (data.hasKey(FUEL_LAYERS_KEY, Constants.NBT.TAG_INT_ARRAY)) {
             int[] values = data.getIntArray(FUEL_LAYERS_KEY);
             for (int value : values) {
                 if (value > 0) {
-                    layers.add(Integer.valueOf(value));
+                    layers.add(value);
                 }
             }
             return layers;
@@ -123,7 +123,7 @@ public class FurnacePower extends CCPotion {
         if (seedFromPotion && current != null && current.getDuration() > 0) {
             int layerCount = Math.max(1, current.getAmplifier() + 1);
             for (int i = 0; i < layerCount; i++) {
-                layers.add(Integer.valueOf(current.getDuration()));
+                layers.add(current.getDuration());
             }
             writeFuelLayers(player, layers);
         }
@@ -133,7 +133,7 @@ public class FurnacePower extends CCPotion {
     private static void writeFuelLayers(EntityPlayer player, List<Integer> layers) {
         int[] values = new int[layers.size()];
         for (int i = 0; i < layers.size(); i++) {
-            values[i] = layers.get(i).intValue();
+            values[i] = layers.get(i);
         }
         player.getEntityData().setIntArray(FUEL_LAYERS_KEY, values);
     }
@@ -164,7 +164,7 @@ public class FurnacePower extends CCPotion {
     private static int shortestDuration(List<Integer> layers) {
         int duration = Integer.MAX_VALUE;
         for (Integer layer : layers) {
-            duration = Math.min(duration, layer.intValue());
+            duration = Math.min(duration, layer);
         }
         return Math.max(1, duration);
     }

@@ -59,7 +59,7 @@ import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = "chestcavity")
+@Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public final class ForgeEvents {
 
     private static final LootCondition[] NO_CONDITIONS = new LootCondition[0];

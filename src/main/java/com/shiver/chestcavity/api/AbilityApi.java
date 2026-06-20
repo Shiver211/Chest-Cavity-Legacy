@@ -13,7 +13,7 @@ public final class AbilityApi {
 
     private static final String COOLDOWNS_TAG = "ChestCavityAbilityCooldowns";
 
-    private final Map<String, AbilityWheelEntry> wheelEntries = new LinkedHashMap<String, AbilityWheelEntry>();
+    private final Map<String, AbilityWheelEntry> wheelEntries = new LinkedHashMap<>();
 
     AbilityApi() {
     }

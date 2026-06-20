@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.event;
 
+import com.shiver.chestcavity.Tags;
 import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
@@ -26,7 +27,7 @@ import net.minecraft.util.text.TextFormatting;
 
 import java.util.Map;
 
-@Mod.EventBusSubscriber(modid = "chestcavity", value = Side.CLIENT)
+@Mod.EventBusSubscriber(modid = Tags.MOD_ID, value = Side.CLIENT)
 public final class ForgeClientEvents {
 
     private ForgeClientEvents() {

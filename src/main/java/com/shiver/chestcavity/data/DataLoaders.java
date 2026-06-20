@@ -64,15 +64,12 @@ public final class DataLoaders {
 
         File configDataDir = gameDir == null ? new File(CONFIG_DATA_PATH) : new File(gameDir, CONFIG_DATA_PATH);
         Set<String> scannedDirectories = new HashSet<>();
-        for (File assetDir : getAssetDataDirectories(gameDir)) {
-            loadDirectory(assetDir, "asset data", scannedDirectories);
-        }
-        loadClasspathAssets(scannedDirectories);
+        loadClasspathAssets();
         loadDirectory(configDataDir, "config data", scannedDirectories);
         replayRuntimeOverrides();
 
         ChestCavityLegacy.LOGGER.info(
-                "Loaded chest cavity data. assetPath={}, configPath={}, organs={}, types={}, entityAssignments={}",
+                "Loaded chest cavity data. classpathAssetPath={}, configPath={}, organs={}, types={}, entityAssignments={}",
                 ASSET_DATA_PATH,
                 configDataDir == null ? CONFIG_DATA_PATH : configDataDir.getPath(),
                 OrganData.getRegistry().size(),
@@ -150,25 +147,15 @@ public final class DataLoaders {
         return Collections.unmodifiableMap(ENTITY_ASSIGNMENTS);
     }
 
-    private static List<File> getAssetDataDirectories(File gameDir) {
-        List<File> directories = new ArrayList<>();
-        directories.add(new File("build/resources/main/" + ASSET_DATA_PATH));
-        directories.add(new File("src/main/resources/" + ASSET_DATA_PATH));
-        directories.add(new File(ASSET_DATA_PATH));
-        if (gameDir != null) {
-            directories.add(new File(gameDir, ASSET_DATA_PATH));
-        }
-        return directories;
-    }
-
-    private static void loadClasspathAssets(Set<String> scannedDirectories) {
+    private static void loadClasspathAssets() {
         URL resource = DataLoaders.class.getClassLoader().getResource(ASSET_DATA_PATH);
         if (resource == null) {
+            ChestCavityLegacy.LOGGER.warn("Unable to locate bundled chest cavity data at {}", ASSET_DATA_PATH);
             return;
         }
         if ("file".equals(resource.getProtocol())) {
             try {
-                loadDirectory(new File(resource.toURI()), "classpath asset data", scannedDirectories);
+                loadDirectory(new File(resource.toURI()), "classpath asset data", new HashSet<>());
             } catch (URISyntaxException e) {
                 ChestCavityLegacy.LOGGER.warn("Unable to scan classpath chest cavity data at {}", resource, e);
             }

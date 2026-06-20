@@ -8,7 +8,6 @@ import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.crt.CrTChestCavityEvents;
 import com.shiver.chestcavity.data.DataLoaders;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
-import com.shiver.chestcavity.potion.OrganRejection;
 
 import com.shiver.chestcavity.registry.CCEnchantments;
 import com.shiver.chestcavity.registry.CCItems;
@@ -36,7 +35,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 
-import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.potion.PotionUtils;
@@ -77,7 +75,6 @@ public final class ChestCavityHelper {
     private static final DamageSource HEART_BLEED_DAMAGE = new DamageSource("cc_heartbleed").setDamageBypassesArmor();
     private static final int HYDROPHOBIA_INTERVAL_TICKS = 20;
     private static final String ENDURANCE_LAST_EXHAUSTION_KEY = "chestcavity:last_exhaustion";
-    private static final String FOOD_EXHAUSTION_KEY = "foodExhaustionLevel";
     private static final int DESTRUCTIVE_COLLISION_MAX_BLOCKS = 16;
     private static final float DESTRUCTIVE_COLLISION_BASE_HARDNESS = 0.75F;
     private static final int PRION_DURATION_TICKS = 24000;
@@ -105,7 +102,7 @@ public final class ChestCavityHelper {
 
     public static IChestCavity getOrNull(Entity entity) {
         Optional<IChestCavity> chestCavity = get(entity);
-        return chestCavity.isPresent() ? chestCavity.get() : null;
+        return chestCavity.orElse(null);
     }
 
     public static void tick(EntityLivingBase entity, IChestCavity chestCavity) {
@@ -156,8 +153,7 @@ public final class ChestCavityHelper {
                     if (data != null) {
                         addOrganScores(scores, data, stack);
                         if (!data.isPseudoOrgan() && getCompatibilityLevel(chestCavity, stack) < 1) {
-                            Float old = scores.get(CCOrganScores.INCOMPATIBILITY);
-                            scores.put(CCOrganScores.INCOMPATIBILITY, old == null ? 1.0F : old + 1.0F);
+                            scores.compute(CCOrganScores.INCOMPATIBILITY, (k, old) -> old == null ? 1.0F : old + 1.0F);
                         }
                     }
                 }
@@ -570,7 +566,7 @@ public final class ChestCavityHelper {
     }
 
     public static List<ItemStack> generateUnopenedOrganDrops(IChestCavity chestCavity, Random random, int baseLooting, EntityLivingBase killer) {
-        List<ItemStack> loot = new ArrayList<ItemStack>();
+        List<ItemStack> loot = new ArrayList<>();
         if (chestCavity == null || random == null) {
             return loot;
         }
@@ -603,9 +599,7 @@ public final class ChestCavityHelper {
             drawOrgansFromPile(type.getDroppableOrgans(), 1 + random.nextInt(3) + random.nextInt(3), random, loot);
         }
 
-        if (butcher) {
-            // salvage recipes removed
-        }
+        // salvage recipes removed
         if (malpractice) {
             processMalpractice(loot);
         }
@@ -613,7 +607,7 @@ public final class ChestCavityHelper {
     }
 
     public static List<ItemStack> removeUnboundOrgansForDeath(IChestCavity chestCavity) {
-        List<ItemStack> drops = new ArrayList<ItemStack>();
+        List<ItemStack> drops = new ArrayList<>();
         if (chestCavity == null || !chestCavity.isOpened()) {
             return drops;
         }
@@ -710,7 +704,7 @@ public final class ChestCavityHelper {
             return;
         }
 
-        Map<Integer, ItemStack> preserved = new LinkedHashMap<Integer, ItemStack>();
+        Map<Integer, ItemStack> preserved = new LinkedHashMap<>();
         if (oldCavity.isOpened()) {
             for (int slot = 0; slot < oldCavity.getSlotCount(); slot++) {
                 ItemStack stack = oldCavity.getOrgan(slot);
@@ -906,7 +900,7 @@ public final class ChestCavityHelper {
     }
 
     private static void drawOrgansFromPile(List<ItemStack> organPile, int rolls, Random random, List<ItemStack> loot) {
-        LinkedList<ItemStack> remaining = new LinkedList<ItemStack>();
+        LinkedList<ItemStack> remaining = new LinkedList<>();
         for (ItemStack stack : organPile) {
             if (!stack.isEmpty()) {
                 remaining.add(stack.copy());
@@ -1116,7 +1110,7 @@ public final class ChestCavityHelper {
     }
 
     private static List<PotionEffect> getVenomEffects(IChestCavity chestCavity) {
-        List<PotionEffect> effects = new ArrayList<PotionEffect>();
+        List<PotionEffect> effects = new ArrayList<>();
         for (ItemStack stack : chestCavity.getOrgans()) {
             if (!stack.isEmpty()) {
                 OrganData data = OrganData.fromStack(stack);
@@ -1207,17 +1201,14 @@ public final class ChestCavityHelper {
 
     private static void adjustFoodStats(EntityPlayer player, int vanillaFood, float vanillaSaturation, int effectiveFood, float effectiveSaturation) {
         FoodStats stats = player.getFoodStats();
-        NBTTagCompound foodTag = new NBTTagCompound();
-        stats.writeNBT(foodTag);
 
         int foodDelta = effectiveFood - vanillaFood;
         int foodLevel = Math.max(0, Math.min(20, stats.getFoodLevel() + foodDelta));
         float saturationDelta = effectiveFood * effectiveSaturation * 2.0F - vanillaFood * vanillaSaturation * 2.0F;
         float saturation = Math.max(0.0F, Math.min(foodLevel, stats.getSaturationLevel() + saturationDelta));
 
-        foodTag.setInteger("foodLevel", foodLevel);
-        foodTag.setFloat("foodSaturationLevel", saturation);
-        stats.readNBT(foodTag);
+        stats.foodLevel = foodLevel;
+        stats.foodSaturationLevel = saturation;
     }
 
     private static void applyEnduranceExhaustion(EntityPlayer player, IChestCavity chestCavity, ChestCavityType type) {
@@ -1252,16 +1243,11 @@ public final class ChestCavityHelper {
     }
 
     private static float getFoodExhaustion(FoodStats stats) {
-        NBTTagCompound foodTag = new NBTTagCompound();
-        stats.writeNBT(foodTag);
-        return foodTag.getFloat(FOOD_EXHAUSTION_KEY);
+        return stats.foodExhaustionLevel;
     }
 
     private static void setFoodExhaustion(FoodStats stats, float exhaustion) {
-        NBTTagCompound foodTag = new NBTTagCompound();
-        stats.writeNBT(foodTag);
-        foodTag.setFloat(FOOD_EXHAUSTION_KEY, exhaustion);
-        stats.readNBT(foodTag);
+        stats.foodExhaustionLevel = exhaustion;
     }
 
     private static boolean isMeatFood(ItemFood food, ItemStack stack) {
@@ -1400,7 +1386,7 @@ public final class ChestCavityHelper {
                 : 1.0D - diff * CCConfig.LIGHTWIEGHT_FACTOR;
         factor = Math.max(0.1D, Math.min(2.5D, factor));
         entity.motionY *= factor;
-        entity.fallDistance *= factor;
+        entity.fallDistance *= (float) factor;
         entity.velocityChanged = true;
     }
 

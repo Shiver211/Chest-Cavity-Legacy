@@ -6,7 +6,7 @@ import java.util.Map;
 
 public final class ScoreApi {
 
-    private final Map<String, String> displayNames = new LinkedHashMap<String, String>();
+    private final Map<String, String> displayNames = new LinkedHashMap<>();
 
     ScoreApi() {
     }

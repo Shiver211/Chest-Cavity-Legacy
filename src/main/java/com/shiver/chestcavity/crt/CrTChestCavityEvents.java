@@ -6,9 +6,9 @@ import net.minecraft.item.ItemStack;
 
 public final class CrTChestCavityEvents {
 
-    static final EventList<CrTAbilityActivatedEvent> ABILITY_ACTIVATED = new EventList<CrTAbilityActivatedEvent>();
-    static final EventList<CrTOrganEquippedEvent> ORGAN_EQUIPPED = new EventList<CrTOrganEquippedEvent>();
-    static final EventList<CrTOrganUnequippedEvent> ORGAN_UNEQUIPPED = new EventList<CrTOrganUnequippedEvent>();
+    static final EventList<CrTAbilityActivatedEvent> ABILITY_ACTIVATED = new EventList<>();
+    static final EventList<CrTOrganEquippedEvent> ORGAN_EQUIPPED = new EventList<>();
+    static final EventList<CrTOrganUnequippedEvent> ORGAN_UNEQUIPPED = new EventList<>();
 
     private CrTChestCavityEvents() {
     }

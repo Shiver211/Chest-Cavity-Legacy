@@ -21,8 +21,8 @@ import net.minecraftforge.registries.IForgeRegistry;
 
 public final class CCItems {
 
-    private static final List<Item> ITEMS = new ArrayList<Item>();
-    private static final Map<String, Item> ITEMS_BY_NAME = new HashMap<String, Item>();
+    private static final List<Item> ITEMS = new ArrayList<>();
+    private static final Map<String, Item> ITEMS_BY_NAME = new HashMap<>();
 
     public static final Item CHEST_OPENER = register("chest_opener", new ChestOpener(), CCTabs.MAIN);
 
@@ -185,7 +185,7 @@ public final class CCItems {
     }
 
     public static void register(IForgeRegistry<Item> registry) {
-        registry.registerAll(ITEMS.toArray(new Item[ITEMS.size()]));
+        registry.registerAll(ITEMS.toArray(new Item[0]));
     }
 
     public static List<Item> getItems() {

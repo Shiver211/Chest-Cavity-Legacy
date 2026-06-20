@@ -65,7 +65,7 @@ public final class ActiveOrganAbilities {
     private static final float PYROMANCY_EXHAUSTION = 0.1F;
     private static final double PYROMANCY_RECOIL = 0.2D;
     private static final float SHULKER_BULLET_EXHAUSTION = 0.3F;
-    private static final Map<String, ActiveOrganAbility> ABILITIES = new LinkedHashMap<String, ActiveOrganAbility>();
+    private static final Map<String, ActiveOrganAbility> ABILITIES = new LinkedHashMap<>();
 
     static {
         register(FURNACE_POWERED, ActiveOrganAbilities::activateFurnacePowered);
