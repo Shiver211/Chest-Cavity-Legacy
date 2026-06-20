@@ -21,10 +21,12 @@ public final class CrTAbilityManager {
     @ZenMethod
     public static void registerAbility(String scoreId, String displayName, IEventHandler<CrTAbilityActivatedEvent> handler) {
         ChestCavityApis.ABILITIES.registerAbility(scoreId, displayName, (player, chestCavity) -> {
-            if (handler != null) {
-                handler.handle(new CrTAbilityActivatedEvent(player, scoreId, chestCavity.getOrganScore(scoreId)));
+            if (handler == null) {
+                return true;
             }
-            return true;
+            CrTAbilityActivatedEvent event = new CrTAbilityActivatedEvent(player, scoreId, chestCavity.getOrganScore(scoreId));
+            handler.handle(event);
+            return !event.isCanceled();
         });
     }
 }

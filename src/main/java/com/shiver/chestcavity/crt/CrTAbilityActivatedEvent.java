@@ -9,6 +9,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenGetter;
+import stanhebben.zenscript.annotations.ZenMethod;
 
 @ZenRegister
 @ZenClass("mods.chestcavity.event.AbilityActivatedEvent")
@@ -17,6 +18,7 @@ public final class CrTAbilityActivatedEvent {
     private final EntityLivingBase entity;
     private final String abilityId;
     private final float score;
+    private boolean canceled;
 
     CrTAbilityActivatedEvent(EntityLivingBase entity, String abilityId, float score) {
         this.entity = entity;
@@ -56,5 +58,15 @@ public final class CrTAbilityActivatedEvent {
     @ZenGetter("isServer")
     public boolean isServer() {
         return entity != null && !entity.world.isRemote;
+    }
+
+    @ZenGetter("canceled")
+    public boolean isCanceled() {
+        return canceled;
+    }
+
+    @ZenMethod
+    public void cancel() {
+        this.canceled = true;
     }
 }

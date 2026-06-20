@@ -13,6 +13,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 final class CrTUtil {
 
     private CrTUtil() {
@@ -65,5 +68,25 @@ final class CrTUtil {
         }
         Object internal = entity.getInternal();
         return internal instanceof Entity ? (Entity) internal : null;
+    }
+
+    /**
+     * Safely converts a Map's values to Float.
+     * ZenScript decimal literals default to double, so CrT2's type converter
+     * may pass Double values in a Map declared as Map&lt;String, Float&gt;.
+     * This method handles the conversion via Number.floatValue().
+     */
+    static Map<String, Float> ensureFloatMap(Map<String, Float> scores) {
+        if (scores == null || scores.isEmpty()) {
+            return scores;
+        }
+        Map<String, Float> result = new LinkedHashMap<String, Float>();
+        for (Map.Entry<String, ?> entry : ((Map<String, ?>) scores).entrySet()) {
+            Object val = entry.getValue();
+            if (val instanceof Number) {
+                result.put(entry.getKey(), ((Number) val).floatValue());
+            }
+        }
+        return result;
     }
 }

@@ -69,12 +69,12 @@ public final class CrTChestCavityType {
     @ZenMethod
     public static void addExceptionalOrgan(String typeId, IItemStack item, Map<String, Float> scores) {
         ItemStack stack = CrTUtil.stack(item);
-        ChestCavityApis.TYPES.addExceptionalOrgan(typeId, stack.isEmpty() ? null : stack.getItem(), scores);
+        ChestCavityApis.TYPES.addExceptionalOrgan(typeId, stack.isEmpty() ? null : stack.getItem(), CrTUtil.ensureFloatMap(scores));
     }
 
     @ZenMethod
     public static void addExceptionalOrganByOre(String typeId, String oreName, Map<String, Float> scores) {
-        ChestCavityApis.TYPES.addExceptionalOrganByOre(typeId, oreName, scores);
+        ChestCavityApis.TYPES.addExceptionalOrganByOre(typeId, oreName, CrTUtil.ensureFloatMap(scores));
     }
 
     @ZenMethod

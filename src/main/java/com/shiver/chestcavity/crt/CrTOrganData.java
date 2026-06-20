@@ -17,12 +17,12 @@ public final class CrTOrganData {
 
     @ZenMethod
     public static void register(String itemId, Map<String, Float> scores) {
-        ChestCavityApis.ORGANS.register(CrTUtil.id(itemId), scores);
+        ChestCavityApis.ORGANS.register(CrTUtil.id(itemId), CrTUtil.ensureFloatMap(scores));
     }
 
     @ZenMethod
     public static void registerPseudo(String itemId, Map<String, Float> scores) {
-        ChestCavityApis.ORGANS.registerPseudo(CrTUtil.id(itemId), scores);
+        ChestCavityApis.ORGANS.registerPseudo(CrTUtil.id(itemId), CrTUtil.ensureFloatMap(scores));
     }
 
     @ZenMethod
