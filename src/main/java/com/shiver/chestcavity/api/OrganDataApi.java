@@ -1,6 +1,7 @@
 package com.shiver.chestcavity.api;
 
 import com.shiver.chestcavity.chest.organs.OrganData;
+import com.shiver.chestcavity.data.DataLoaders;
 import net.minecraft.util.ResourceLocation;
 
 import java.util.LinkedHashMap;
@@ -12,33 +13,39 @@ public final class OrganDataApi {
     }
 
     public void register(ResourceLocation itemId, Map<String, Float> scores) {
-        register(itemId, scores, false);
+        final ResourceLocation targetItemId = itemId;
+        final Map<String, Float> targetScores = copyScores(scores);
+        DataLoaders.applyRuntimeOverride(() -> registerNow(targetItemId, targetScores, false));
     }
 
     public void registerPseudo(ResourceLocation itemId, Map<String, Float> scores) {
-        register(itemId, scores, true);
+        final ResourceLocation targetItemId = itemId;
+        final Map<String, Float> targetScores = copyScores(scores);
+        DataLoaders.applyRuntimeOverride(() -> registerNow(targetItemId, targetScores, true));
     }
 
     public void addScore(ResourceLocation itemId, String scoreId, float value) {
-        OrganData data = getOrCreate(itemId);
-        if (scoreId != null) {
-            data.getOrganScores().put(scoreId, value);
-        }
+        final ResourceLocation targetItemId = itemId;
+        final String targetScoreId = scoreId;
+        final float targetValue = value;
+        DataLoaders.applyRuntimeOverride(() -> addScoreNow(targetItemId, targetScoreId, targetValue));
     }
 
     public void removeScore(ResourceLocation itemId, String scoreId) {
-        OrganData data = OrganData.get(itemId);
-        if (data != null && scoreId != null) {
-            data.getOrganScores().remove(scoreId);
-        }
+        final ResourceLocation targetItemId = itemId;
+        final String targetScoreId = scoreId;
+        DataLoaders.applyRuntimeOverride(() -> removeScoreNow(targetItemId, targetScoreId));
     }
 
     public void remove(ResourceLocation itemId) {
-        OrganData.unregister(itemId);
+        final ResourceLocation targetItemId = itemId;
+        DataLoaders.applyRuntimeOverride(() -> OrganData.unregister(targetItemId));
     }
 
     public void setPseudo(ResourceLocation itemId, boolean value) {
-        getOrCreate(itemId).setPseudoOrgan(value);
+        final ResourceLocation targetItemId = itemId;
+        final boolean targetValue = value;
+        DataLoaders.applyRuntimeOverride(() -> setPseudoNow(targetItemId, targetValue));
     }
 
     public OrganDataView get(ResourceLocation itemId) {
@@ -46,7 +53,7 @@ public final class OrganDataApi {
         return data == null ? null : new OrganDataView(data);
     }
 
-    private void register(ResourceLocation itemId, Map<String, Float> scores, boolean pseudo) {
+    private void registerNow(ResourceLocation itemId, Map<String, Float> scores, boolean pseudo) {
         if (itemId == null) {
             return;
         }
@@ -54,6 +61,27 @@ public final class OrganDataApi {
         data.setPseudoOrgan(pseudo);
         data.setOrganScores(copyScores(scores));
         OrganData.register(itemId, data);
+    }
+
+    private void addScoreNow(ResourceLocation itemId, String scoreId, float value) {
+        if (itemId == null || scoreId == null) {
+            return;
+        }
+        OrganData data = getOrCreate(itemId);
+        data.getOrganScores().put(scoreId, value);
+    }
+
+    private void removeScoreNow(ResourceLocation itemId, String scoreId) {
+        OrganData data = OrganData.get(itemId);
+        if (data != null && scoreId != null) {
+            data.getOrganScores().remove(scoreId);
+        }
+    }
+
+    private void setPseudoNow(ResourceLocation itemId, boolean value) {
+        if (itemId != null) {
+            getOrCreate(itemId).setPseudoOrgan(value);
+        }
     }
 
     private OrganData getOrCreate(ResourceLocation itemId) {

@@ -49,6 +49,8 @@ public final class DataLoaders {
     private static final ChestCavityType FALLBACK_TYPE = new FallbackChestCavityType();
     private static final Map<String, ChestCavityType> CHEST_CAVITY_TYPES = new LinkedHashMap<>();
     private static final Map<ResourceLocation, String> ENTITY_ASSIGNMENTS = new LinkedHashMap<>();
+    private static final List<Runnable> RUNTIME_OVERRIDES = new ArrayList<>();
+    private static boolean replayingRuntimeOverrides;
     private static final ResourceLocation PLAYER_ENTITY_ID = new ResourceLocation("minecraft", "player");
 
     private DataLoaders() {
@@ -67,6 +69,7 @@ public final class DataLoaders {
         }
         loadClasspathAssets(scannedDirectories);
         loadDirectory(configDataDir, "config data", scannedDirectories);
+        replayRuntimeOverrides();
 
         ChestCavityLegacy.LOGGER.info(
                 "Loaded chest cavity data. assetPath={}, configPath={}, organs={}, types={}, entityAssignments={}",
@@ -75,6 +78,31 @@ public final class DataLoaders {
                 OrganData.getRegistry().size(),
                 Math.max(0, CHEST_CAVITY_TYPES.size() - 1),
                 ENTITY_ASSIGNMENTS.size());
+    }
+
+    public static void applyRuntimeOverride(Runnable override) {
+        if (override == null) {
+            return;
+        }
+        if (!replayingRuntimeOverrides) {
+            RUNTIME_OVERRIDES.add(override);
+        }
+        override.run();
+    }
+
+    private static void replayRuntimeOverrides() {
+        if (RUNTIME_OVERRIDES.isEmpty()) {
+            return;
+        }
+
+        replayingRuntimeOverrides = true;
+        try {
+            for (Runnable override : RUNTIME_OVERRIDES) {
+                override.run();
+            }
+        } finally {
+            replayingRuntimeOverrides = false;
+        }
     }
 
     public static void registerType(String id, ChestCavityType type) {

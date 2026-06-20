@@ -41,18 +41,18 @@ public final class CrTChestCavity {
     }
 
     @ZenMethod
-    public boolean hasOrgan(String itemId) {
-        return view.hasOrgan(CrTUtil.id(itemId));
+    public boolean hasOrgan(IItemStack item) {
+        return view.hasOrgan(CrTUtil.itemId(item));
     }
 
     @ZenMethod
-    public int getOrganCount(String itemId) {
-        return view.getOrganCount(CrTUtil.id(itemId));
+    public int getOrganCount(IItemStack item) {
+        return view.getOrganCount(CrTUtil.itemId(item));
     }
 
     @ZenMethod
-    public int[] getOrganSlots(String itemId) {
-        return view.getOrganSlots(CrTUtil.id(itemId));
+    public int[] getOrganSlots(IItemStack item) {
+        return view.getOrganSlots(CrTUtil.itemId(item));
     }
 
     @ZenMethod

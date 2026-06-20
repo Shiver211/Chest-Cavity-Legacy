@@ -70,6 +70,14 @@ final class CrTUtil {
         return internal instanceof Entity ? (Entity) internal : null;
     }
 
+    static ResourceLocation itemId(IItemStack item) {
+        ItemStack internal = stack(item);
+        if (internal.isEmpty()) {
+            return null;
+        }
+        return internal.getItem().getRegistryName();
+    }
+
     /**
      * Safely converts a Map's values to Float.
      * ZenScript decimal literals default to double, so CrT2's type converter

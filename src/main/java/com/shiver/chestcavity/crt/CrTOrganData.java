@@ -3,6 +3,7 @@ package com.shiver.chestcavity.crt;
 import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.api.OrganDataView;
 import crafttweaker.annotations.ZenRegister;
+import crafttweaker.api.item.IItemStack;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenMethod;
 
@@ -16,38 +17,38 @@ public final class CrTOrganData {
     }
 
     @ZenMethod
-    public static void register(String itemId, Map<String, Float> scores) {
-        ChestCavityApis.ORGANS.register(CrTUtil.id(itemId), CrTUtil.ensureFloatMap(scores));
+    public static void register(IItemStack item, Map<String, Float> scores) {
+        ChestCavityApis.ORGANS.register(CrTUtil.itemId(item), CrTUtil.ensureFloatMap(scores));
     }
 
     @ZenMethod
-    public static void registerPseudo(String itemId, Map<String, Float> scores) {
-        ChestCavityApis.ORGANS.registerPseudo(CrTUtil.id(itemId), CrTUtil.ensureFloatMap(scores));
+    public static void registerPseudo(IItemStack item, Map<String, Float> scores) {
+        ChestCavityApis.ORGANS.registerPseudo(CrTUtil.itemId(item), CrTUtil.ensureFloatMap(scores));
     }
 
     @ZenMethod
-    public static void addScore(String itemId, String scoreId, float value) {
-        ChestCavityApis.ORGANS.addScore(CrTUtil.id(itemId), scoreId, value);
+    public static void addScore(IItemStack item, String scoreId, float value) {
+        ChestCavityApis.ORGANS.addScore(CrTUtil.itemId(item), scoreId, value);
     }
 
     @ZenMethod
-    public static void removeScore(String itemId, String scoreId) {
-        ChestCavityApis.ORGANS.removeScore(CrTUtil.id(itemId), scoreId);
+    public static void removeScore(IItemStack item, String scoreId) {
+        ChestCavityApis.ORGANS.removeScore(CrTUtil.itemId(item), scoreId);
     }
 
     @ZenMethod
-    public static void remove(String itemId) {
-        ChestCavityApis.ORGANS.remove(CrTUtil.id(itemId));
+    public static void remove(IItemStack item) {
+        ChestCavityApis.ORGANS.remove(CrTUtil.itemId(item));
     }
 
     @ZenMethod
-    public static void setPseudo(String itemId, boolean value) {
-        ChestCavityApis.ORGANS.setPseudo(CrTUtil.id(itemId), value);
+    public static void setPseudo(IItemStack item, boolean value) {
+        ChestCavityApis.ORGANS.setPseudo(CrTUtil.itemId(item), value);
     }
 
     @ZenMethod
-    public static CrTOrganDataView get(String itemId) {
-        OrganDataView view = ChestCavityApis.ORGANS.get(CrTUtil.id(itemId));
+    public static CrTOrganDataView get(IItemStack item) {
+        OrganDataView view = ChestCavityApis.ORGANS.get(CrTUtil.itemId(item));
         return view == null ? null : new CrTOrganDataView(view);
     }
 }
