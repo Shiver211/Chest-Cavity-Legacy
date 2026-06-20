@@ -1,8 +1,9 @@
 package com.shiver.chestcavity.potion;
 
 import com.shiver.chestcavity.capability.ChestCavityHelper;
-import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.capability.ChestCavityData;
 import com.shiver.chestcavity.registry.CCPotions;
+import com.shiver.chestcavity.scoreevent.FoodScoreEvents;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -37,7 +38,7 @@ public class FurnacePower extends CCPotion {
             return;
         }
 
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(entityLivingBaseIn);
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(entityLivingBaseIn);
         if (chestCavity == null) {
             return;
         }
@@ -46,7 +47,7 @@ public class FurnacePower extends CCPotion {
         if (progress >= FOOD_INTERVAL_TICKS) {
             progress = 0;
             EntityPlayer player = (EntityPlayer) entityLivingBaseIn;
-            ChestCavityHelper.consumeFurnacePowerFood(player);
+            FoodScoreEvents.consumeFurnacePowerFood(player);
         }
         chestCavity.setFurnaceProgress(progress);
     }
@@ -170,7 +171,7 @@ public class FurnacePower extends CCPotion {
     }
 
     private static void resetFurnaceProgress(EntityPlayer player) {
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(player);
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(player);
         if (chestCavity != null) {
             chestCavity.setFurnaceProgress(0);
         }

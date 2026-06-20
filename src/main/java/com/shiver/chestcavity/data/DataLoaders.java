@@ -7,10 +7,16 @@ import com.shiver.chestcavity.ChestCavityLegacy;
 import com.shiver.chestcavity.Tags;
 import com.shiver.chestcavity.chest.ChestCavityInventory;
 import com.shiver.chestcavity.chest.organs.OrganData;
-import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
-import com.shiver.chestcavity.chest.types.FallbackChestCavityType;
-import com.shiver.chestcavity.chest.types.GeneratedChestCavityType;
+import com.shiver.chestcavity.content.BodyTypeDef;
+import com.shiver.chestcavity.content.CompiledContent;
+import com.shiver.chestcavity.content.ContentManifest;
+import com.shiver.chestcavity.content.ContentRegistry;
+import com.shiver.chestcavity.content.ExceptionalOrganDef;
+import com.shiver.chestcavity.content.OrganDef;
+import com.shiver.chestcavity.layout.ChestLayoutDef;
+import com.shiver.chestcavity.layout.LayoutMigrationStrategy;
+import com.shiver.chestcavity.layout.SlotRule;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -28,13 +34,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
@@ -46,105 +52,60 @@ public final class DataLoaders {
     public static final String CONFIG_DATA_PATH = "config/" + Tags.MOD_ID + "/data";
     public static final String FALLBACK_ID = "fallback";
 
-    private static final ChestCavityType FALLBACK_TYPE = new FallbackChestCavityType();
-    private static final Map<String, ChestCavityType> CHEST_CAVITY_TYPES = new LinkedHashMap<>();
-    private static final Map<ResourceLocation, String> ENTITY_ASSIGNMENTS = new LinkedHashMap<>();
-    private static final List<Runnable> RUNTIME_OVERRIDES = new ArrayList<>();
-    private static boolean replayingRuntimeOverrides;
     private static final ResourceLocation PLAYER_ENTITY_ID = new ResourceLocation("minecraft", "player");
+    private static ContentManifest loadingManifest;
 
     private DataLoaders() {
     }
 
     public static void reload(File gameDir) {
-        CHEST_CAVITY_TYPES.clear();
-        ENTITY_ASSIGNMENTS.clear();
-        OrganManager.clear();
-        CHEST_CAVITY_TYPES.put(FALLBACK_ID, FALLBACK_TYPE);
+        loadingManifest = ContentRegistry.createReloadManifest();
 
         File configDataDir = gameDir == null ? new File(CONFIG_DATA_PATH) : new File(gameDir, CONFIG_DATA_PATH);
         Set<String> scannedDirectories = new HashSet<>();
         loadClasspathAssets();
         loadDirectory(configDataDir, "config data", scannedDirectories);
-        replayRuntimeOverrides();
+
+        ContentRegistry.applyScriptManifest(loadingManifest);
+        ContentRegistry.publish(loadingManifest);
+        CompiledContent compiled = ContentRegistry.getCompiled();
+        loadingManifest = null;
 
         ChestCavityLegacy.LOGGER.info(
-                "Loaded chest cavity data. classpathAssetPath={}, configPath={}, organs={}, types={}, entityAssignments={}",
+                "Loaded chest cavity data. classpathAssetPath={}, configPath={}, organs={}, types={}, entityAssignments={}, layouts={}",
                 ASSET_DATA_PATH,
                 configDataDir == null ? CONFIG_DATA_PATH : configDataDir.getPath(),
-                OrganData.getRegistry().size(),
-                Math.max(0, CHEST_CAVITY_TYPES.size() - 1),
-                ENTITY_ASSIGNMENTS.size());
-    }
-
-    public static void applyRuntimeOverride(Runnable override) {
-        if (override == null) {
-            return;
-        }
-        if (!replayingRuntimeOverrides) {
-            RUNTIME_OVERRIDES.add(override);
-        }
-        override.run();
-    }
-
-    private static void replayRuntimeOverrides() {
-        if (RUNTIME_OVERRIDES.isEmpty()) {
-            return;
-        }
-
-        replayingRuntimeOverrides = true;
-        try {
-            for (Runnable override : RUNTIME_OVERRIDES) {
-                override.run();
-            }
-        } finally {
-            replayingRuntimeOverrides = false;
-        }
-    }
-
-    public static void registerType(String id, ChestCavityType type) {
-        if (id != null && type != null) {
-            CHEST_CAVITY_TYPES.put(id, type);
-        }
-    }
-
-    public static void unregisterType(String id) {
-        if (id != null && !FALLBACK_ID.equals(id)) {
-            CHEST_CAVITY_TYPES.remove(id);
-        }
-    }
-
-    public static void registerEntityAssignment(ResourceLocation entityId, String typeId) {
-        if (entityId != null && typeId != null) {
-            ENTITY_ASSIGNMENTS.put(entityId, typeId);
-        }
-    }
-
-    public static void unregisterEntityAssignment(ResourceLocation entityId) {
-        if (entityId != null) {
-            ENTITY_ASSIGNMENTS.remove(entityId);
-        }
+                compiled.getOrgans().size(),
+                Math.max(0, compiled.getTypes().size() - 1),
+                compiled.getEntityAssignments().size(),
+                compiled.getLayouts().size());
     }
 
     public static ChestCavityType getType(String id) {
-        ChestCavityType type = CHEST_CAVITY_TYPES.get(id);
-        return type == null ? FALLBACK_TYPE : type;
+        return ContentRegistry.getCompiled().getType(id);
     }
 
     public static ChestCavityType getFallbackType() {
-        return FALLBACK_TYPE;
+        return ContentRegistry.getCompiled().getFallbackType();
     }
 
     public static String getAssignedTypeId(ResourceLocation entityId) {
-        return ENTITY_ASSIGNMENTS.get(entityId);
+        return ContentRegistry.getCompiled().getAssignedTypeId(entityId);
     }
 
     public static Map<String, ChestCavityType> getTypes() {
-        return Collections.unmodifiableMap(CHEST_CAVITY_TYPES);
+        return ContentRegistry.getCompiled().getTypes();
     }
 
     public static Map<ResourceLocation, String> getEntityAssignments() {
-        return Collections.unmodifiableMap(ENTITY_ASSIGNMENTS);
+        return ContentRegistry.getCompiled().getEntityAssignments();
+    }
+
+    private static ContentManifest manifest() {
+        if (loadingManifest == null) {
+            loadingManifest = ContentRegistry.createReloadManifest();
+        }
+        return loadingManifest;
     }
 
     private static void loadClasspathAssets() {
@@ -239,9 +200,11 @@ public final class DataLoaders {
         }
         JsonObject json = root.getAsJsonObject();
         if (relativePath.startsWith("organs/")) {
-            OrganManager.load(id, json);
+            loadOrgan(id, json);
         } else if (relativePath.startsWith("types/")) {
             loadType(typeIdFromPath(relativePath), id, json);
+        } else if (relativePath.startsWith("layouts/")) {
+            loadLayout(layoutIdFromPath(relativePath), id, json);
         } else if (relativePath.startsWith("entity_assignment/")) {
             loadEntityAssignment(id, json);
         }
@@ -252,10 +215,72 @@ public final class DataLoaders {
         return fileName.endsWith(".json") ? fileName.substring(0, fileName.length() - 5) : fileName;
     }
 
+    private static ResourceLocation layoutIdFromPath(String relativePath) {
+        String path = relativePath.substring("layouts/".length());
+        if (path.endsWith(".json")) {
+            path = path.substring(0, path.length() - 5);
+        }
+        return new ResourceLocation(Tags.MOD_ID, path);
+    }
+
+    private static void loadOrgan(ResourceLocation id, JsonObject json) {
+        if (!json.has("itemID") || !json.has("organScores")) {
+            ChestCavityLegacy.LOGGER.warn("Skipping organ {} because itemID or organScores is missing.", id);
+            return;
+        }
+
+        ResourceLocation itemId = new ResourceLocation(json.get("itemID").getAsString());
+        if (ForgeRegistries.ITEMS.getValue(itemId) == null) {
+            ChestCavityLegacy.LOGGER.info("Skipping organ {} because item {} is not registered in 1.12.2.", id, itemId);
+            return;
+        }
+
+        OrganData data = new OrganData();
+        if (json.has("pseudoOrgan")) {
+            data.setPseudoOrgan(json.get("pseudoOrgan").getAsBoolean());
+        }
+        data.setOrganScores(readOrganScores(id, json.get("organScores")));
+        manifest().registerOrgan(new OrganDef(itemId, data));
+    }
+
+    private static void loadLayout(ResourceLocation fallbackId, ResourceLocation sourceId, JsonObject json) {
+        ResourceLocation layoutId = json.has("id") ? new ResourceLocation(json.get("id").getAsString()) : fallbackId;
+        int slotCount = readInt(json, "slotCount", 27);
+        int slotsPerRow = readInt(json, "slotsPerRow", Math.max(1, Math.min(9, slotCount)));
+        int panelWidth = readInt(json, "panelWidth", 176);
+        int panelHeight = readInt(json, "panelHeight", 168);
+        int titleX = readInt(json, "titleX", 8);
+        int titleY = readInt(json, "titleY", 6);
+        int firstSlotX = readInt(json, "firstSlotX", 8);
+        int firstSlotY = readInt(json, "firstSlotY", 18);
+        int slotSpacingX = readInt(json, "slotSpacingX", 18);
+        int slotSpacingY = readInt(json, "slotSpacingY", 18);
+        LayoutMigrationStrategy migrationStrategy = LayoutMigrationStrategy.byName(
+                json.has("migrationStrategy") ? json.get("migrationStrategy").getAsString() : null);
+        Set<Integer> forbiddenSlots = new LinkedHashSet<>(readForbiddenSlots(sourceId, json.get("forbiddenSlots")));
+        Map<Integer, SlotRule> slotRules = readSlotRules(sourceId, json.get("slotRules"), forbiddenSlots);
+        try {
+            manifest().registerLayout(new ChestLayoutDef(layoutId, slotCount, slotsPerRow,
+                    panelWidth, panelHeight, titleX, titleY, firstSlotX, firstSlotY, slotSpacingX, slotSpacingY,
+                    migrationStrategy, slotRules));
+        } catch (IllegalArgumentException e) {
+            ChestCavityLegacy.LOGGER.warn("Skipping chest layout {} from {} because it is invalid.", layoutId, sourceId, e);
+        }
+    }
+
+    private static int readInt(JsonObject json, String key, int fallback) {
+        return json.has(key) ? json.get(key).getAsInt() : fallback;
+    }
+
     private static void loadType(String typeId, ResourceLocation id, JsonObject json) {
-        GeneratedChestCavityType type = new GeneratedChestCavityType();
+        BodyTypeDef type = new BodyTypeDef(typeId);
         List<Integer> forbiddenSlots = readForbiddenSlots(id, json.get("forbiddenSlots"));
         type.setForbiddenSlots(forbiddenSlots);
+        if (json.has("layoutId")) {
+            type.setLayoutId(new ResourceLocation(json.get("layoutId").getAsString()));
+        } else if (json.has("layout")) {
+            type.setLayoutId(new ResourceLocation(json.get("layout").getAsString()));
+        }
         if (json.has("defaultChestCavity")) {
             type.setDefaultChestCavity(readDefaultChestCavity(id, json.get("defaultChestCavity"), forbiddenSlots));
         }
@@ -274,7 +299,7 @@ public final class DataLoaders {
         if (json.has("dropRateMultiplier")) {
             type.setDropRateMultiplier(json.get("dropRateMultiplier").getAsFloat());
         }
-        registerType(typeId, type);
+        manifest().registerBodyType(type);
     }
 
     private static void loadEntityAssignment(ResourceLocation id, JsonObject json) {
@@ -294,7 +319,7 @@ public final class DataLoaders {
             try {
                 ResourceLocation entityId = new ResourceLocation(entityElement.getAsString());
                 if (isEntityPresent(entityId)) {
-                    registerEntityAssignment(entityId, typeId);
+                    manifest().registerEntityAssignment(entityId, typeId);
                 } else {
                     ChestCavityLegacy.LOGGER.info("Skipping entity assignment {} -> {} because the entity is not registered in 1.12.2.", entityId, typeId);
                 }
@@ -376,8 +401,8 @@ public final class DataLoaders {
         return scores;
     }
 
-    private static List<GeneratedChestCavityType.ExceptionalOrgan> readExceptionalOrgans(ResourceLocation id, JsonElement element) {
-        List<GeneratedChestCavityType.ExceptionalOrgan> organs = new ArrayList<>();
+    private static List<ExceptionalOrganDef> readExceptionalOrgans(ResourceLocation id, JsonElement element) {
+        List<ExceptionalOrganDef> organs = new ArrayList<>();
         if (element == null || !element.isJsonArray()) {
             ChestCavityLegacy.LOGGER.warn("Skipping exceptional organs in {} because they are not an array.", id);
             return organs;
@@ -397,12 +422,11 @@ public final class DataLoaders {
                 }
 
                 JsonObject ingredient = object.getAsJsonObject("ingredient");
-                Item item = null;
+                ResourceLocation itemId = null;
                 String oreName = null;
                 if (ingredient.has("item")) {
-                    ResourceLocation itemId = new ResourceLocation(ingredient.get("item").getAsString());
-                    item = ForgeRegistries.ITEMS.getValue(itemId);
-                    if (item == null) {
+                    itemId = new ResourceLocation(ingredient.get("item").getAsString());
+                    if (ForgeRegistries.ITEMS.getValue(itemId) == null) {
                         ChestCavityLegacy.LOGGER.info("Skipping exceptional organ entry {} in {} because item {} is not registered in 1.12.2.", index, id, itemId);
                         continue;
                     }
@@ -411,11 +435,11 @@ public final class DataLoaders {
                 } else if (ingredient.has("tag")) {
                     oreName = mapTagToOreName(ingredient.get("tag").getAsString());
                 }
-                if (item == null && (oreName == null || oreName.isEmpty())) {
+                if (itemId == null && (oreName == null || oreName.isEmpty())) {
                     ChestCavityLegacy.LOGGER.warn("Skipping exceptional organ entry {} in {} because ingredient has no supported item, ore, or tag.", index, id);
                     continue;
                 }
-                organs.add(new GeneratedChestCavityType.ExceptionalOrgan(item, oreName, readOrganScores(id, object.get("value"))));
+                organs.add(new ExceptionalOrganDef(itemId, oreName, readOrganScores(id, object.get("value"))));
             } catch (Exception e) {
                 ChestCavityLegacy.LOGGER.warn("Unable to parse exceptional organ entry {} in {}.", index, id, e);
             }
@@ -451,6 +475,85 @@ public final class DataLoaders {
             }
         }
         return slots;
+    }
+
+    private static Map<Integer, SlotRule> readSlotRules(ResourceLocation id, JsonElement element, Set<Integer> forbiddenSlots) {
+        Map<Integer, SlotRule> rules = new LinkedHashMap<>();
+        if (forbiddenSlots != null) {
+            for (Integer slot : forbiddenSlots) {
+                if (slot != null) {
+                    rules.put(slot, SlotRule.FORBIDDEN);
+                }
+            }
+        }
+        if (element == null) {
+            return rules;
+        }
+        if (!element.isJsonArray()) {
+            ChestCavityLegacy.LOGGER.warn("Skipping slotRules in {} because it is not an array.", id);
+            return rules;
+        }
+
+        for (JsonElement entry : element.getAsJsonArray()) {
+            try {
+                if (!entry.isJsonObject()) {
+                    continue;
+                }
+                JsonObject object = entry.getAsJsonObject();
+                if (!object.has("slot")) {
+                    ChestCavityLegacy.LOGGER.warn("Skipping slotRule in {} because slot is missing.", id);
+                    continue;
+                }
+                int slot = object.get("slot").getAsInt();
+                boolean forbidden = object.has("forbidden") && object.get("forbidden").getAsBoolean();
+                Set<ResourceLocation> allowedItems = readResourceLocations(id, object.get("allowedItems"));
+                Set<String> allowedScores = readStrings(id, object.get("allowedScores"));
+                int minStackSize = readInt(object, "minStackSize", 0);
+                int maxStackSize = readInt(object, "maxStackSize", 64);
+                rules.put(slot, new SlotRule(forbidden, allowedItems, allowedScores, minStackSize, maxStackSize));
+            } catch (Exception e) {
+                ChestCavityLegacy.LOGGER.warn("Unable to parse slotRule in {}.", id, e);
+            }
+        }
+        return rules;
+    }
+
+    private static Set<ResourceLocation> readResourceLocations(ResourceLocation id, JsonElement element) {
+        Set<ResourceLocation> values = new LinkedHashSet<>();
+        if (element == null) {
+            return values;
+        }
+        if (!element.isJsonArray()) {
+            ChestCavityLegacy.LOGGER.warn("Skipping resource location list in {} because it is not an array.", id);
+            return values;
+        }
+        for (JsonElement entry : element.getAsJsonArray()) {
+            try {
+                values.add(new ResourceLocation(entry.getAsString()));
+            } catch (Exception e) {
+                ChestCavityLegacy.LOGGER.warn("Unable to parse resource location in {}.", id, e);
+            }
+        }
+        return values;
+    }
+
+    private static Set<String> readStrings(ResourceLocation id, JsonElement element) {
+        Set<String> values = new LinkedHashSet<>();
+        if (element == null) {
+            return values;
+        }
+        if (!element.isJsonArray()) {
+            ChestCavityLegacy.LOGGER.warn("Skipping string list in {} because it is not an array.", id);
+            return values;
+        }
+        for (JsonElement entry : element.getAsJsonArray()) {
+            try {
+                values.add(entry.getAsString());
+            } catch (Exception e) {
+                ChestCavityLegacy.LOGGER.warn("Unable to parse string in {}.", id, e);
+            }
+        }
+        return values;
     }
 
     public static boolean isEntityPresent(ResourceLocation entityId) {

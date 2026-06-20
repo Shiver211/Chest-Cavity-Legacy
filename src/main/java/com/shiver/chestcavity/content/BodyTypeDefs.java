@@ -1,4 +1,4 @@
-package com.shiver.chestcavity.chest.types;
+package com.shiver.chestcavity.content;
 
 import com.shiver.chestcavity.chest.ChestCavityInventory;
 import net.minecraft.init.Blocks;
@@ -7,15 +7,20 @@ import net.minecraft.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FallbackChestCavityType extends GeneratedChestCavityType {
+public final class BodyTypeDefs {
 
-    public FallbackChestCavityType() {
+    private BodyTypeDefs() {
+    }
+
+    public static BodyTypeDef createFallback(String id) {
+        BodyTypeDef def = new BodyTypeDef(id == null || id.isEmpty() ? "fallback" : id);
         ChestCavityInventory inventory = new ChestCavityInventory();
         for (int i = 0; i < inventory.size(); i++) {
             inventory.setStack(i, new ItemStack(Blocks.DIRT, 64));
         }
-        setDefaultChestCavity(inventory);
-        setForbiddenSlots(allSlots(inventory.size()));
+        def.setDefaultChestCavity(inventory);
+        def.setForbiddenSlots(allSlots(inventory.size()));
+        return def;
     }
 
     private static List<Integer> allSlots(int size) {

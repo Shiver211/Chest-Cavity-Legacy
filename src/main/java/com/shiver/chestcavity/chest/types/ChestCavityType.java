@@ -2,7 +2,9 @@ package com.shiver.chestcavity.chest.types;
 
 import com.shiver.chestcavity.chest.ChestCavityInventory;
 import com.shiver.chestcavity.chest.organs.OrganData;
+import com.shiver.chestcavity.layout.ChestLayouts;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 
 import java.util.List;
 import java.util.Map;
@@ -34,4 +36,8 @@ public interface ChestCavityType {
     boolean isPlayerChestCavity();
 
     float getDropRateMultiplier();
+
+    default ResourceLocation getLayoutId() {
+        return ChestLayouts.DEFAULT_ID;
+    }
 }

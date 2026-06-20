@@ -8,7 +8,9 @@ import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.widgets.slot.ItemSlot;
 import com.cleanroommc.modularui.widgets.slot.ModularSlot;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
-import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.capability.ChestCavityData;
+import com.shiver.chestcavity.layout.ChestLayoutDef;
+import com.shiver.chestcavity.util.ChestCavityTypeUtil;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -16,25 +18,24 @@ public class ChestCavityUiHolder implements IGuiHolder<ChestCavityGuiData> {
 
     @Override
     public ModularPanel buildUI(ChestCavityGuiData data, PanelSyncManager syncManager, UISettings settings) {
-        settings.canInteractWith(player -> ChestCavityUiBridge.canKeepOpen(player, data));
+        settings.canInteractWith(player -> ChestCavityUi.canKeepOpen(player, data));
         syncManager.onServerTick(() -> {
-            if (!ChestCavityUiBridge.canKeepOpen(data.getPlayer(), data)) {
+            if (!ChestCavityUi.canKeepOpen(data.getPlayer(), data)) {
                 data.getPlayer().closeScreen();
             }
         });
 
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(data.getTarget());
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(data.getTarget());
+        ChestLayoutDef layout = ChestCavityUi.getLayout(chestCavity);
         IItemHandlerModifiable handler = chestCavity == null
-                ? new ItemStackHandler(ChestCavityUiBridge.CHEST_CAVITY_SLOTS)
+                ? new ItemStackHandler(layout.getSlotCount())
                 : chestCavity.getOrganInventory();
 
-        ModularPanel panel = ModularPanel.defaultPanel(ChestCavityUiBridge.PANEL_ID, 176, 168)
-                .child(IKey.lang("container.chestcavity.chest_cavity").asWidget().pos(8, 6));
+        ModularPanel panel = ModularPanel.defaultPanel(ChestCavityUi.PANEL_ID, layout.getPanelWidth(), layout.getPanelHeight())
+                .child(IKey.lang("container.chestcavity.chest_cavity").asWidget().pos(layout.getTitleX(), layout.getTitleY()));
 
-        for (int slot = 0; slot < ChestCavityUiBridge.CHEST_CAVITY_SLOTS; slot++) {
-            int x = 8 + (slot % ChestCavityUiBridge.SLOTS_PER_ROW) * 18;
-            int y = 18 + (slot / ChestCavityUiBridge.SLOTS_PER_ROW) * 18;
-            boolean forbidden = chestCavity != null && ChestCavityHelper.isSlotForbidden(chestCavity, slot);
+        for (int slot = 0; slot < layout.getSlotCount(); slot++) {
+            boolean forbidden = chestCavity != null && ChestCavityTypeUtil.isSlotForbidden(chestCavity, slot);
             ModularSlot modularSlot = new ModularSlot(handler, slot)
                     .canPut(!forbidden)
                     .canTake(!forbidden)
@@ -42,7 +43,7 @@ public class ChestCavityUiHolder implements IGuiHolder<ChestCavityGuiData> {
             if (forbidden) {
                 modularSlot.setEnabled(false);
             }
-            panel.child(ItemSlot.create(false).slot(modularSlot).pos(x, y));
+            panel.child(ItemSlot.create(false).slot(modularSlot).pos(layout.getSlotX(slot), layout.getSlotY(slot)));
         }
 
         return panel.bindPlayerInventory();

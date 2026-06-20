@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.api;
 
+import com.shiver.chestcavity.content.ContentRegistry;
 import com.shiver.chestcavity.data.DataLoaders;
 import net.minecraft.util.ResourceLocation;
 
@@ -9,23 +10,16 @@ public final class EntityAssignmentApi {
     }
 
     public void register(ResourceLocation entityId, String typeId) {
-        final ResourceLocation targetEntityId = entityId;
-        final String targetTypeId = typeId;
-        DataLoaders.applyRuntimeOverride(() -> registerNow(targetEntityId, targetTypeId));
+        if (entityId != null && typeId != null && DataLoaders.isEntityPresent(entityId)) {
+            ContentRegistry.registerScriptEntityAssignment(entityId, typeId);
+        }
     }
 
     public void unregister(ResourceLocation entityId) {
-        final ResourceLocation targetEntityId = entityId;
-        DataLoaders.applyRuntimeOverride(() -> DataLoaders.unregisterEntityAssignment(targetEntityId));
+        ContentRegistry.removeScriptEntityAssignment(entityId);
     }
 
     public String getAssignedType(ResourceLocation entityId) {
         return DataLoaders.getAssignedTypeId(entityId);
-    }
-
-    private void registerNow(ResourceLocation entityId, String typeId) {
-        if (entityId != null && typeId != null && DataLoaders.isEntityPresent(entityId)) {
-            DataLoaders.registerEntityAssignment(entityId, typeId);
-        }
     }
 }

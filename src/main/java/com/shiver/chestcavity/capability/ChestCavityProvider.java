@@ -8,14 +8,13 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 
 public class ChestCavityProvider implements ICapabilitySerializable<NBTTagCompound> {
 
-    private final IChestCavity instance;
+    private final ChestCavityData instance;
 
     public ChestCavityProvider(EntityLivingBase owner) {
         ChestCavityCapability.ensureRegistered();
         instance = new ChestCavityData();
         instance.setOwner(owner);
-        instance.setCompatibilityId(owner.getUniqueID());
-        instance.copyCurrentScoresToOld();
+        ChestCavityMutations.initialize(instance, owner.getUniqueID());
     }
 
     @Override

@@ -1,10 +1,8 @@
 package com.shiver.chestcavity.ability;
 
-import com.shiver.chestcavity.ChestCavityLegacy;
-import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.capability.ChestCavityData;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.config.CCConfig;
-import com.shiver.chestcavity.crt.CrTChestCavityEvents;
 import com.shiver.chestcavity.entity.EntityForcefulSpit;
 import com.shiver.chestcavity.potion.FurnacePower;
 import com.shiver.chestcavity.registry.CCOrganScores;
@@ -25,6 +23,7 @@ import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
@@ -65,70 +64,20 @@ public final class ActiveOrganAbilities {
     private static final float PYROMANCY_EXHAUSTION = 0.1F;
     private static final double PYROMANCY_RECOIL = 0.2D;
     private static final float SHULKER_BULLET_EXHAUSTION = 0.3F;
-    private static final Map<String, ActiveOrganAbility> ABILITIES = new LinkedHashMap<>();
-
-    static {
-        register(FURNACE_POWERED, ActiveOrganAbilities::activateFurnacePowered);
-        register(GRAZING, ActiveOrganAbilities::activateGrazing);
-        register(IRON_REPAIR, ActiveOrganAbilities::activateIronRepair);
-        register(BUOYANT, ActiveOrganAbilities::activateBuoyant);
-        register(CREEPY, ActiveOrganAbilities::activateCreepy);
-        register(PYROMANCY, ActiveOrganAbilities::activatePyromancy);
-        register(DRAGON_BOMBS, ActiveOrganAbilities::activateDragonBombs);
-        register(FORCEFUL_SPIT, ActiveOrganAbilities::activateForcefulSpit);
-        register(GHASTLY, ActiveOrganAbilities::activateGhastly);
-        register(SHULKER_BULLETS, ActiveOrganAbilities::activateShulkerBullets);
-        register(SILK, ActiveOrganAbilities::activateSilk);
-    }
+    private static final Map<String, ProjectileAbilitySpec> PROJECTILE_ABILITIES = createProjectileAbilitySpecs();
 
     private ActiveOrganAbilities() {
     }
 
-    public static void register(String id, ActiveOrganAbility ability) {
-        ABILITIES.put(id, ability);
-    }
-
-    public static boolean activate(EntityPlayerMP player, IChestCavity chestCavity, String abilityId) {
-        ActiveOrganAbility ability = ABILITIES.get(abilityId);
-        if (ability == null) {
-            ChestCavityLegacy.LOGGER.debug("Ignoring unknown active organ ability {}.", abilityId);
-            return false;
-        }
-        if (chestCavity.getOrganScore(abilityId) <= 0.0F) {
-            ChestCavityLegacy.LOGGER.debug("Ignoring inactive organ ability {} for {}.", abilityId, player.getName());
-            return false;
-        }
-        boolean activated = ability.activate(player, chestCavity);
-        if (activated) {
-            CrTChestCavityEvents.publishAbilityActivated(player, abilityId, chestCavity.getOrganScore(abilityId));
-        }
-        return activated;
-    }
-
-    public static boolean fireQueuedProjectile(EntityLivingBase entity, IChestCavity chestCavity, String abilityId) {
+    public static boolean fireQueuedProjectile(EntityLivingBase entity, ChestCavityData chestCavity, String abilityId) {
         if (!(entity instanceof EntityPlayerMP)) {
             return false;
         }
-        EntityPlayerMP player = (EntityPlayerMP) entity;
-        if (PYROMANCY.equals(abilityId)) {
-            return spawnPyromancyFireball(player);
-        }
-        if (DRAGON_BOMBS.equals(abilityId)) {
-            return spawnDragonBomb(player);
-        }
-        if (FORCEFUL_SPIT.equals(abilityId)) {
-            return spawnForcefulSpit(player);
-        }
-        if (GHASTLY.equals(abilityId)) {
-            return spawnGhastlyFireball(player);
-        }
-        if (SHULKER_BULLETS.equals(abilityId)) {
-            return spawnShulkerBullet(player);
-        }
-        return false;
+        ProjectileAbilitySpec spec = PROJECTILE_ABILITIES.get(abilityId);
+        return spec != null && spec.spawn((EntityPlayerMP) entity);
     }
 
-    private static boolean activateFurnacePowered(EntityPlayerMP player, IChestCavity chestCavity) {
+    public static boolean activateFurnacePowered(EntityPlayerMP player, ChestCavityData chestCavity) {
         float furnacePoweredScore = chestCavity.getOrganScore(FURNACE_POWERED);
         if (furnacePoweredScore <= 0.0F) {
             return false;
@@ -151,7 +100,7 @@ public final class ActiveOrganAbilities {
         return true;
     }
 
-    private static boolean activateGrazing(EntityPlayerMP player, IChestCavity chestCavity) {
+    public static boolean activateGrazing(EntityPlayerMP player, ChestCavityData chestCavity) {
         float grazing = chestCavity.getOrganScore(GRAZING);
         if (grazing <= 0.0F) {
             return false;
@@ -177,7 +126,7 @@ public final class ActiveOrganAbilities {
         return true;
     }
 
-    private static boolean activateBuoyant(EntityPlayerMP player, IChestCavity chestCavity) {
+    public static boolean activateBuoyant(EntityPlayerMP player, ChestCavityData chestCavity) {
         if (player.getAir() <= 0) {
             return false;
         }
@@ -200,7 +149,7 @@ public final class ActiveOrganAbilities {
         return true;
     }
 
-    private static boolean activateCreepy(EntityPlayerMP player, IChestCavity chestCavity) {
+    public static boolean activateCreepy(EntityPlayerMP player, ChestCavityData chestCavity) {
         float creepy = chestCavity.getOrganScore(CREEPY);
         if (creepy <= 0.0F || player.isPotionActive(CCPotions.EXPLOSION_COOLDOWN)) {
             return false;
@@ -213,7 +162,7 @@ public final class ActiveOrganAbilities {
 
         float strength = MathHelper.sqrt(explosive);
         player.world.createExplosion(player, player.posX, player.posY, player.posZ, strength, false);
-        ChestCavityHelper.destroyOrgansWithScore(chestCavity, CCOrganScores.EXPLOSIVE);
+        chestCavity.destroyOrgansWithScore(CCOrganScores.EXPLOSIVE);
         if (player.isEntityAlive()) {
             player.addPotionEffect(new PotionEffect(CCPotions.EXPLOSION_COOLDOWN,
                     CCConfig.EXPLOSION_COOLDOWN, 0, false, false));
@@ -221,9 +170,8 @@ public final class ActiveOrganAbilities {
         return true;
     }
 
-    private static boolean activateIronRepair(EntityPlayerMP player, IChestCavity chestCavity) {
-        float ironRepair = chestCavity.getOrganScore(IRON_REPAIR)
-                - ChestCavityHelper.getChestCavityType(chestCavity).getDefaultOrganScore(IRON_REPAIR);
+    public static boolean activateIronRepair(EntityPlayerMP player, ChestCavityData chestCavity) {
+        float ironRepair = chestCavity.getRuntime().getDeltaScoreValue(IRON_REPAIR);
         if (ironRepair <= 0.0F
                 || player.isPotionActive(CCPotions.IRON_REPAIR_COOLDOWN)
                 || player.getHealth() >= player.getMaxHealth()) {
@@ -245,124 +193,27 @@ public final class ActiveOrganAbilities {
         return true;
     }
 
-    private static boolean activatePyromancy(EntityPlayerMP player, IChestCavity chestCavity) {
-        float pyromancy = chestCavity.getOrganScore(PYROMANCY);
-        if (pyromancy <= 0.0F || player.isPotionActive(CCPotions.PYROMANCY_COOLDOWN)) {
-            return false;
-        }
-
-        int fireballs = Math.max(1, (int) pyromancy);
-        Vec3d look = player.getLookVec().normalize();
-        if (look == Vec3d.ZERO) {
-            return false;
-        }
-
-        for (int i = 0; i < fireballs; i++) {
-            chestCavity.enqueueProjectileAbility(PYROMANCY);
-        }
-
-        player.addExhaustion(fireballs * PYROMANCY_EXHAUSTION);
-        player.addPotionEffect(new PotionEffect(CCPotions.PYROMANCY_COOLDOWN,
-                CCConfig.PYROMANCY_COOLDOWN, 0, false, false));
-        player.motionX -= look.x * PYROMANCY_RECOIL;
-        player.motionY -= look.y * PYROMANCY_RECOIL;
-        player.motionZ -= look.z * PYROMANCY_RECOIL;
-        player.velocityChanged = true;
-        return true;
+    public static boolean activatePyromancy(EntityPlayerMP player, ChestCavityData chestCavity) {
+        return activateProjectileAbility(player, chestCavity, PYROMANCY);
     }
 
-    private static boolean activateDragonBombs(EntityPlayerMP player, IChestCavity chestCavity) {
-        float dragonBombs = chestCavity.getOrganScore(DRAGON_BOMBS);
-        if (dragonBombs <= 0.0F || player.isPotionActive(CCPotions.DRAGON_BOMB_COOLDOWN)) {
-            return false;
-        }
-
-        Vec3d look = getNormalizedLook(player);
-        if (look == null) {
-            return false;
-        }
-
-        int bombs = Math.max(1, (int) dragonBombs);
-        for (int i = 0; i < bombs; i++) {
-            chestCavity.enqueueProjectileAbility(DRAGON_BOMBS);
-        }
-
-        player.addExhaustion(bombs * DRAGON_BOMB_EXHAUSTION);
-        player.addPotionEffect(new PotionEffect(CCPotions.DRAGON_BOMB_COOLDOWN,
-                CCConfig.DRAGON_BOMB_COOLDOWN, 0, false, false));
-        applyRecoil(player, look, DRAGON_BOMB_RECOIL);
-        return true;
+    public static boolean activateDragonBombs(EntityPlayerMP player, ChestCavityData chestCavity) {
+        return activateProjectileAbility(player, chestCavity, DRAGON_BOMBS);
     }
 
-    private static boolean activateForcefulSpit(EntityPlayerMP player, IChestCavity chestCavity) {
-        float forcefulSpit = chestCavity.getOrganScore(FORCEFUL_SPIT);
-        if (forcefulSpit <= 0.0F || player.isPotionActive(CCPotions.FORCEFUL_SPIT_COOLDOWN)) {
-            return false;
-        }
-
-        Vec3d look = getNormalizedLook(player);
-        if (look == null) {
-            return false;
-        }
-
-        int projectiles = Math.max(1, (int) forcefulSpit);
-        for (int i = 0; i < projectiles; i++) {
-            chestCavity.enqueueProjectileAbility(FORCEFUL_SPIT);
-        }
-
-        player.addExhaustion(projectiles * FORCEFUL_SPIT_EXHAUSTION);
-        player.addPotionEffect(new PotionEffect(CCPotions.FORCEFUL_SPIT_COOLDOWN,
-                CCConfig.FORCEFUL_SPIT_COOLDOWN, 0, false, false));
-        applyRecoil(player, look, FORCEFUL_SPIT_RECOIL);
-        return true;
+    public static boolean activateForcefulSpit(EntityPlayerMP player, ChestCavityData chestCavity) {
+        return activateProjectileAbility(player, chestCavity, FORCEFUL_SPIT);
     }
 
-    private static boolean activateGhastly(EntityPlayerMP player, IChestCavity chestCavity) {
-        float ghastly = chestCavity.getOrganScore(GHASTLY);
-        if (ghastly <= 0.0F || player.isPotionActive(CCPotions.GHASTLY_COOLDOWN)) {
-            return false;
-        }
-
-        Vec3d look = getNormalizedLook(player);
-        if (look == null) {
-            return false;
-        }
-
-        int fireballs = Math.max(1, (int) ghastly);
-        for (int i = 0; i < fireballs; i++) {
-            chestCavity.enqueueProjectileAbility(GHASTLY);
-        }
-
-        player.addExhaustion(fireballs * GHASTLY_EXHAUSTION);
-        player.addPotionEffect(new PotionEffect(CCPotions.GHASTLY_COOLDOWN,
-                CCConfig.GHASTLY_COOLDOWN, 0, false, false));
-        applyRecoil(player, look, GHASTLY_RECOIL);
-        return true;
+    public static boolean activateGhastly(EntityPlayerMP player, ChestCavityData chestCavity) {
+        return activateProjectileAbility(player, chestCavity, GHASTLY);
     }
 
-    private static boolean activateShulkerBullets(EntityPlayerMP player, IChestCavity chestCavity) {
-        float shulkerBullets = chestCavity.getOrganScore(SHULKER_BULLETS);
-        if (shulkerBullets <= 0.0F || player.isPotionActive(CCPotions.SHULKER_BULLET_COOLDOWN)) {
-            return false;
-        }
-
-        EntityLivingBase target = findNearestTarget(player, CCConfig.SHULKER_BULLET_TARGETING_RANGE);
-        if (target == null) {
-            return false;
-        }
-
-        int bullets = Math.max(1, (int) shulkerBullets);
-        for (int i = 0; i < bullets; i++) {
-            chestCavity.enqueueProjectileAbility(SHULKER_BULLETS);
-        }
-
-        player.addExhaustion(bullets * SHULKER_BULLET_EXHAUSTION);
-        player.addPotionEffect(new PotionEffect(CCPotions.SHULKER_BULLET_COOLDOWN,
-                CCConfig.SHULKER_BULLET_COOLDOWN, 0, false, false));
-        return true;
+    public static boolean activateShulkerBullets(EntityPlayerMP player, ChestCavityData chestCavity) {
+        return activateProjectileAbility(player, chestCavity, SHULKER_BULLETS);
     }
 
-    private static boolean activateSilk(EntityPlayerMP player, IChestCavity chestCavity) {
+    public static boolean activateSilk(EntityPlayerMP player, ChestCavityData chestCavity) {
         float silk = chestCavity.getOrganScore(SILK);
         if (silk <= 0.0F || player.isPotionActive(CCPotions.SILK_COOLDOWN)) {
             return false;
@@ -455,6 +306,38 @@ public final class ActiveOrganAbilities {
         return player.world.spawnEntity(bullet);
     }
 
+    private static boolean activateProjectileAbility(EntityPlayerMP player, ChestCavityData chestCavity, String abilityId) {
+        ProjectileAbilitySpec spec = PROJECTILE_ABILITIES.get(abilityId);
+        if (spec == null) {
+            return false;
+        }
+
+        float value = chestCavity.getOrganScore(spec.scoreId);
+        if (value <= 0.0F || player.isPotionActive(spec.cooldownPotion)) {
+            return false;
+        }
+
+        Vec3d look = spec.requiresLook ? getNormalizedLook(player) : null;
+        if (spec.requiresLook && look == null) {
+            return false;
+        }
+        if (spec.requiresTarget && findNearestTarget(player, CCConfig.SHULKER_BULLET_TARGETING_RANGE) == null) {
+            return false;
+        }
+
+        int projectiles = Math.max(1, (int) value);
+        for (int i = 0; i < projectiles; i++) {
+            chestCavity.enqueueProjectileAbility(spec.scoreId);
+        }
+
+        player.addExhaustion(projectiles * spec.exhaustionPerProjectile);
+        player.addPotionEffect(new PotionEffect(spec.cooldownPotion, spec.cooldownTicks, 0, false, false));
+        if (look != null && spec.recoil != 0.0D) {
+            applyRecoil(player, look, spec.recoil);
+        }
+        return true;
+    }
+
     private static Vec3d getNormalizedLook(EntityPlayerMP player) {
         Vec3d look = player.getLookVec();
         if (look == null || look.lengthSquared() < 1.0E-4D) {
@@ -474,6 +357,30 @@ public final class ActiveOrganAbilities {
         player.motionY -= look.y * recoil;
         player.motionZ -= look.z * recoil;
         player.velocityChanged = true;
+    }
+
+    private static Map<String, ProjectileAbilitySpec> createProjectileAbilitySpecs() {
+        Map<String, ProjectileAbilitySpec> specs = new LinkedHashMap<>();
+        registerProjectileAbility(specs, new ProjectileAbilitySpec(PYROMANCY, CCPotions.PYROMANCY_COOLDOWN,
+                CCConfig.PYROMANCY_COOLDOWN, PYROMANCY_EXHAUSTION, PYROMANCY_RECOIL, true, false,
+                ActiveOrganAbilities::spawnPyromancyFireball));
+        registerProjectileAbility(specs, new ProjectileAbilitySpec(DRAGON_BOMBS, CCPotions.DRAGON_BOMB_COOLDOWN,
+                CCConfig.DRAGON_BOMB_COOLDOWN, DRAGON_BOMB_EXHAUSTION, DRAGON_BOMB_RECOIL, true, false,
+                ActiveOrganAbilities::spawnDragonBomb));
+        registerProjectileAbility(specs, new ProjectileAbilitySpec(FORCEFUL_SPIT, CCPotions.FORCEFUL_SPIT_COOLDOWN,
+                CCConfig.FORCEFUL_SPIT_COOLDOWN, FORCEFUL_SPIT_EXHAUSTION, FORCEFUL_SPIT_RECOIL, true, false,
+                ActiveOrganAbilities::spawnForcefulSpit));
+        registerProjectileAbility(specs, new ProjectileAbilitySpec(GHASTLY, CCPotions.GHASTLY_COOLDOWN,
+                CCConfig.GHASTLY_COOLDOWN, GHASTLY_EXHAUSTION, GHASTLY_RECOIL, true, false,
+                ActiveOrganAbilities::spawnGhastlyFireball));
+        registerProjectileAbility(specs, new ProjectileAbilitySpec(SHULKER_BULLETS, CCPotions.SHULKER_BULLET_COOLDOWN,
+                CCConfig.SHULKER_BULLET_COOLDOWN, SHULKER_BULLET_EXHAUSTION, 0.0D, false, true,
+                ActiveOrganAbilities::spawnShulkerBullet));
+        return specs;
+    }
+
+    private static void registerProjectileAbility(Map<String, ProjectileAbilitySpec> specs, ProjectileAbilitySpec spec) {
+        specs.put(spec.scoreId, spec);
     }
 
     private static EntityLivingBase findNearestTarget(EntityPlayerMP player, double range) {
@@ -573,6 +480,38 @@ public final class ActiveOrganAbilities {
             this.hand = hand;
             this.stack = stack;
             this.burnTime = burnTime;
+        }
+    }
+
+    private interface ProjectileSpawner {
+        boolean spawn(EntityPlayerMP player);
+    }
+
+    private static final class ProjectileAbilitySpec {
+        private final String scoreId;
+        private final Potion cooldownPotion;
+        private final int cooldownTicks;
+        private final float exhaustionPerProjectile;
+        private final double recoil;
+        private final boolean requiresLook;
+        private final boolean requiresTarget;
+        private final ProjectileSpawner spawner;
+
+        private ProjectileAbilitySpec(String scoreId, Potion cooldownPotion, int cooldownTicks,
+                                      float exhaustionPerProjectile, double recoil, boolean requiresLook,
+                                      boolean requiresTarget, ProjectileSpawner spawner) {
+            this.scoreId = scoreId;
+            this.cooldownPotion = cooldownPotion;
+            this.cooldownTicks = cooldownTicks;
+            this.exhaustionPerProjectile = exhaustionPerProjectile;
+            this.recoil = recoil;
+            this.requiresLook = requiresLook;
+            this.requiresTarget = requiresTarget;
+            this.spawner = spawner;
+        }
+
+        private boolean spawn(EntityPlayerMP player) {
+            return spawner != null && spawner.spawn(player);
         }
     }
 

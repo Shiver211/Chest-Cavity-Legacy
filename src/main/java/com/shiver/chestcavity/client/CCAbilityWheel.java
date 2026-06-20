@@ -1,9 +1,9 @@
 package com.shiver.chestcavity.client;
 
 import com.shiver.chestcavity.api.ChestCavityApis;
+import com.shiver.chestcavity.api.ScoreApi;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
-import com.shiver.chestcavity.capability.IChestCavity;
-import com.shiver.chestcavity.registry.CCOrganScores;
+import com.shiver.chestcavity.capability.ChestCavityData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
@@ -20,24 +20,11 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @SideOnly(Side.CLIENT)
 public final class CCAbilityWheel {
-
-    private static final String[] ABILITIES = {
-            CCOrganScores.BUOYANT,
-            CCOrganScores.FURNACE_POWERED,
-            CCOrganScores.IRON_REPAIR,
-            CCOrganScores.GRAZING,
-            CCOrganScores.SILK,
-            CCOrganScores.CREEPY,
-            CCOrganScores.DRAGON_BOMBS,
-            CCOrganScores.FORCEFUL_SPIT,
-            CCOrganScores.PYROMANCY,
-            CCOrganScores.GHASTLY,
-            CCOrganScores.SHULKER_BULLETS
-    };
 
     private static final double TWO_PI = Math.PI * 2.0D;
     private static final int RADIUS = 82;
@@ -55,20 +42,13 @@ public final class CCAbilityWheel {
     private static double wheelAlphaProgress = 0.0;
     private static double currentPointerX = 0;
     private static double currentPointerY = -RADIUS;
+    private static ChestCavityData cachedCavity;
+    private static long cachedScoreVersion = Long.MIN_VALUE;
+    private static List<String> cachedAbilities = Collections.emptyList();
+    private static List<ScoreRow> cachedScoreRows = Collections.emptyList();
 
     public static String getSelectedAbility() {
         return selectedAbility;
-    }
-
-    private static final java.util.List<String> SCORE_ORDER = new java.util.ArrayList<>();
-    static {
-        for (java.lang.reflect.Field field : com.shiver.chestcavity.registry.CCOrganScores.class.getDeclaredFields()) {
-            if (field.getType() == String.class) {
-                try {
-                    SCORE_ORDER.add((String) field.get(null));
-                } catch (Exception e) {}
-            }
-        }
     }
 
     @SubscribeEvent
@@ -187,29 +167,73 @@ public final class CCAbilityWheel {
     }
 
     private static List<String> getAvailableAbilities(Minecraft minecraft) {
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(minecraft.player);
-        List<String> result = new ArrayList<>();
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(minecraft.player);
         if (chestCavity == null) {
-            return result;
+            clearCache();
+            return Collections.emptyList();
+        }
+        refreshScoreCache(chestCavity);
+
+        if (!cachedAbilities.contains(selectedAbility) && !cachedAbilities.isEmpty()) {
+            selectedAbility = cachedAbilities.get(0);
+        }
+        return cachedAbilities;
+    }
+
+    private static List<ScoreRow> getScoreRows(Minecraft minecraft) {
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(minecraft.player);
+        if (chestCavity == null) {
+            clearCache();
+            return Collections.emptyList();
+        }
+        refreshScoreCache(chestCavity);
+        return cachedScoreRows;
+    }
+
+    private static void refreshScoreCache(ChestCavityData chestCavity) {
+        long scoreVersion = chestCavity.getScoreVersion();
+        if (chestCavity == cachedCavity && scoreVersion == cachedScoreVersion) {
+            return;
         }
 
-        for (String ability : ABILITIES) {
-            if (chestCavity.getOrganScore(ability) > 0.0F) {
-                result.add(ability);
-            }
-        }
+        List<String> abilities = new ArrayList<>();
         for (String ability : ChestCavityApis.ABILITIES.getWheelEntries().keySet()) {
-            if (chestCavity.getOrganScore(ability) > 0.0F && !result.contains(ability)) {
-                result.add(ability);
+            if (chestCavity.getOrganScore(ability) > 0.0F && !abilities.contains(ability)) {
+                abilities.add(ability);
             }
         }
-        if (!result.contains(selectedAbility) && !result.isEmpty()) {
-            selectedAbility = result.get(0);
+
+        List<ScoreRow> scoreRows = new ArrayList<>();
+        for (ScoreApi.ScoreValue entry : ChestCavityApis.SCORES.getSummaryScores(chestCavity.getOrganScores())) {
+            scoreRows.add(new ScoreRow(
+                    getScoreName(entry.getId()),
+                    String.format("%.1f", entry.getValue()),
+                    entry.getValue(),
+                    entry.getScore().isNegative()));
         }
-        return result;
+
+        cachedCavity = chestCavity;
+        cachedScoreVersion = scoreVersion;
+        cachedAbilities = Collections.unmodifiableList(abilities);
+        cachedScoreRows = Collections.unmodifiableList(scoreRows);
+    }
+
+    private static void clearCache() {
+        cachedCavity = null;
+        cachedScoreVersion = Long.MIN_VALUE;
+        cachedAbilities = Collections.emptyList();
+        cachedScoreRows = Collections.emptyList();
     }
 
     private static void resetPointer(List<String> abilities) {
+        if (abilities.isEmpty()) {
+            pointerX = 0.0D;
+            pointerY = -RADIUS;
+            currentPointerX = pointerX;
+            currentPointerY = pointerY;
+            return;
+        }
+
         int index = selectedAbility == null ? 0 : abilities.indexOf(selectedAbility);
         if (index < 0) {
             index = 0;
@@ -387,37 +411,11 @@ public final class CCAbilityWheel {
     }
 
     private static void drawScoreSummary(FontRenderer fontRenderer, int centerX, int centerY, Minecraft minecraft, ScaledResolution resolution, double alphaScale) {
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(minecraft.player);
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(minecraft.player);
         if (chestCavity == null) return;
         
-        java.util.Map<String, Float> rawScores = chestCavity.getOrganScores();
-        java.util.List<java.util.Map.Entry<String, Float>> validScores = new java.util.ArrayList<>();
-        for (java.util.Map.Entry<String, Float> entry : rawScores.entrySet()) {
-            if (entry.getValue() > 0.0F) {
-                validScores.add(entry);
-            }
-        }
-        
+        List<ScoreRow> validScores = getScoreRows(minecraft);
         if (validScores.isEmpty()) return;
-        
-        validScores.sort((a, b) -> {
-            List<String> activeList = java.util.Arrays.asList(ABILITIES);
-            boolean activeA = activeList.contains(a.getKey());
-            boolean activeB = activeList.contains(b.getKey());
-            if (activeA != activeB) {
-                return activeA ? 1 : -1;
-            }
-
-            int indexA = SCORE_ORDER.indexOf(a.getKey());
-            int indexB = SCORE_ORDER.indexOf(b.getKey());
-            if (indexA == -1) indexA = 999;
-            if (indexB == -1) indexB = 999;
-            if (indexA != indexB) {
-                return Integer.compare(indexA, indexB);
-            }
-
-            return getScoreName(a.getKey()).compareTo(getScoreName(b.getKey()));
-        });
         
         int alpha = (int)(255 * alphaScale);
         if (alpha <= 4) return;
@@ -429,9 +427,9 @@ public final class CCAbilityWheel {
         
         int maxNameWidth = 0;
         int maxValWidth = 0;
-        for (java.util.Map.Entry<String, Float> entry : validScores) {
-            int w1 = fontRenderer.getStringWidth(getScoreName(entry.getKey()));
-            int w2 = fontRenderer.getStringWidth(String.format("%.1f", entry.getValue()));
+        for (ScoreRow entry : validScores) {
+            int w1 = fontRenderer.getStringWidth(entry.name);
+            int w2 = fontRenderer.getStringWidth(entry.valueText);
             if (w1 > maxNameWidth) maxNameWidth = w1;
             if (w2 > maxValWidth) maxValWidth = w2;
         }
@@ -497,22 +495,18 @@ public final class CCAbilityWheel {
         int curY = startY + padding + titleSpace;
         int rowCount = 0;
         
-        for (java.util.Map.Entry<String, Float> entry : validScores) {
-            String name = getScoreName(entry.getKey());
-            String val = String.format("%.1f", entry.getValue());
-            
-            boolean isNegative = isNegativeScore(entry.getKey());
+        for (ScoreRow entry : validScores) {
             int colorName = 0xCCCCCC;
             int colorVal = 0xFFFFFF;
-            float floatVal = entry.getValue();
+            float floatVal = entry.value;
             if (floatVal > 1.05f) {
-                colorVal = isNegative ? 0xFF5555 : 0x55FF55;
+                colorVal = entry.negative ? 0xFF5555 : 0x55FF55;
             } else if (floatVal < 0.95f) {
-                colorVal = isNegative ? 0x55FF55 : 0xFF5555;
+                colorVal = entry.negative ? 0x55FF55 : 0xFF5555;
             }
             
-            drawStringWithAlpha(fontRenderer, name, curX, curY, colorName, alphaScale);
-            drawStringWithAlpha(fontRenderer, val, curX + columnWidth - fontRenderer.getStringWidth(val) - 10, curY, colorVal, alphaScale);
+            drawStringWithAlpha(fontRenderer, entry.name, curX, curY, colorName, alphaScale);
+            drawStringWithAlpha(fontRenderer, entry.valueText, curX + columnWidth - fontRenderer.getStringWidth(entry.valueText) - 10, curY, colorVal, alphaScale);
             
             curY += lineSpacing;
             rowCount++;
@@ -554,17 +548,22 @@ public final class CCAbilityWheel {
         return id;
     }
 
-    private static boolean isNegativeScore(String id) {
-        if (id == null) return false;
-        return id.equals("metabolism") ||
-               id.equals("incompatibility") ||
-               id.equals("hydroallergenic") ||
-               id.equals("hydrophobia") ||
-               id.equals("withered");
-    }
-
     private static double normalizeAngle(double angle) {
         angle %= TWO_PI;
         return angle < 0.0D ? angle + TWO_PI : angle;
+    }
+
+    private static final class ScoreRow {
+        private final String name;
+        private final String valueText;
+        private final float value;
+        private final boolean negative;
+
+        private ScoreRow(String name, String valueText, float value, boolean negative) {
+            this.name = name;
+            this.valueText = valueText;
+            this.value = value;
+            this.negative = negative;
+        }
     }
 }

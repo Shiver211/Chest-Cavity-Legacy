@@ -1,7 +1,7 @@
 package com.shiver.chestcavity.api;
 
 import com.shiver.chestcavity.capability.ChestCavityHelper;
-import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.capability.ChestCavityData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 
@@ -11,7 +11,7 @@ public final class ChestCavityAccess {
     }
 
     public ChestCavityView get(Entity entity) {
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(entity);
         return chestCavity == null ? null : new ChestCavityView(chestCavity);
     }
 

@@ -14,7 +14,7 @@ public final class ChestCavityGuiFactory extends AbstractUIFactory<ChestCavityGu
     private static boolean registered;
 
     private ChestCavityGuiFactory() {
-        super(ChestCavityUiBridge.FACTORY_ID);
+        super(ChestCavityUi.FACTORY_ID);
     }
 
     public static void register() {
@@ -46,6 +46,6 @@ public final class ChestCavityGuiFactory extends AbstractUIFactory<ChestCavityGu
 
     @Override
     public boolean canInteractWith(EntityPlayer player, ChestCavityGuiData data) {
-        return ChestCavityUiBridge.canKeepOpen(player, data);
+        return ChestCavityUi.canKeepOpen(player, data);
     }
 }

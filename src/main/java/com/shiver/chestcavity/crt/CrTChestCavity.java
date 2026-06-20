@@ -10,7 +10,7 @@ import stanhebben.zenscript.annotations.ZenMethod;
 import java.util.Map;
 
 @ZenRegister
-@ZenClass("mods.chestcavity.IChestCavity")
+@ZenClass("mods.chestcavity.ChestCavityData")
 public final class CrTChestCavity {
 
     private final ChestCavityView view;
@@ -52,6 +52,21 @@ public final class CrTChestCavity {
     @ZenMethod
     public int[] getOrganSlots(IItemStack item) {
         return view.getOrganSlots(CrTUtil.itemId(item));
+    }
+
+    @ZenMethod
+    public int[] getOrganSlotsByScore(String scoreId) {
+        return view.getOrganSlotsByScore(scoreId);
+    }
+
+    @ZenMethod
+    public int[] getOccupiedSlots() {
+        return view.getOccupiedSlots();
+    }
+
+    @ZenMethod
+    public boolean hasScore(String scoreId) {
+        return view.getOrganScores().containsKey(scoreId);
     }
 
     @ZenMethod

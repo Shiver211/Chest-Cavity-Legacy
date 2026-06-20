@@ -1,8 +1,9 @@
 package com.shiver.chestcavity.network;
 
 import com.shiver.chestcavity.capability.ChestCavityHelper;
-import com.shiver.chestcavity.capability.IChestCavity;
-import com.shiver.chestcavity.chest.organs.OrganManager;
+import com.shiver.chestcavity.capability.ChestCavityData;
+import com.shiver.chestcavity.content.ContentSync;
+import com.shiver.chestcavity.ui.BodyUiSnapshot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
@@ -23,9 +24,9 @@ public final class ClientNetworkHooks {
             }
 
             Entity entity = minecraft.world.getEntityByID(message.getEntityId());
-            IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
+            ChestCavityData chestCavity = ChestCavityHelper.getOrNull(entity);
             if (chestCavity != null) {
-                chestCavity.deserializeNBT(message.getData());
+                chestCavity.deserializeNBT(BodyUiSnapshot.getState(message.getData()));
             }
         });
     }
@@ -33,6 +34,6 @@ public final class ClientNetworkHooks {
     public static void handleOrganDataSync(MessageOrganDataSync message) {
         Minecraft minecraft = Minecraft.getMinecraft();
         NBTTagCompound organData = message.getOrganData().copy();
-        minecraft.addScheduledTask(() -> OrganManager.readRegistryFromNbt(organData));
+        minecraft.addScheduledTask(() -> ContentSync.readOrgansFromNbt(organData));
     }
 }

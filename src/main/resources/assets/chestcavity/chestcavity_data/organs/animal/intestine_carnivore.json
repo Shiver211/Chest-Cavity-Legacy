@@ -1,7 +1,6 @@
 {
   "itemID": "chestcavity:carnivore_intestine",
   "organScores": [
-    {"id":"carnivorous_nutrition","value": "1.25"},
-    {"id":"herbivorous_nutrition","value": ".25"}
+    {"id":"nutrition","value": "1.5"}
   ]
 }

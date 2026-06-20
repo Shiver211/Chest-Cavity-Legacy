@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.chest;
 
+import com.shiver.chestcavity.layout.ChestLayouts;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -7,7 +8,7 @@ import net.minecraft.nbt.NBTTagList;
 
 public class ChestCavityInventory extends InventoryBasic {
 
-    public static final int DEFAULT_SIZE = 27;
+    public static final int DEFAULT_SIZE = ChestLayouts.DEFAULT.getSlotCount();
 
     public ChestCavityInventory() {
         this(DEFAULT_SIZE);

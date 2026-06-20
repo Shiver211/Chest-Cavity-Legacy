@@ -5,6 +5,7 @@ import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.proxy.CommonProxy;
+import com.shiver.chestcavity.registry.CCScores;
 import com.shiver.chestcavity.ui.ChestCavityGuiFactory;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -33,6 +34,7 @@ public class ChestCavityLegacy {
         gameDir = event.getModConfigurationDirectory().getParentFile();
         CCConfig.load(event.getSuggestedConfigurationFile());
         ChestCavityCapability.ensureRegistered();
+        CCScores.registerDefaults();
         ChestCavityNetwork.register();
         ChestCavityGuiFactory.register();
         proxy.preInit(event);

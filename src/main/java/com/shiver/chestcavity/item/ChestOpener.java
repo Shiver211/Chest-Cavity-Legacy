@@ -1,9 +1,10 @@
 package com.shiver.chestcavity.item;
 
 import com.shiver.chestcavity.capability.ChestCavityHelper;
-import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.capability.ChestCavityData;
+import com.shiver.chestcavity.util.ChestCavityTypeUtil;
 import com.shiver.chestcavity.config.CCConfig;
-import com.shiver.chestcavity.ui.ChestCavityUiBridge;
+import com.shiver.chestcavity.ui.ChestCavityUi;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.EntityLivingBase;
@@ -54,7 +55,7 @@ public class ChestOpener extends Item {
             return true;
         }
 
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(target);
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(target);
         if (chestCavity == null) {
             return false;
         }
@@ -73,9 +74,9 @@ public class ChestOpener extends Item {
             return true;
         }
 
-        ChestCavityHelper.openChestCavity(chestCavity);
+        chestCavity.openChestCavity();
         if (player instanceof EntityPlayerMP) {
-            ChestCavityUiBridge.open((EntityPlayerMP) player, target);
+            ChestCavityUi.open((EntityPlayerMP) player, target);
         }
 
         player.getCooldownTracker().setCooldown(this, 2);
@@ -89,7 +90,7 @@ public class ChestOpener extends Item {
         if (!(player != null
                 && target != null
                 && target.isEntityAlive()
-                && player.getDistanceSq(target) <= ChestCavityUiBridge.MAX_INTERACT_DISTANCE_SQ
+                && player.getDistanceSq(target) <= ChestCavityUi.MAX_INTERACT_DISTANCE_SQ
                 && target.getItemStackFromSlot(EntityEquipmentSlot.CHEST).isEmpty())) {
             return false;
         }
@@ -98,8 +99,8 @@ public class ChestOpener extends Item {
             return false;
         }
 
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(target);
-        if (!ChestCavityHelper.hasAssignedChestCavityType(chestCavity)) {
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(target);
+        if (!ChestCavityTypeUtil.hasAssignedChestCavityType(chestCavity)) {
             return false;
         }
         return target == player || ChestCavityHelper.isOpenable(chestCavity);

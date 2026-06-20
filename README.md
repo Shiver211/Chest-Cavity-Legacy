@@ -1,150 +1,215 @@
 # Chest Cavity Legacy
 
-> 作者: Shiver211 | 原作者：[TigerOfTroy](https://www.curseforge.com/members/tigeroftroy/projects) | 许可证: Apache License 2.0
-
----
+作者: Shiver211  
+原作者: [TigerOfTroy](https://www.curseforge.com/members/tigeroftroy/projects)  
+许可证: Apache License 2.0
 
 ## 简介
 
-Chest Cavity Legacy 为 Minecraft 中的所有生物添加了一套功能性的**器官系统**。每个生物都拥有一个内部"胸腔"——一个 27 格的物品栏，代表它们的内脏器官。玩家可以使用**开胸器**打开生物的胸腔，查看/替换器官，并通过器官评分系统改变实体的能力属性。已经支持Crt自定义器官、胸腔类型和实体分配。
+Chest Cavity Legacy 为 Minecraft 1.12.2 的生物加入可交互的器官系统。生物拥有胸腔，玩家可以用开胸器打开、查看和替换器官；器官会提供 score，score 会进一步影响生命、战斗、移动、食物、药水、主动能力等行为。
 
----
+当前版本已经完成一次大规模架构重构：器官、胸腔类型、实体分配、胸腔布局和槽位规则统一进入内容声明层，reload 后编译成运行期只读快照。CrT 和 JSON 不再直接修改旧 registry，运行时实体状态也统一通过 mutation 提交。
 
 ## 核心机制
 
-### 胸腔系统
+### 胸腔状态
 
-每个 `EntityLivingBase` 通过 Forge Capability 附加 `IChestCavity` 能力：
+每个 `EntityLivingBase` 会通过 Forge Capability 挂载胸腔状态。状态层只保存实体自己的数据：
 
-- **27 个器官槽位**：9×3 网格排列
-- **器官评分**：每个器官拥有多种属性评分，影响宿主能力
-- **器官兼容性**：器官带有所有者标记，不兼容的器官触发**器官排斥**
-- **数据驱动**：器官定义、胸腔类型、实体分配均通过 JSON 配置
+- 是否已开胸
+- 器官槽位中的 `ItemStack`
+- 兼容性 ID
+- 计时器和运行时版本号
+- 打开后的 layout slot 数量
 
-### 器官获取
+未开胸实体不会常驻 27 个空槽，也不会在 NBT 中写入空 `Inventory`。
 
-- 使用**剁刀**（木/石/金/铁/钻石）击杀生物获取器官
-- **附魔影响**：外科手术（提高掉落率）、医疗事故诅咒（标记不兼容）、手术恐惧症（阻止掉落）
-- 未打开胸腔的生物死亡时也会随机掉落器官（受抢夺附魔影响）
+### 器官和 Score
 
-### 器官兼容性
+器官由 JSON 或 CrT 声明，每个器官绑定一个物品 ID 和一组 score。运行时会根据胸腔类型、器官、堆叠数量和兼容性构建 `ChestCavityRuntime` 快照。
 
-- **无标记器官**：通用兼容
-- **O 型阴性附魔**：I 级通用兼容，II 级死亡时保留器官
-- **所有者绑定器官**：仅与原始宿主兼容，移植触发排斥
-- **排斥效果**：周期性伤害，可通过配置禁用
+重构后 score / baseline / delta 以数组作为运行时真源，字符串 Map 只在 API、UI、CrT 需要展示时懒生成。
 
----
+### 兼容性
 
-## 器官评分系统
+- 无兼容标记的器官可以通用移植。
+- 被绑定到宿主的器官只完全兼容原宿主。
+- 不兼容器官会提供 `incompatibility`，进而触发器官排斥。
+- O Negative 附魔仍提供通用兼容和死亡保留相关行为。
 
-模组定义了 **47 种器官评分**，涵盖生存、战斗、探索、特殊能力等方面：
+### Layout 和 Slot Rules
 
-**基础属性**：生命值、力量、速度、防御、神经、幸运、挖掘速度
+胸腔不再固定为 27 格。每个 body type 可以绑定 layout，layout 控制：
 
-**消化系统**：消化、营养、肉食/草食消化/营养、腐烂消化、新陈代谢、耐力
+- 槽位数量
+- 每行槽位数
+- ModularUI 面板尺寸和标题位置
+- 第一个槽位位置和槽位间距
+- layout 变化时的迁移策略
+- 每个槽位的规则
 
-**呼吸系统**：肺活量、水下呼吸
+slot rule 支持：
 
-**防御系统**：火焰抗性、冲击抗性、击退抗性、轻量化、跳跃
+- 禁用槽位
+- 只允许指定物品
+- 只允许带指定 score 的器官
+- 限制最小/最大堆叠数
 
-**被动能力**：浮力、发光、水过敏、恐水症、诡异、爆炸性
+服务端插入、ItemHandler 和 ModularUI 使用同一套规则。
 
-**战斗能力**：毒性、发射、闪避箭矢、净化增益、凋零抗性
-
-**主动能力**：喷火、龙弹、恶魂、潜影弹、产丝、水晶合成、光合作用、放牧、熔炉供能、铁修补
-
----
-
-## 物品
+## 获取和使用
 
 ### 工具
-- **开胸器** — 打开生物胸腔的核心工具
-- **剁刀** — 屠宰生物获取器官的武器
 
-### 器官类别
+- 开胸器: 打开符合条件的生物胸腔。
+- 剁刀: 用于屠宰和提高器官获取效率。
 
-| 类别 | 示例 |
-|---|---|
-| 人类器官 | 心脏、肺、肝、肾、胃、肠、脾、阑尾、肌肉、肋骨、脊柱 |
-| 腐烂器官 | 腐烂心脏、腐烂肺等 |
-| 动物器官 | 动物心脏、动物肺等 |
-| 小型动物器官 | 小动物心脏、兔子心脏等 |
-| 特化肌肉 | 水生肌肉、鱼肉肌肉、野蛮肌肉、迅捷肌肉、弹性肌肉 |
-| 特化器官 | 鳃、羊驼肺、食肉动物胃、食草动物瘤胃等 |
-| 防火器官 | 防火心脏、防火肺等 |
-| 昆虫器官 | 昆虫心脏、丝腺、毒腺 |
-| 末影器官 | 末影心脏、末影肺等 |
-| 龙器官 | 龙心脏、龙肺、魔力反应器等 |
-| 烈焰构件 | 激活烈焰棒、烈焰外壳、烈焰核心 |
-| 傀儡构件 | 傀儡电缆、傀儡装甲、傀儡核心 |
-| 其他特殊器官 | 苦力怕阑尾、潜影脾、气鳔、易爆胃等 |
+### 附魔
 
----
+| 附魔 | 最高等级 | 效果 |
+|---|---:|---|
+| O Negative | II | I 级提高兼容性，II 级可在死亡时保留器官 |
+| Surgical | III | 提高器官掉落收益 |
+| Malpractice | I | 掉落器官带不兼容风险 |
+| Tomophobia | I | 阻止器官掉落 |
 
-## 附魔
+### 快捷键
 
-| 附魔 | 稀有度 | 最高等级 | 效果 |
-|---|---|---|---|
-| **O 型阴性** | 稀有 | II | I 级：器官通用兼容；II 级：死亡时保留器官 |
-| **外科手术** | 非常稀有 | III | 每级增加器官掉落率（+2 抢夺等效） |
-| **医疗事故诅咒** | 非常稀有 | I | 诅咒。掉落的器官标记为不兼容 |
-| **手术恐惧症** | 非常稀有 | I | 完全阻止器官掉落 |
-
----
-
-## 快捷键
-
-类别："Chest Cavity Organ Abilities"
+类别: `Chest Cavity Organ Abilities`
 
 | 快捷键 | 默认按键 |
 |---|---|
-| **释放能力** | X |
-| **打开技能轮盘** | R |
+| 释放能力 | X |
+| 打开能力轮盘 | R |
 
----
+## 数据驱动
 
-## 配置
+内置数据位于：
 
-配置文件位于 `config/chestcavity.cfg`。
-
-**核心设置**：默认胸腔类型、器官掉落率、排斥伤害/频率、心脏出血/肾脏中毒频率、各项评分属性值、开胸器使用条件、是否允许打开其他玩家胸腔、死亡时是否保留器官。
-
-**能力调优**：闪避距离、浮力提升、水晶合成范围/频率、防御系数、铁修补治疗百分比、光合作用频率、反刍参数、游泳速度因子、各项主动能力冷却时间。
-
----
-
-## 拓展 / 自定义 能力
-
-### Crt 方法拓展
-
-模组提供了丰富的 Crt 方法，允许用户通过 ZenScript 定义新的器官、胸腔类型和实体分配。并添加了丰富的`ZenGetter`和`ZenSetter`以及不同的扩展事件。详见 `ChestCavity-CRT-API.md`。
-
-### Json 拓展
-所有器官定义、胸腔类型和实体分配均通过可通过 JSON 文件配置，支持用户自定义：
-
-```
+```text
 assets/chestcavity/chestcavity_data/
-├── organs/              # 器官定义
-├── types/               # 胸腔类型定义
-└── entity_assignment/   # 实体到类型的映射
+├── organs/
+├── types/
+├── layouts/
+└── entity_assignment/
 ```
 
-用户可在 `config/chestcavity/data/` 目录下放置自定义 JSON 文件，会覆盖 assets 中的同名文件。
+整合包可在以下目录放置自定义 JSON：
 
----
+```text
+config/chestcavity/data/
+```
 
-## 伪器官系统
+### Organ JSON
 
-原版物品也可作为器官使用（不会触发器官排斥，不会记录器官归属）：
+```json
+{
+  "itemID": "minecraft:apple",
+  "pseudoOrgan": false,
+  "organScores": [
+    { "id": "health", "value": 2.0 },
+    { "id": "nutrition", "value": 1.0 }
+  ]
+}
+```
 
-- **方块类**：泥土、熔炉、活塞、黑曜石、铁块、铁栏杆、荧石、骨块、金块、绿宝石块、钻石块
-- **物品类**：骨头、腐肉、火药、烈焰棒、荧石粉、粘液球、TNT
-- **食物类**：猪排、羊肉、牛肉
+### Type JSON
 
----
+```json
+{
+  "layoutId": "chestcavity:wide",
+  "playerChestCavity": false,
+  "bossChestCavity": false,
+  "dropRateMultiplier": 1.0,
+  "baseOrganScores": [
+    { "id": "health", "value": 20.0 }
+  ],
+  "defaultChestCavity": [
+    { "position": 0, "item": "chestcavity:heart", "count": 1 }
+  ]
+}
+```
 
-## 前置Mod
+### Layout JSON
+
+```json
+{
+  "id": "chestcavity:wide",
+  "slotCount": 36,
+  "slotsPerRow": 12,
+  "panelWidth": 230,
+  "panelHeight": 168,
+  "titleX": 8,
+  "titleY": 6,
+  "firstSlotX": 8,
+  "firstSlotY": 18,
+  "slotSpacingX": 18,
+  "slotSpacingY": 18,
+  "migrationStrategy": "KEEP_BY_INDEX",
+  "slotRules": [
+    {
+      "slot": 0,
+      "allowedScores": ["health"],
+      "minStackSize": 1,
+      "maxStackSize": 1
+    }
+  ]
+}
+```
+
+迁移策略：
+
+- `KEEP_BY_INDEX`
+- `DROP_OVERFLOW`
+- `MOVE_TO_PLAYER`
+- `CLEAR`
+- `SCRIPTED_MIGRATION` 当前降级为 keep-by-index
+
+### Entity Assignment JSON
+
+```json
+{
+  "chestcavity": "human",
+  "entities": [
+    "minecraft:player",
+    "minecraft:villager"
+  ]
+}
+```
+
+## CraftTweaker
+
+CrT API 见 [ChestCavity-CRT-API.md](ChestCavity-CRT-API.md)。
+
+当前 CrT 入口主要用于声明内容和提交实体 mutation：
+
+- `mods.chestcavity.OrganData`
+- `mods.chestcavity.ChestCavityType`
+- `mods.chestcavity.ChestLayout`
+- `mods.chestcavity.EntityAssignment`
+- `mods.chestcavity.DropManager`
+- `mods.chestcavity.ScoreManager`
+- `mods.chestcavity.AbilityManager`
+- `mods.chestcavity.ChestCavityHelper`
+
+## 本次重构的主要改进
+
+- 内容层统一: JSON、内置数据和 CrT 都写入 `ContentManifest`，reload 后编译为 `CompiledContent`。
+- 删除旧 registry 直写路径: 不再依赖 `GeneratedChestCavityType`、`FallbackChestCavityType`、`RUNTIME_OVERRIDES` 或 `OrganData` 静态 registry。
+- 运行期只读快照: runtime 从实体状态和 compiled content 构建，减少 reload、缓存和同步风险。
+- mutation 入口统一: 槽位修改、开胸、死亡重置和 UI 操作统一经 `ChestCavityMutations` 提交。
+- score 更轻量: 运行时用数组保存 score / baseline / delta，Map 只做外部视图。
+- 行为 pipeline 化: 战斗、食物、药水和 passive tick 已大幅收束为 spec/effect pipeline。
+- layout 规则化: 胸腔 layout 不再只是 UI 坐标，而是决定 slot 数量、可放置内容和迁移策略。
+- 网络同步瘦身: chest cavity sync 发送 `BodyUiSnapshot`，不再直接全量传 capability NBT。
+
+## 仍在规划中的工作
+
+- 将 builtin ability/effect spec 进一步注册到 `ContentManifest`，开放 JSON/CrT 声明。
+- 在 `BodyUiSnapshot` 基础上继续拆 slot delta / score delta message。
+- 将 score version 比较从 Map 视图比较改为数组版本比较或 dirty bit。
+
+## 前置 Mod
 
 - [CraftTweaker](https://www.curseforge.com/minecraft/mc-mods/crafttweaker)
 - [CleanroomMC ModularUI](https://github.com/CleanroomMC/ModularUI)

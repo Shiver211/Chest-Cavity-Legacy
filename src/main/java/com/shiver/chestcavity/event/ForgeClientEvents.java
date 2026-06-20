@@ -3,11 +3,12 @@ package com.shiver.chestcavity.event;
 import com.shiver.chestcavity.Tags;
 import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
-import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.capability.ChestCavityData;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.entity.EntityForcefulSpit;
 import com.shiver.chestcavity.registry.CCEnchantments;
 import com.shiver.chestcavity.registry.CCItems;
+import com.shiver.chestcavity.util.OrganCompatibilityUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderLlamaSpit;
 import net.minecraft.client.resources.I18n;
@@ -46,7 +47,7 @@ public final class ForgeClientEvents {
         ItemStack stack = event.getItemStack();
         addSpecialItemTooltip(event, stack);
 
-        OrganData organData = OrganData.fromRegistry(stack);
+        OrganData organData = OrganData.get(stack);
         if (organData == null) {
             organData = OrganData.fromStack(stack);
         }
@@ -90,17 +91,17 @@ public final class ForgeClientEvents {
     }
 
     private static void addCompatibilityTooltip(ItemTooltipEvent event, ItemStack stack) {
-        IChestCavity playerCavity = Minecraft.getMinecraft().player == null
+        ChestCavityData playerCavity = Minecraft.getMinecraft().player == null
                 ? null
                 : ChestCavityHelper.getOrNull(Minecraft.getMinecraft().player);
-        int compatibility = playerCavity == null ? -1 : ChestCavityHelper.getCompatibilityLevel(playerCavity, stack);
+        int compatibility = playerCavity == null ? -1 : OrganCompatibilityUtil.getCompatibilityLevel(playerCavity, stack);
 
         TextFormatting color = compatibility > 0 ? TextFormatting.GREEN : compatibility == 0 ? TextFormatting.RED : TextFormatting.YELLOW;
         if (EnchantmentHelper.getEnchantmentLevel(CCEnchantments.MALPRACTICE, stack) > 0) {
             event.getToolTip().add(color + "Unsafe to use");
-        } else if (ChestCavityHelper.hasCompatibilityTag(stack)
+        } else if (OrganCompatibilityUtil.hasCompatibilityTag(stack)
                 && EnchantmentHelper.getEnchantmentLevel(CCEnchantments.O_NEGATIVE, stack) <= 0) {
-            event.getToolTip().add(color + "Only compatible with: " + ChestCavityHelper.getCompatibilityName(stack));
+            event.getToolTip().add(color + "Only compatible with: " + OrganCompatibilityUtil.getCompatibilityName(stack));
         } else {
             event.getToolTip().add(color + "Safe to use");
         }

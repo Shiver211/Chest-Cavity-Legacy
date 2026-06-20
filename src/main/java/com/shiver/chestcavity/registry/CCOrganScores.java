@@ -1,5 +1,7 @@
 package com.shiver.chestcavity.registry;
 
+import com.shiver.chestcavity.score.ScoreRef;
+
 public final class CCOrganScores {
 
     public static final String HEALTH = "health";
@@ -17,12 +19,6 @@ public final class CCOrganScores {
     public static final String DETOXIFICATION = "detoxification";
     public static final String METABOLISM = "metabolism";
     public static final String ENDURANCE = "endurance";
-    public static final String ROT_DIGESTION = "rot_digestion";
-    public static final String ROTGUT = "rotgut";
-    public static final String CARNIVOROUS_DIGESTION = "carnivorous_digestion";
-    public static final String CARNIVOROUS_NUTRITION = "carnivorous_nutrition";
-    public static final String HERBIVOROUS_DIGESTION = "herbivorous_digestion";
-    public static final String HERBIVOROUS_NUTRITION = "herbivorous_nutrition";
     public static final String FURNACE_POWERED = "furnace_powered";
     public static final String GRAZING = "grazing";
     public static final String IRON_REPAIR = "iron_repair";
@@ -55,6 +51,54 @@ public final class CCOrganScores {
     public static final String CRYSTALSYNTHESIS = "crystalsynthesis";
     public static final String PHOTOSYNTHESIS = "photosynthesis";
     public static final String DESTRUCTIVE_COLLISIONS = "destructive_collisions";
+
+    public static final ScoreRef HEALTH_REF = ScoreRef.of(HEALTH);
+    public static final ScoreRef LUCK_REF = ScoreRef.of(LUCK);
+    public static final ScoreRef STRENGTH_REF = ScoreRef.of(STRENGTH);
+    public static final ScoreRef SPEED_REF = ScoreRef.of(SPEED);
+    public static final ScoreRef DEFENSE_REF = ScoreRef.of(DEFENSE);
+    public static final ScoreRef NERVES_REF = ScoreRef.of(NERVES);
+    public static final ScoreRef MINING_SPEED_REF = ScoreRef.of(MINING_SPEED);
+    public static final ScoreRef EASE_OF_ACCESS_REF = ScoreRef.of(EASE_OF_ACCESS);
+    public static final ScoreRef INCOMPATIBILITY_REF = ScoreRef.of(INCOMPATIBILITY);
+    public static final ScoreRef DIGESTION_REF = ScoreRef.of(DIGESTION);
+    public static final ScoreRef NUTRITION_REF = ScoreRef.of(NUTRITION);
+    public static final ScoreRef FILTRATION_REF = ScoreRef.of(FILTRATION);
+    public static final ScoreRef DETOXIFICATION_REF = ScoreRef.of(DETOXIFICATION);
+    public static final ScoreRef METABOLISM_REF = ScoreRef.of(METABOLISM);
+    public static final ScoreRef ENDURANCE_REF = ScoreRef.of(ENDURANCE);
+    public static final ScoreRef FURNACE_POWERED_REF = ScoreRef.of(FURNACE_POWERED);
+    public static final ScoreRef GRAZING_REF = ScoreRef.of(GRAZING);
+    public static final ScoreRef IRON_REPAIR_REF = ScoreRef.of(IRON_REPAIR);
+    public static final ScoreRef BREATH_REF = ScoreRef.of(BREATH);
+    public static final ScoreRef BREATH_CAPACITY_REF = ScoreRef.of(BREATH_CAPACITY);
+    public static final ScoreRef WATER_BREATH_REF = ScoreRef.of(WATER_BREATH);
+    public static final ScoreRef BUOYANT_REF = ScoreRef.of(BUOYANT);
+    public static final ScoreRef CREEPY_REF = ScoreRef.of(CREEPY);
+    public static final ScoreRef EXPLOSIVE_REF = ScoreRef.of(EXPLOSIVE);
+    public static final ScoreRef FIRE_RESISTANT_REF = ScoreRef.of(FIRE_RESISTANT);
+    public static final ScoreRef HYDROALLERGENIC_REF = ScoreRef.of(HYDROALLERGENIC);
+    public static final ScoreRef HYDROPHOBIA_REF = ScoreRef.of(HYDROPHOBIA);
+    public static final ScoreRef IMPACT_RESISTANT_REF = ScoreRef.of(IMPACT_RESISTANT);
+    public static final ScoreRef KNOCKBACK_RESISTANT_REF = ScoreRef.of(KNOCKBACK_RESISTANT);
+    public static final ScoreRef LEAPING_REF = ScoreRef.of(LEAPING);
+    public static final ScoreRef LIGHTWEIGHT_REF = ScoreRef.of(LIGHTWEIGHT);
+    public static final ScoreRef SWIM_SPEED_REF = ScoreRef.of(SWIM_SPEED);
+    public static final ScoreRef GLOWING_REF = ScoreRef.of(GLOWING);
+    public static final ScoreRef PYROMANCY_REF = ScoreRef.of(PYROMANCY);
+    public static final ScoreRef LAUNCHING_REF = ScoreRef.of(LAUNCHING);
+    public static final ScoreRef VENOMOUS_REF = ScoreRef.of(VENOMOUS);
+    public static final ScoreRef ARROW_DODGING_REF = ScoreRef.of(ARROW_DODGING);
+    public static final ScoreRef BUFF_PURGING_REF = ScoreRef.of(BUFF_PURGING);
+    public static final ScoreRef WITHERED_REF = ScoreRef.of(WITHERED);
+    public static final ScoreRef DRAGON_BOMBS_REF = ScoreRef.of(DRAGON_BOMBS);
+    public static final ScoreRef FORCEFUL_SPIT_REF = ScoreRef.of(FORCEFUL_SPIT);
+    public static final ScoreRef GHASTLY_REF = ScoreRef.of(GHASTLY);
+    public static final ScoreRef SHULKER_BULLETS_REF = ScoreRef.of(SHULKER_BULLETS);
+    public static final ScoreRef SILK_REF = ScoreRef.of(SILK);
+    public static final ScoreRef CRYSTALSYNTHESIS_REF = ScoreRef.of(CRYSTALSYNTHESIS);
+    public static final ScoreRef PHOTOSYNTHESIS_REF = ScoreRef.of(PHOTOSYNTHESIS);
+    public static final ScoreRef DESTRUCTIVE_COLLISIONS_REF = ScoreRef.of(DESTRUCTIVE_COLLISIONS);
 
     private CCOrganScores() {
     }

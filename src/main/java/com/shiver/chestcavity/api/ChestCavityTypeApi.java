@@ -1,10 +1,13 @@
 package com.shiver.chestcavity.api;
 
 import com.shiver.chestcavity.chest.types.ChestCavityType;
-import com.shiver.chestcavity.chest.types.GeneratedChestCavityType;
+import com.shiver.chestcavity.content.BodyTypeDef;
+import com.shiver.chestcavity.content.ContentRegistry;
+import com.shiver.chestcavity.content.ExceptionalOrganDef;
 import com.shiver.chestcavity.data.DataLoaders;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,87 +18,65 @@ public final class ChestCavityTypeApi {
     }
 
     public void register(String typeId) {
-        final String targetTypeId = typeId;
-        DataLoaders.applyRuntimeOverride(() -> registerNow(targetTypeId));
+        publish(type(typeId));
     }
 
     public void remove(String typeId) {
-        final String targetTypeId = typeId;
-        DataLoaders.applyRuntimeOverride(() -> DataLoaders.unregisterType(targetTypeId));
+        if (!DataLoaders.FALLBACK_ID.equals(typeId)) {
+            ContentRegistry.removeScriptBodyType(typeId);
+        }
     }
 
     public void addBaseScore(String typeId, String scoreId, float value) {
-        final String targetTypeId = typeId;
-        final String targetScoreId = scoreId;
-        final float targetValue = value;
-        DataLoaders.applyRuntimeOverride(() -> addBaseScoreNow(targetTypeId, targetScoreId, targetValue));
+        mutate(typeId, type -> type.addBaseOrganScore(scoreId, value));
     }
 
     public void removeBaseScore(String typeId, String scoreId) {
-        final String targetTypeId = typeId;
-        final String targetScoreId = scoreId;
-        DataLoaders.applyRuntimeOverride(() -> removeBaseScoreNow(targetTypeId, targetScoreId));
+        mutateExisting(typeId, type -> type.removeBaseOrganScore(scoreId));
     }
 
     public void setSlot(String typeId, int index, ItemStack stack) {
-        final String targetTypeId = typeId;
-        final int targetIndex = index;
-        final ItemStack targetStack = stack == null ? ItemStack.EMPTY : stack.copy();
-        DataLoaders.applyRuntimeOverride(() -> setSlotNow(targetTypeId, targetIndex, targetStack));
+        mutate(typeId, type -> type.setSlot(index, stack));
     }
 
     public void clearSlots(String typeId) {
-        final String targetTypeId = typeId;
-        DataLoaders.applyRuntimeOverride(() -> clearSlotsNow(targetTypeId));
+        mutateExisting(typeId, BodyTypeDef::clearSlots);
     }
 
     public void addForbiddenSlot(String typeId, int slot) {
-        final String targetTypeId = typeId;
-        final int targetSlot = slot;
-        DataLoaders.applyRuntimeOverride(() -> addForbiddenSlotNow(targetTypeId, targetSlot));
+        mutate(typeId, type -> type.addForbiddenSlot(slot));
     }
 
     public void removeForbiddenSlot(String typeId, int slot) {
-        final String targetTypeId = typeId;
-        final int targetSlot = slot;
-        DataLoaders.applyRuntimeOverride(() -> removeForbiddenSlotNow(targetTypeId, targetSlot));
+        mutateExisting(typeId, type -> type.removeForbiddenSlot(slot));
     }
 
     public void setDropRateMultiplier(String typeId, float value) {
-        final String targetTypeId = typeId;
-        final float targetValue = value;
-        DataLoaders.applyRuntimeOverride(() -> setDropRateMultiplierNow(targetTypeId, targetValue));
+        mutate(typeId, type -> type.setDropRateMultiplier(value));
     }
 
     public void setBossChestCavity(String typeId, boolean value) {
-        final String targetTypeId = typeId;
-        final boolean targetValue = value;
-        DataLoaders.applyRuntimeOverride(() -> setBossChestCavityNow(targetTypeId, targetValue));
+        mutate(typeId, type -> type.setBossChestCavity(value));
     }
 
     public void setPlayerChestCavity(String typeId, boolean value) {
-        final String targetTypeId = typeId;
-        final boolean targetValue = value;
-        DataLoaders.applyRuntimeOverride(() -> setPlayerChestCavityNow(targetTypeId, targetValue));
+        mutate(typeId, type -> type.setPlayerChestCavity(value));
+    }
+
+    public void setLayout(String typeId, ResourceLocation layoutId) {
+        mutate(typeId, type -> type.setLayoutId(layoutId));
     }
 
     public void addExceptionalOrgan(String typeId, Item item, Map<String, Float> scores) {
-        final String targetTypeId = typeId;
-        final Item targetItem = item;
-        final Map<String, Float> targetScores = copyScores(scores);
-        DataLoaders.applyRuntimeOverride(() -> addExceptionalOrganNow(targetTypeId, targetItem, targetScores));
+        mutate(typeId, type -> type.addExceptionalOrgan(new ExceptionalOrganDef(item == null ? null : item.getRegistryName(), null, copyScores(scores))));
     }
 
     public void addExceptionalOrganByOre(String typeId, String oreName, Map<String, Float> scores) {
-        final String targetTypeId = typeId;
-        final String targetOreName = oreName;
-        final Map<String, Float> targetScores = copyScores(scores);
-        DataLoaders.applyRuntimeOverride(() -> addExceptionalOrganByOreNow(targetTypeId, targetOreName, targetScores));
+        mutate(typeId, type -> type.addExceptionalOrgan(new ExceptionalOrganDef(null, oreName, copyScores(scores))));
     }
 
     public void clearExceptionalOrgans(String typeId) {
-        final String targetTypeId = typeId;
-        DataLoaders.applyRuntimeOverride(() -> clearExceptionalOrgansNow(targetTypeId));
+        mutateExisting(typeId, BodyTypeDef::clearExceptionalOrgans);
     }
 
     public boolean isBossChestCavity(String typeId) {
@@ -114,112 +95,54 @@ public final class ChestCavityTypeApi {
         return DataLoaders.getType(typeId);
     }
 
-    private void registerNow(String typeId) {
-        if (typeId != null) {
-            DataLoaders.registerType(typeId, new GeneratedChestCavityType());
-        }
+    public ResourceLocation getLayout(String typeId) {
+        return DataLoaders.getType(typeId).getLayoutId();
     }
 
-    private void addBaseScoreNow(String typeId, String scoreId, float value) {
-        GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
+    private BodyTypeDef type(String typeId) {
+        BodyTypeDef type = existingType(typeId);
+        return type == null ? new BodyTypeDef(typeId) : type;
+    }
+
+    private BodyTypeDef existingType(String typeId) {
+        return typeId == null ? null : ContentRegistry.getManifest().getBodyType(typeId);
+    }
+
+    private void publish(BodyTypeDef type) {
         if (type != null) {
-            type.addBaseOrganScore(scoreId, value);
+            ContentRegistry.publishScriptBodyType(type);
         }
     }
 
-    private void removeBaseScoreNow(String typeId, String scoreId) {
-        GeneratedChestCavityType type = getGeneratedType(typeId);
-        if (type != null) {
-            type.removeBaseOrganScore(scoreId);
+    private void mutate(String typeId, TypeMutation mutation) {
+        if (typeId == null || mutation == null) {
+            return;
         }
+        ContentRegistry.applyScriptOperation(manifest -> {
+            BodyTypeDef type = manifest.getBodyType(typeId);
+            if (type == null) {
+                type = new BodyTypeDef(typeId);
+            }
+            mutation.apply(type);
+            manifest.registerBodyType(type);
+        });
     }
 
-    private void setSlotNow(String typeId, int index, ItemStack stack) {
-        GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
-        if (type != null) {
-            type.setSlot(index, stack);
+    private void mutateExisting(String typeId, TypeMutation mutation) {
+        if (typeId == null || mutation == null) {
+            return;
         }
+        ContentRegistry.applyScriptOperation(manifest -> {
+            BodyTypeDef type = manifest.getBodyType(typeId);
+            if (type != null) {
+                mutation.apply(type);
+                manifest.registerBodyType(type);
+            }
+        });
     }
 
-    private void clearSlotsNow(String typeId) {
-        GeneratedChestCavityType type = getGeneratedType(typeId);
-        if (type != null) {
-            type.clearSlots();
-        }
-    }
-
-    private void addForbiddenSlotNow(String typeId, int slot) {
-        GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
-        if (type != null) {
-            type.addForbiddenSlot(slot);
-        }
-    }
-
-    private void removeForbiddenSlotNow(String typeId, int slot) {
-        GeneratedChestCavityType type = getGeneratedType(typeId);
-        if (type != null) {
-            type.removeForbiddenSlot(slot);
-        }
-    }
-
-    private void setDropRateMultiplierNow(String typeId, float value) {
-        GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
-        if (type != null) {
-            type.setDropRateMultiplier(value);
-        }
-    }
-
-    private void setBossChestCavityNow(String typeId, boolean value) {
-        GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
-        if (type != null) {
-            type.setBossChestCavity(value);
-        }
-    }
-
-    private void setPlayerChestCavityNow(String typeId, boolean value) {
-        GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
-        if (type != null) {
-            type.setPlayerChestCavity(value);
-        }
-    }
-
-    private void addExceptionalOrganNow(String typeId, Item item, Map<String, Float> scores) {
-        GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
-        if (type != null) {
-            type.addExceptionalOrgan(item, null, copyScores(scores));
-        }
-    }
-
-    private void addExceptionalOrganByOreNow(String typeId, String oreName, Map<String, Float> scores) {
-        GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
-        if (type != null) {
-            type.addExceptionalOrgan(null, oreName, copyScores(scores));
-        }
-    }
-
-    private void clearExceptionalOrgansNow(String typeId) {
-        GeneratedChestCavityType type = getGeneratedType(typeId);
-        if (type != null) {
-            type.clearExceptionalOrgans();
-        }
-    }
-
-    private GeneratedChestCavityType getOrCreateGeneratedType(String typeId) {
-        if (typeId == null) {
-            return null;
-        }
-        ChestCavityType existing = DataLoaders.getTypes().get(typeId);
-        if (existing instanceof GeneratedChestCavityType) {
-            return (GeneratedChestCavityType) existing;
-        }
-        GeneratedChestCavityType type = new GeneratedChestCavityType();
-        DataLoaders.registerType(typeId, type);
-        return type;
-    }
-
-    private GeneratedChestCavityType getGeneratedType(String typeId) {
-        ChestCavityType type = DataLoaders.getTypes().get(typeId);
-        return type instanceof GeneratedChestCavityType ? (GeneratedChestCavityType) type : null;
+    private interface TypeMutation {
+        void apply(BodyTypeDef type);
     }
 
     private Map<String, Float> copyScores(Map<String, Float> scores) {

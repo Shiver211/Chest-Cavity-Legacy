@@ -1,10 +1,10 @@
 package com.shiver.chestcavity.network;
 
 import com.shiver.chestcavity.ChestCavityLegacy;
-import com.shiver.chestcavity.ability.ActiveOrganAbilities;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
-import com.shiver.chestcavity.capability.IChestCavity;
-import com.shiver.chestcavity.chest.organs.OrganManager;
+import com.shiver.chestcavity.capability.ChestCavityData;
+import com.shiver.chestcavity.content.ContentSync;
+import com.shiver.chestcavity.ui.BodyUiSnapshot;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -36,12 +36,13 @@ public final class ChestCavityNetwork {
 
     public static void sendChestCavitySync(EntityLivingBase entity) {
         register();
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(entity);
         if (chestCavity == null) {
             return;
         }
+        chestCavity.refreshRuntimeIfDirty();
 
-        MessageChestCavitySync message = new MessageChestCavitySync(entity.getEntityId(), chestCavity.serializeNBT());
+        MessageChestCavitySync message = new MessageChestCavitySync(entity.getEntityId(), BodyUiSnapshot.create(chestCavity));
         CHANNEL.sendToAllTracking(message, entity);
         if (entity instanceof EntityPlayerMP) {
             CHANNEL.sendTo(message, (EntityPlayerMP) entity);
@@ -50,9 +51,10 @@ public final class ChestCavityNetwork {
 
     public static void sendChestCavitySyncTo(EntityLivingBase entity, EntityPlayerMP player) {
         register();
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
+        ChestCavityData chestCavity = ChestCavityHelper.getOrNull(entity);
         if (chestCavity != null) {
-            CHANNEL.sendTo(new MessageChestCavitySync(entity.getEntityId(), chestCavity.serializeNBT()), player);
+            chestCavity.refreshRuntimeIfDirty();
+            CHANNEL.sendTo(new MessageChestCavitySync(entity.getEntityId(), BodyUiSnapshot.create(chestCavity)), player);
         }
     }
 
@@ -62,7 +64,7 @@ public final class ChestCavityNetwork {
     }
 
     public static void sendOrganDataSync(EntityPlayerMP player) {
-        sendOrganDataSync(player, OrganManager.writeRegistryToNbt());
+        sendOrganDataSync(player, ContentSync.writeOrgansToNbt());
     }
 
     public static void sendHotkeyActivation(String abilityId) {
@@ -80,8 +82,8 @@ public final class ChestCavityNetwork {
 
     static void handleHotkeyActivation(EntityPlayerMP player, String abilityId) {
         ChestCavityHelper.get(player).ifPresent(chestCavity -> {
-            ChestCavityHelper.recalculateOrganScores(chestCavity);
-            ActiveOrganAbilities.activate(player, chestCavity, abilityId);
+            chestCavity.refreshRuntimeIfDirty();
+            ChestCavityHelper.activateScore(player, chestCavity, abilityId);
         });
     }
 

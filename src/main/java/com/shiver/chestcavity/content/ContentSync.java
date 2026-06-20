@@ -1,57 +1,30 @@
-package com.shiver.chestcavity.chest.organs;
+package com.shiver.chestcavity.content;
 
-import com.google.gson.JsonObject;
 import com.shiver.chestcavity.ChestCavityLegacy;
-import net.minecraft.item.ItemStack;
+import com.shiver.chestcavity.chest.organs.OrganData;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-public final class OrganManager {
+public final class ContentSync {
 
-    private static final OrganSerializer SERIALIZER = new OrganSerializer();
     private static final int SYNC_VERSION = 1;
     private static final String VERSION_TAG = "Version";
     private static final String ORGANS_TAG = "Organs";
     private static final String ITEM_ID_TAG = "ItemId";
     private static final String DATA_TAG = "Data";
 
-    private OrganManager() {
+    private ContentSync() {
     }
 
-    public static void clear() {
-        OrganData.clearRegistry();
-    }
-
-    public static void load(ResourceLocation id, JsonObject json) {
-        OrganSerializer.OrganEntry entry = SERIALIZER.read(id, json);
-        if (entry == null) {
-            return;
-        }
-        if (ForgeRegistries.ITEMS.getValue(entry.itemId) == null) {
-            ChestCavityLegacy.LOGGER.info("Skipping organ {} because item {} is not registered in 1.12.2.", id, entry.itemId);
-            return;
-        }
-        OrganData.register(entry.itemId, entry.data);
-    }
-
-    public static OrganData get(ItemStack stack) {
-        return OrganData.fromRegistry(stack);
-    }
-
-    public static boolean isTrueOrgan(ItemStack stack) {
-        OrganData data = get(stack);
-        return data != null && !data.isPseudoOrgan();
-    }
-
-    public static NBTTagCompound writeRegistryToNbt() {
+    public static NBTTagCompound writeOrgansToNbt() {
         NBTTagCompound root = new NBTTagCompound();
         NBTTagList organs = new NBTTagList();
-        for (Map.Entry<ResourceLocation, OrganData> entry : OrganData.getRegistry().entrySet()) {
+        for (Map.Entry<ResourceLocation, OrganData> entry : ContentRegistry.getCompiled().getOrgans().entrySet()) {
             NBTTagCompound organTag = new NBTTagCompound();
             organTag.setString(ITEM_ID_TAG, entry.getKey().toString());
             organTag.setTag(DATA_TAG, entry.getValue().toNbt());
@@ -62,12 +35,12 @@ public final class OrganManager {
         return root;
     }
 
-    public static void readRegistryFromNbt(NBTTagCompound root) {
-        clear();
+    public static void readOrgansFromNbt(NBTTagCompound root) {
         if (root == null || !root.hasKey(ORGANS_TAG, Constants.NBT.TAG_LIST)) {
             return;
         }
 
+        Map<ResourceLocation, OrganDef> syncedOrgans = new LinkedHashMap<>();
         NBTTagList organs = root.getTagList(ORGANS_TAG, Constants.NBT.TAG_COMPOUND);
         for (int i = 0; i < organs.tagCount(); i++) {
             NBTTagCompound organTag = organs.getCompoundTagAt(i);
@@ -78,14 +51,11 @@ public final class OrganManager {
 
             try {
                 ResourceLocation itemId = new ResourceLocation(organTag.getString(ITEM_ID_TAG));
-                if (ForgeRegistries.ITEMS.getValue(itemId) == null) {
-                    ChestCavityLegacy.LOGGER.info("Skipping synced organ because item {} is not registered in 1.12.2.", itemId);
-                    continue;
-                }
-                OrganData.register(itemId, OrganData.fromNbt(organTag.getCompoundTag(DATA_TAG)));
+                syncedOrgans.put(itemId, new OrganDef(itemId, OrganData.fromNbt(organTag.getCompoundTag(DATA_TAG))));
             } catch (Exception e) {
                 ChestCavityLegacy.LOGGER.warn("Unable to read synced organ entry {}.", i, e);
             }
         }
+        ContentRegistry.publishSyncedOrgans(syncedOrgans);
     }
 }

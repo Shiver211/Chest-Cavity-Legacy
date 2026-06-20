@@ -1,7 +1,9 @@
 package com.shiver.chestcavity.api;
 
-import com.shiver.chestcavity.ability.ActiveOrganAbilities;
-import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.ChestCavityLegacy;
+import com.shiver.chestcavity.ability.ActiveOrganAbility;
+import com.shiver.chestcavity.capability.ChestCavityData;
+import com.shiver.chestcavity.crt.CrTChestCavityEvents;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -14,6 +16,7 @@ public final class AbilityApi {
     private static final String COOLDOWNS_TAG = "ChestCavityAbilityCooldowns";
 
     private final Map<String, AbilityWheelEntry> wheelEntries = new LinkedHashMap<>();
+    private final Map<String, ActiveOrganAbility> activeAbilities = new LinkedHashMap<>();
 
     AbilityApi() {
     }
@@ -29,9 +32,51 @@ public final class AbilityApi {
     public void registerAbility(String scoreId, String displayName, int cooldownTicks, ActiveOrganAbilityHandler handler) {
         if (scoreId != null && handler != null) {
             ChestCavityApis.SCORES.addScore(scoreId, displayName);
+            registerWheelEntry(scoreId, displayName, cooldownTicks, true);
             int cooldown = Math.max(0, cooldownTicks);
-            wheelEntries.put(scoreId, new AbilityWheelEntry(scoreId, cooldown));
-            ActiveOrganAbilities.register(scoreId, (player, chestCavity) -> activateWithCooldown(player, chestCavity, scoreId, cooldown, handler));
+            registerActiveAbility(scoreId, (player, chestCavity) -> activateWithCooldown(player, chestCavity, scoreId, cooldown, handler));
+        }
+    }
+
+    public void registerActiveAbility(String scoreId, ActiveOrganAbility ability) {
+        if (scoreId != null && ability != null) {
+            activeAbilities.put(scoreId, ability);
+        }
+    }
+
+    public boolean hasActiveAbility(String scoreId) {
+        return activeAbilities.containsKey(scoreId);
+    }
+
+    public boolean activate(EntityPlayerMP player, ChestCavityData chestCavity, String scoreId) {
+        ActiveOrganAbility ability = activeAbilities.get(scoreId);
+        if (ability == null) {
+            ChestCavityLegacy.LOGGER.debug("Ignoring unknown active organ ability {}.", scoreId);
+            return false;
+        }
+        if (chestCavity.getOrganScore(scoreId) <= 0.0F) {
+            ChestCavityLegacy.LOGGER.debug("Ignoring inactive organ ability {} for {}.", scoreId, player.getName());
+            return false;
+        }
+        boolean activated = ability.activate(player, chestCavity);
+        if (activated) {
+            CrTChestCavityEvents.publishAbilityActivated(player, scoreId, chestCavity.getOrganScore(scoreId));
+        }
+        return activated;
+    }
+
+    public void registerWheelEntry(String scoreId, String displayName, int cooldownTicks) {
+        registerWheelEntry(scoreId, displayName, cooldownTicks, true);
+    }
+
+    public void registerPassiveWheelEntry(String scoreId, String displayName, int cooldownTicks) {
+        registerWheelEntry(scoreId, displayName, cooldownTicks, false);
+    }
+
+    public void registerWheelEntry(String scoreId, String displayName, int cooldownTicks, boolean active) {
+        if (scoreId != null) {
+            ChestCavityApis.SCORES.addScore(scoreId, displayName);
+            wheelEntries.put(scoreId, new AbilityWheelEntry(scoreId, Math.max(0, cooldownTicks), active));
         }
     }
 
@@ -39,7 +84,7 @@ public final class AbilityApi {
         return Collections.unmodifiableMap(wheelEntries);
     }
 
-    private boolean activateWithCooldown(EntityPlayerMP player, IChestCavity chestCavity, String scoreId, int cooldownTicks, ActiveOrganAbilityHandler handler) {
+    private boolean activateWithCooldown(EntityPlayerMP player, ChestCavityData chestCavity, String scoreId, int cooldownTicks, ActiveOrganAbilityHandler handler) {
         if (player == null || isOnCooldown(player, scoreId)) {
             return false;
         }
@@ -80,10 +125,12 @@ public final class AbilityApi {
     public static final class AbilityWheelEntry {
         private final String scoreId;
         private final int cooldownTicks;
+        private final boolean active;
 
-        private AbilityWheelEntry(String scoreId, int cooldownTicks) {
+        private AbilityWheelEntry(String scoreId, int cooldownTicks, boolean active) {
             this.scoreId = scoreId;
             this.cooldownTicks = cooldownTicks;
+            this.active = active;
         }
 
         public String getScoreId() {
@@ -92,6 +139,10 @@ public final class AbilityApi {
 
         public int getCooldownTicks() {
             return cooldownTicks;
+        }
+
+        public boolean isActive() {
+            return active;
         }
     }
 }

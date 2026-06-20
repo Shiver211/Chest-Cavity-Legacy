@@ -6,8 +6,8 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 
 public final class ChestCavityCapability {
 
-    @CapabilityInject(IChestCavity.class)
-    public static Capability<IChestCavity> CAPABILITY = null;
+    @CapabilityInject(ChestCavityData.class)
+    public static Capability<ChestCavityData> CAPABILITY = null;
 
     private static boolean registered;
 
@@ -16,7 +16,7 @@ public final class ChestCavityCapability {
 
     public static synchronized boolean ensureRegistered() {
         if (!registered) {
-            CapabilityManager.INSTANCE.register(IChestCavity.class, new ChestCavityStorage(), ChestCavityData::new);
+            CapabilityManager.INSTANCE.register(ChestCavityData.class, new ChestCavityStorage(), ChestCavityData::new);
             registered = true;
         }
         return true;

@@ -1,107 +1,92 @@
-# Chest Cavity Legacy - CraftTweaker API 参考
+# Chest Cavity Legacy - CraftTweaker API
 
-## 概述
+本文档描述当前重构后可用的 CraftTweaker API。旧文档中的 score 覆盖入口已经移除；CrT 现在主要用于声明内容、绑定实体、定义 layout/slotRules，以及通过胸腔对象提交实体 mutation。
 
-本文档是 Chest Cavity Legacy 模组的 CraftTweaker API 参考手册。
+所有接受 `float[string]` 的 API 都建议显式写 `as float[string]`，避免 ZenScript 将小数推断为 double。
 
----
+## 内容注册行为
 
-## 1. 器官数据管理 (`mods.chestcavity.OrganData`)
+重构后 CrT 不再直接写旧 registry。脚本注册 organ/type/layout/entity assignment 时，会写入内容操作流，并发布到 `ContentManifest -> CompiledContent`。
 
-### 注册类
+这带来几个变化：
+
+- JSON 和 CrT 共用同一条内容编译路径。
+- reload 后内容顺序更稳定。
+- runtime 查询只读 compiled snapshot。
+- CrT 不再需要旧的 runtime override replay。
+
+## 1. OrganData
+
+ZenClass: `mods.chestcavity.OrganData`
+
+### 方法
 
 | API | 说明 |
-|-----|------|
-| `OrganData.register(item, scores)` | 注册新器官 |
-| `OrganData.registerPseudo(item, scores)` | 注册伪器官(不会有归属，也不会发生排异) |
-
-### 修改类
-
-| API | 说明 |
-|-----|------|
-| `OrganData.addScore(item, scoreId, value)` | 添加器官分数(Ability属于特殊Score,也用此方法添加) |
-| `OrganData.removeScore(item, scoreId)` | 移除器官分数 |
+|---|---|
+| `OrganData.register(item, scores)` | 注册普通器官 |
+| `OrganData.registerPseudo(item, scores)` | 注册伪器官，不参与归属/排斥 |
+| `OrganData.addScore(item, scoreId, value)` | 为器官增加或覆盖一个 score |
+| `OrganData.removeScore(item, scoreId)` | 移除器官 score |
 | `OrganData.remove(item)` | 移除器官定义 |
-| `OrganData.setPseudo(item, boolen)` | 设置伪器官标志 |
+| `OrganData.setPseudo(item, value)` | 设置是否为伪器官 |
+| `OrganData.get(item)` | 获取 `OrganDataView`，不存在则返回 null |
 
-### 查询类
+### OrganDataView
 
-| API | 返回类型 | 说明 |
-|-----|----------|------|
-| `OrganData.get(item)` | OrganDataView | 获取器官数据视图 |
-| `data.isPseudoOrgan` | bool | 是否为伪器官 |
-| `data.organScores` | float[string] | 器官分数映射 |
+ZenClass: `mods.chestcavity.OrganDataView`
+
+| Getter | 类型 | 说明 |
+|---|---|---|
+| `isPseudoOrgan` | bool | 是否为伪器官 |
+| `organScores` | float[string] | 器官 score 视图 |
 
 ### 示例
-
-> **注意**：`addScore(item, scoreId, value)` 中 value 为放入一整组物品时增加的分数。
-> 传入 `float[string]` 类型的 Map 时，**必须**使用 `as float[string]` 显式类型转换。
-> ZenScript 的小数字面量默认为 `double` 类型，不加转换可能导致类型不匹配。
-> 此规则适用于所有接受 `float[string]` 参数的 API（包括 `ChestCavityType` 的特殊器官注册等）。
 
 ```zenscript
 import mods.chestcavity.OrganData;
 
-// 注册新器官（注意 as float[string] 转换）
 OrganData.register(<minecraft:apple>, {
-    "health": 3.0,
-    "strength": 1.5,
-    "regeneration": 0.5
+    "health": 2.0,
+    "nutrition": 1.0
 } as float[string]);
 
-// 注册伪器官
 OrganData.registerPseudo(<minecraft:gold_nugget>, {
     "ease_of_access": 4.0
 } as float[string]);
 
-// 修改现有器官
-OrganData.addScore(<chestcavity:heart>, "health", 0.5);
-OrganData.removeScore(<chestcavity:heart>, "luck");
+OrganData.addScore(<minecraft:apple>, "luck", 0.5);
 
-// 查询器官数据
-var organ = OrganData.get(<minecraft:apple>);
-if (!isNull(organ)) {
-    print("Is pseudo: " ~ organ.isPseudoOrgan);
-    for scoreId, scoreValue in organ.organScores {
-        print(scoreId ~ ": " ~ scoreValue);
-    }
+var data = OrganData.get(<minecraft:apple>);
+if (!isNull(data)) {
+    print("pseudo = " ~ data.isPseudoOrgan);
 }
 ```
 
----
+## 2. ChestCavityType
 
-## 2. 胸腔类型管理 (`mods.chestcavity.ChestCavityType`)
+ZenClass: `mods.chestcavity.ChestCavityType`
 
-### 注册类
-
-| API | 说明 |
-|-----|------|
-| `ChestCavityType.register(typeId)` | 注册新的空胸腔类型 |
-
-### 修改类
+### 方法
 
 | API | 说明 |
-|-----|------|
-| `ChestCavityType.addBaseScore(typeId, scoreId, value)` | 添加基础分数 |
-| `ChestCavityType.removeBaseScore(typeId, scoreId)` | 移除基础分数 |
-| `ChestCavityType.setSlot(typeId, index, stack)` | 设置槽位物品 |
-| `ChestCavityType.clearSlots(typeId)` | 清空所有槽位 |
-| `ChestCavityType.addForbiddenSlot(typeId, slot)` | 添加禁止槽位 |
-| `ChestCavityType.removeForbiddenSlot(typeId, slot)` | 移除禁止槽位 |
-| `ChestCavityType.setDropRateMultiplier(typeId, value)` | 设置掉落倍率 |
-| `ChestCavityType.setBossChestCavity(typeId, value)` | 设置 Boss 标志 |
-| `ChestCavityType.setPlayerChestCavity(typeId, value)` | 设置玩家标志 |
-| `ChestCavityType.addExceptionalOrgan(typeId, item, scores)` | 添加特殊器官(按物品) |
-| `ChestCavityType.addExceptionalOrganByOre(typeId, oreName, scores)` | 添加特殊器官(按矿辞) |
-| `ChestCavityType.clearExceptionalOrgans(typeId)` | 清空特殊器官 |
-
-### 查询类
-
-| API | 返回类型 | 说明 |
-|-----|----------|------|
-| `ChestCavityType.isBossChestCavity(typeId)` | bool | 是否为 Boss 类型 |
-| `ChestCavityType.isPlayerChestCavity(typeId)` | bool | 是否为玩家类型 |
-| `ChestCavityType.getDropRateMultiplier(typeId)` | float | 获取掉落倍率 |
+|---|---|
+| `ChestCavityType.register(typeId)` | 注册或取得一个 body type 声明 |
+| `ChestCavityType.addBaseScore(typeId, scoreId, value)` | 增加基础 score |
+| `ChestCavityType.removeBaseScore(typeId, scoreId)` | 移除基础 score |
+| `ChestCavityType.setSlot(typeId, index, stack)` | 设置默认胸腔槽位 |
+| `ChestCavityType.clearSlots(typeId)` | 清空默认胸腔 |
+| `ChestCavityType.addForbiddenSlot(typeId, slot)` | 添加 type 级禁用槽位 |
+| `ChestCavityType.removeForbiddenSlot(typeId, slot)` | 移除 type 级禁用槽位 |
+| `ChestCavityType.setDropRateMultiplier(typeId, value)` | 设置器官掉落倍率 |
+| `ChestCavityType.setBossChestCavity(typeId, value)` | 设置 Boss 胸腔标记 |
+| `ChestCavityType.setPlayerChestCavity(typeId, value)` | 设置玩家胸腔标记 |
+| `ChestCavityType.setLayout(typeId, layoutId)` | 绑定 layout |
+| `ChestCavityType.addExceptionalOrgan(typeId, item, scores)` | 为指定物品添加特殊器官 score |
+| `ChestCavityType.addExceptionalOrganByOre(typeId, oreName, scores)` | 为矿辞添加特殊器官 score |
+| `ChestCavityType.clearExceptionalOrgans(typeId)` | 清空特殊器官规则 |
+| `ChestCavityType.isBossChestCavity(typeId)` | 查询 Boss 标记 |
+| `ChestCavityType.isPlayerChestCavity(typeId)` | 查询玩家标记 |
+| `ChestCavityType.getDropRateMultiplier(typeId)` | 查询掉落倍率 |
 
 ### 示例
 
@@ -109,306 +94,339 @@ if (!isNull(organ)) {
 import mods.chestcavity.ChestCavityType;
 import mods.chestcavity.EntityAssignment;
 
-// ===注册新的胸腔类型===
 ChestCavityType.register("demon");
-
-// 配置新类型
 ChestCavityType.setBossChestCavity("demon", true);
 ChestCavityType.setDropRateMultiplier("demon", 3.0);
+ChestCavityType.setLayout("demon", "chestcavity:demon_grid");
+
 ChestCavityType.addBaseScore("demon", "health", 20.0);
 ChestCavityType.addBaseScore("demon", "fire_resistant", 1.0);
 
-// 设置默认器官布局
-ChestCavityType.setSlot("demon", 0, <chestcavity:dragon_heart> * 1);
-ChestCavityType.setSlot("demon", 1, <chestcavity:dragon_lung> * 1);
-// ... 更多槽位
+ChestCavityType.setSlot("demon", 0, <chestcavity:dragon_heart>);
+ChestCavityType.setSlot("demon", 1, <chestcavity:dragon_lung>);
 
-// ===修改现有类型===
-ChestCavityType.addBaseScore("human", "health", 5.0);
-ChestCavityType.removeBaseScore("human", "luck");
+ChestCavityType.addExceptionalOrgan("demon", <minecraft:nether_star>, {
+    "health": 10.0,
+    "regeneration": 2.0
+} as float[string]);
 
-// 查询类型属性
-var isBoss = ChestCavityType.isBossChestCavity("demon");
-var dropRate = ChestCavityType.getDropRateMultiplier("demon");
+EntityAssignment.register("minecraft:wither_skeleton", "demon");
 ```
 
----
+## 3. ChestLayout
 
-## 3. 实体分配管理 (`mods.chestcavity.EntityAssignment`)
+ZenClass: `mods.chestcavity.ChestLayout`
 
-### 修改类
+Layout 控制 ModularUI 尺寸、槽位坐标、slot 数量和 per-slot rule。type 通过 `ChestCavityType.setLayout(typeId, layoutId)` 绑定 layout。
+
+### 方法
 
 | API | 说明 |
-|-----|------|
-| `EntityAssignment.register(entityId, typeId)` | 为实体注册胸腔类型 |
-| `EntityAssignment.unregister(entityId)` | 移除实体的胸腔分配 |
+|---|---|
+| `ChestLayout.registerGrid(layoutId, slotCount, slotsPerRow, panelWidth, panelHeight, titleX, titleY, firstSlotX, firstSlotY, slotSpacingX, slotSpacingY)` | 注册网格 layout |
+| `ChestLayout.registerGrid(..., migrationStrategy)` | 注册网格 layout，并指定迁移策略 |
+| `ChestLayout.setSlotRule(layoutId, slot, forbidden, allowedItems, allowedScores, minStackSize, maxStackSize)` | 设置槽位规则 |
 
-### 查询类
+### migrationStrategy
 
-| API | 返回类型 | 说明 |
-|-----|----------|------|
-| `EntityAssignment.getAssignedType(entityId)` | string | 获取实体的胸腔类型 |
+- `KEEP_BY_INDEX`
+- `DROP_OVERFLOW`
+- `MOVE_TO_PLAYER`
+- `CLEAR`
+- `SCRIPTED_MIGRATION` 当前降级为 keep-by-index
+
+### Slot Rule
+
+`allowedItems` 是 string 数组，元素为物品 ID。  
+`allowedScores` 是 string 数组，元素为 score ID。
+
+如果 `allowedItems` 非空，槽位只允许这些物品。  
+如果 `allowedScores` 非空，槽位只允许带有任意指定 score 的器官。  
+`forbidden = true` 会禁用该槽位。
 
 ### 示例
+
+```zenscript
+import mods.chestcavity.ChestLayout;
+import mods.chestcavity.ChestCavityType;
+
+ChestLayout.registerGrid(
+    "chestcavity:demon_grid",
+    36, 12,
+    230, 168,
+    8, 6,
+    8, 18,
+    18, 18,
+    "DROP_OVERFLOW"
+);
+
+ChestLayout.setSlotRule(
+    "chestcavity:demon_grid",
+    0,
+    false,
+    [] as string[],
+    ["health"] as string[],
+    1,
+    1
+);
+
+ChestLayout.setSlotRule(
+    "chestcavity:demon_grid",
+    35,
+    true,
+    [] as string[],
+    [] as string[],
+    0,
+    0
+);
+
+ChestCavityType.setLayout("demon", "chestcavity:demon_grid");
+```
+
+## 4. EntityAssignment
+
+ZenClass: `mods.chestcavity.EntityAssignment`
+
+| API | 说明 |
+|---|---|
+| `EntityAssignment.register(entityId, typeId)` | 为实体绑定 body type |
+| `EntityAssignment.unregister(entityId)` | 移除实体绑定 |
+| `EntityAssignment.getAssignedType(entityId)` | 查询实体绑定 |
 
 ```zenscript
 import mods.chestcavity.EntityAssignment;
 
-// 为其他 mod 的生物添加胸腔
 EntityAssignment.register("twilightforest:wild_boar", "carnivore");
-EntityAssignment.register("twilightforest:bighorn_sheep", "herbivore");
-
-// 移除实体的胸腔分配
 EntityAssignment.unregister("minecraft:zombie");
 
-// 查询实体的胸腔类型
-var typeId = EntityAssignment.getAssignedType("minecraft:zombie");
-print("Zombie type: " ~ typeId);
+var typeId = EntityAssignment.getAssignedType("minecraft:villager");
 ```
 
----
+## 5. DropManager
 
-## 4. 掉落管理 (`mods.chestcavity.DropManager`)
+ZenClass: `mods.chestcavity.DropManager`
 
-### 修改类
+注意：DropManager 仍是独立掉落 API，尚未进入 `CompiledContent`。
 
 | API | 说明 |
-|-----|------|
-| `DropManager.addOrganDrop(entityId, stack, weight)` | 添加掉落条目 |
-| `DropManager.setDropProbability(entityId, value)` | 设置掉落概率 |
-| `DropManager.removeOrganDrop(entityId, stack)` | 移除掉落条目 |
-| `DropManager.removeAllOrganDrops(entityId)` | 移除所有自定义掉落 |
-
-### 示例
+|---|---|
+| `DropManager.addOrganDrop(entityId, stack, weight)` | 添加额外掉落条目 |
+| `DropManager.setDropProbability(entityId, value)` | 设置额外掉落概率 |
+| `DropManager.removeOrganDrop(entityId, stack)` | 移除指定掉落 |
+| `DropManager.removeAllOrganDrops(entityId)` | 清空实体额外掉落 |
 
 ```zenscript
 import mods.chestcavity.DropManager;
 
-// 添加掉落条目
 DropManager.addOrganDrop("minecraft:zombie", <chestcavity:heart>, 5);
-DropManager.addOrganDrop("minecraft:zombie", <minecraft:apple>, 10);
-
-// 修改掉落概率
 DropManager.setDropProbability("minecraft:zombie", 0.25);
-
-// 移除掉落条目
-DropManager.removeOrganDrop("minecraft:zombie", <chestcavity:heart>);
-
-// 移除所有自定义掉落
-DropManager.removeAllOrganDrops("minecraft:zombie");
 ```
 
----
+## 6. ScoreManager
 
-## 5. Score(被动效果) 定义 (`mods.chestcavity.ScoreManager`)
-
-### 修改类
+ZenClass: `mods.chestcavity.ScoreManager`
 
 | API | 说明 |
-|-----|------|
-| `ScoreManager.addScore(scoreId, displayName)` | 定义被动 score 的显示名称 |
-
-### 示例
+|---|---|
+| `ScoreManager.addScore(scoreId, displayName)` | 注册 score 显示名 |
 
 ```zenscript
 import mods.chestcavity.ScoreManager;
 
-// 定义被动 score 显示名。该名称会用于器官 tooltip 和分数总结。
 ScoreManager.addScore("spell_power", "Spell Power");
 ```
 
----
+## 7. AbilityManager
 
-## 6. Ability(主动技能) 定义(`mods.chestcavity.AbilityManager`)
+ZenClass: `mods.chestcavity.AbilityManager`
 
-### 修改类
+Ability 使用 scoreId 作为能力 ID。注册后会进入能力轮盘；带 handler 的能力激活时可取消。
 
 | API | 说明 |
-|-----|------|
-| `AbilityManager.registerAbility(scoreId, displayName, cooldownTicks)` | 注册新能力 score ID 并设置显示名（无回调，默认进入轮盘） |
-| `AbilityManager.registerAbility(scoreId, displayName, cooldownTicks, handler)` | 注册新能力 score ID 并设置显示名（带回调，默认进入轮盘）。handler 中可调用 `event.cancel()` 取消本次能力激活 |
-
-### 示例
+|---|---|
+| `AbilityManager.registerAbility(scoreId, displayName)` | 注册能力，无冷却 |
+| `AbilityManager.registerAbility(scoreId, displayName, cooldownTicks)` | 注册能力并设置冷却 |
+| `AbilityManager.registerAbility(scoreId, displayName, handler)` | 注册能力并设置回调 |
+| `AbilityManager.registerAbility(scoreId, displayName, cooldownTicks, handler)` | 注册能力、冷却和回调 |
 
 ```zenscript
 import mods.chestcavity.AbilityManager;
 import mods.chestcavity.event.AbilityActivatedEvent;
 
-// 注册新的能力 score ID（无回调）
-AbilityManager.registerAbility("fire_blast", "Fire Blast", 120);
-
-// 注册新的能力 score ID（带回调）
-AbilityManager.registerAbility("regeneration", "Regeneration", 60, function(event as AbilityActivatedEvent) {
-    // 分数不足时取消激活
+AbilityManager.registerAbility("fire_blast", "Fire Blast", 120, function(event as AbilityActivatedEvent) {
     if (event.score < 1.0) {
         event.cancel();
         return;
     }
-    event.player.heal(2.0);
-    event.entity.sendMessage("Regeneration triggered! Score: " ~ event.score);
+    event.entity.sendMessage("Fire Blast score: " ~ event.score);
 });
 ```
 
----
+## 8. ChestCavityHelper / ChestCavityData
 
-## 7. 胸腔信息 API (`mods.chestcavity.ChestCavityHelper`)
+ZenClass: `mods.chestcavity.ChestCavityHelper`
 
-### 获取胸腔对象
+| API | 返回 | 说明 |
+|---|---|---|
+| `ChestCavityHelper.get(entity)` | `ChestCavityData` | 获取实体胸腔，无法获取时返回 null |
 
-| API | 返回类型 | 说明 |
-|-----|----------|------|
-| `ChestCavityHelper.get(entity)` | IChestCavity | 获取实体的胸腔对象 |
+ZenClass: `mods.chestcavity.ChestCavityData`
 
-### IChestCavity 对象 - 状态查询
+### Getter
 
-| API | 返回类型 | 说明 |
-|-----|----------|------|
-| `cc.isOpened` | bool | 胸腔是否已打开 |
-| `cc.slotCount` | int | 槽位数量 |
+| Getter | 类型 | 说明 |
+|---|---|---|
+| `isOpened` | bool | 是否已开胸 |
+| `slotCount` | int | 当前 layout 槽位数 |
 
-### IChestCavity 对象 - Score 查询
+### 查询
 
-| API | 返回类型 | 说明 |
-|-----|----------|------|
-| `cc.getOrganScore(scoreId)` | float | 获取单个 score 值 |
-| `cc.getOrganScores()` | float[string] | 获取所有 scores |
+| API | 返回 | 说明 |
+|---|---|---|
+| `cc.getOrganScore(scoreId)` | float | 查询 score |
+| `cc.getOrganScores()` | float[string] | 查询全部非零 score |
+| `cc.hasScore(scoreId)` | bool | 是否有该 score |
+| `cc.hasOrgan(item)` | bool | 是否含指定器官 |
+| `cc.getOrganCount(item)` | int | 指定器官总数量 |
+| `cc.getOrganSlots(item)` | int[] | 指定器官所在槽位 |
+| `cc.getOrganSlotsByScore(scoreId)` | int[] | 带指定 score 的器官所在槽位 |
+| `cc.getOccupiedSlots()` | int[] | 非空槽位 |
+| `cc.getOrgan(slot)` | IItemStack | 获取槽位物品 |
 
-### IChestCavity 对象 - 器官查询
-
-| API | 返回类型 | 说明 |
-|-----|----------|------|
-| `cc.hasOrgan(item)` | bool | 检查是否有某个器官 |
-| `cc.getOrganCount(item)` | int | 获取器官数量 |
-| `cc.getOrganSlots(item)` | int[] | 获取器官所在槽位列表 |
-| `cc.getOrgan(slot)` | IItemStack | 获取指定槽位器官 |
-
-### 槽位操作
+### 修改
 
 | API | 说明 |
-|-----|------|
-| `cc.setOrgan(slot, stack)` | 设置槽位器官 |
-
-### 操作类
-
-| API | 说明 |
-|-----|------|
-| `cc.recalculateScores()` | 强制重新计算分数 |
+|---|---|
+| `cc.setOrgan(slot, stack)` | 设置槽位物品，内部通过 mutation 提交 |
+| `cc.recalculateScores()` | 强制重建 runtime 并同步 |
 | `cc.openChestCavity()` | 强制打开胸腔 |
 
-### 示例
+已移除的旧入口：
+
+- `setOrganScore`
+- `addOrganScore`
+- 任何直接覆盖 runtime score Map 的 API
 
 ```zenscript
 import mods.chestcavity.ChestCavityHelper;
 
 events.onPlayerTick(function(event as crafttweaker.event.PlayerTickEvent) {
-    if (!event.player.world.remote && event.phase == "END") {
-        var cc = ChestCavityHelper.get(event.player);
-        if (!isNull(cc)) {
-            // 状态查询
-            var opened = cc.isOpened;
-            var slotCount = cc.slotCount;
-            
-            // Score 查询
-            var health = cc.getOrganScore("health");
-            var scores = cc.getOrganScores();
-            
-            // 器官查询
-            var hasHeart = cc.hasOrgan(<chestcavity:heart>);
-            var heartCount = cc.getOrganCount(<chestcavity:heart>);
-            var heartSlots = cc.getOrganSlots(<chestcavity:heart>);
-
-            // 设置槽位器官
-            cc.setOrgan(0, <minecraft:apple>);
-
-            // 强制操作
-            cc.recalculateScores();
-            cc.openChestCavity();
-        }
-    }
-});
-```
-
----
-
-## 9. 事件
-
-### `onAbilityActivated` - 主动能力触发
-
-| 属性 | 类型 | 说明 |
-|------|------|------|
-| `event.entity` | IEntityLivingBase | 触发能力的实体 |
-| `event.player` | IPlayer | 触发能力的玩家（如果是玩家） |
-| `event.world` | IWorld | 世界对象 |
-| `event.abilityId` | string | 能力 ID（如 "chestcavity:pyromancy"） |
-| `event.score` | float | 当前能力的分数值 |
-| `event.isServer` | bool | 是否在服务端 |
-| `event.canceled` | bool | 是否已被取消 |
-
-| 方法 | 说明 |
-|------|------|
-| `event.cancel()` | 取消本次能力激活。|
-
-```zenscript
-import mods.chestcavity.event.AbilityActivatedEvent;
-
-events.onAbilityActivated(function(event as AbilityActivatedEvent) {
-    // 可以通过 cancel() 取消能力激活
-    if (event.abilityId == "dangerous_ability" && event.score < 2.0) {
-        event.cancel();
+    if (event.player.world.remote || event.phase != "END") {
         return;
     }
-    if (event.abilityId == "fire_blast") {
-        event.entity.sendMessage("Fire Blast! Score: " + event.score);
-        event.player.world.newExplosion(
-            event.player,
-            event.player.x, event.player.y, event.player.z,
-            3.0, false, false
-        );
+
+    var cc = ChestCavityHelper.get(event.player);
+    if (isNull(cc)) {
+        return;
+    }
+
+    var health = cc.getOrganScore("health");
+    var occupied = cc.getOccupiedSlots();
+
+    if (cc.isOpened && cc.slotCount > 0) {
+        cc.setOrgan(0, <minecraft:apple>);
+        cc.recalculateScores();
     }
 });
 ```
 
-### `onOrganEquipped` - 器官穿上
+## 9. Events
 
-| 属性 | 类型 | 说明 |
-|------|------|------|
-| `event.entity` | IEntityLivingBase | 拥有胸腔的实体 |
-| `event.player` | IPlayer | 玩家（如果是玩家） |
-| `event.world` | IWorld | 世界对象 |
-| `event.slot` | int | 槽位索引（0-26） |
-| `event.organ` | IItemStack | 器官物品 |
-| `event.organId` | string | 器官物品 ID（如 "chestcavity:heart"） |
-| `event.isPseudoOrgan` | bool | 是否为伪器官 |
-| `event.isServer` | bool | 是否在服务端 |
+CrT events 是 `crafttweaker.events.IEventManager` 的扩展方法。
+
+### onAbilityActivated
 
 ```zenscript
-import mods.chestcavity.event.OrganEquippedEvent;
-
-events.onOrganEquipped(function(event as OrganEquippedEvent) {
-    event.entity.sendMessage("装备: " ~ event.organId ~ " 到槽位 " ~ event.slot);
-    if (event.isPseudoOrgan) {
-        event.entity.sendMessage("这是伪器官");
+events.onAbilityActivated(function(event as mods.chestcavity.event.AbilityActivatedEvent) {
+    if (event.abilityId == "fire_blast" && event.score < 2.0) {
+        event.cancel();
     }
 });
 ```
 
-### `onOrganUnequipped` - 器官脱下
+| Getter | 类型 | 说明 |
+|---|---|---|
+| `entity` | IEntityLivingBase | 触发实体 |
+| `player` | IPlayer | 玩家，非玩家时可能为 null |
+| `world` | IWorld | 世界 |
+| `abilityId` | string | ability/score ID |
+| `score` | float | 当前 score 值 |
+| `isServer` | bool | 是否服务端 |
+| `canceled` | bool | 是否取消 |
 
-| 属性 | 类型 | 说明 |
-|------|------|------|
-| `event.entity` | IEntityLivingBase | 拥有胸腔的实体 |
-| `event.player` | IPlayer | 玩家（如果是玩家） |
-| `event.world` | IWorld | 世界对象 |
-| `event.slot` | int | 槽位索引（0-26） |
-| `event.organ` | IItemStack | 器官物品 |
-| `event.organId` | string | 器官物品 ID（如 "chestcavity:heart"） |
-| `event.isPseudoOrgan` | bool | 是否为伪器官 |
-| `event.isServer` | bool | 是否在服务端 |
+| 方法 | 说明 |
+|---|---|
+| `cancel()` | 取消本次能力激活 |
+
+### onOrganEquipped
 
 ```zenscript
-import mods.chestcavity.event.OrganUnequippedEvent;
-
-events.onOrganUnequipped(function(event as OrganUnequippedEvent) {
-    event.entity.sendMessage("卸下: " ~ event.organId ~ " 从槽位 " ~ event.slot);
+events.onOrganEquipped(function(event as mods.chestcavity.event.OrganEquippedEvent) {
+    print("Equipped " ~ event.organId ~ " at slot " ~ event.slot);
 });
+```
+
+### onOrganUnequipped
+
+```zenscript
+events.onOrganUnequipped(function(event as mods.chestcavity.event.OrganUnequippedEvent) {
+    print("Unequipped " ~ event.organId ~ " from slot " ~ event.slot);
+});
+```
+
+Organ change event getter：
+
+| Getter | 类型 | 说明 |
+|---|---|---|
+| `entity` | IEntityLivingBase | 拥有胸腔的实体 |
+| `player` | IPlayer | 如果实体是玩家则返回玩家，否则可能为 null |
+| `world` | IWorld | 世界 |
+| `slot` | int | 槽位 |
+| `organ` | IItemStack | 器官物品 |
+| `organId` | string | 器官物品 ID |
+| `isPseudoOrgan` | bool | 是否伪器官 |
+| `isServer` | bool | 是否服务端 |
+
+## 10. 完整示例
+
+```zenscript
+import mods.chestcavity.OrganData;
+import mods.chestcavity.ChestLayout;
+import mods.chestcavity.ChestCavityType;
+import mods.chestcavity.EntityAssignment;
+import mods.chestcavity.ScoreManager;
+
+ScoreManager.addScore("arcane_core", "Arcane Core");
+
+OrganData.register(<minecraft:ender_eye>, {
+    "arcane_core": 1.0,
+    "health": 2.0
+} as float[string]);
+
+ChestLayout.registerGrid(
+    "chestcavity:arcane_layout",
+    18, 9,
+    176, 132,
+    8, 6,
+    8, 18,
+    18, 18,
+    "KEEP_BY_INDEX"
+);
+
+ChestLayout.setSlotRule(
+    "chestcavity:arcane_layout",
+    4,
+    false,
+    [] as string[],
+    ["arcane_core"] as string[],
+    1,
+    1
+);
+
+ChestCavityType.register("arcane_construct");
+ChestCavityType.setLayout("arcane_construct", "chestcavity:arcane_layout");
+ChestCavityType.addBaseScore("arcane_construct", "health", 10.0);
+ChestCavityType.setSlot("arcane_construct", 4, <minecraft:ender_eye>);
+
+EntityAssignment.register("minecraft:evocation_illager", "arcane_construct");
 ```

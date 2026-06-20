@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.chest.organs;
 
+import com.shiver.chestcavity.content.ContentRegistry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -13,40 +14,19 @@ public class OrganData {
     public static final String ORGAN_TAG = "ChestCavityOrganData";
     private static final String PSEUDO_TAG = "PseudoOrgan";
     private static final String SCORES_TAG = "OrganScores";
-    private static final Map<ResourceLocation, OrganData> ORGAN_DATA = new LinkedHashMap<>();
 
     private boolean pseudoOrgan;
     private Map<String, Float> organScores = new LinkedHashMap<>();
 
-    public static void clearRegistry() {
-        ORGAN_DATA.clear();
-    }
-
-    public static void register(ResourceLocation itemId, OrganData data) {
-        if (itemId != null && data != null) {
-            ORGAN_DATA.put(itemId, data);
-        }
-    }
-
-    public static void unregister(ResourceLocation itemId) {
-        if (itemId != null) {
-            ORGAN_DATA.remove(itemId);
-        }
-    }
-
     public static OrganData get(ResourceLocation itemId) {
-        return ORGAN_DATA.get(itemId);
+        return ContentRegistry.getCompiled().getOrgan(itemId);
     }
 
-    public static OrganData fromRegistry(ItemStack stack) {
+    public static OrganData get(ItemStack stack) {
         if (stack == null || stack.isEmpty() || stack.getItem() == null) {
             return null;
         }
         return get(stack.getItem().getRegistryName());
-    }
-
-    public static Map<ResourceLocation, OrganData> getRegistry() {
-        return Collections.unmodifiableMap(ORGAN_DATA);
     }
 
     public boolean isPseudoOrgan() {

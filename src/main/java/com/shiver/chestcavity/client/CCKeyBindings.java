@@ -1,6 +1,8 @@
 package com.shiver.chestcavity.client;
 
 import com.shiver.chestcavity.Tags;
+import com.shiver.chestcavity.api.AbilityApi;
+import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -50,7 +52,8 @@ public final class CCKeyBindings {
 
         while (releaseAbility.isPressed()) {
             String abilityId = CCAbilityWheel.getSelectedAbility();
-            if (abilityId != null) {
+            AbilityApi.AbilityWheelEntry entry = ChestCavityApis.ABILITIES.getWheelEntries().get(abilityId);
+            if (entry != null && entry.isActive()) {
                 ChestCavityNetwork.sendHotkeyActivation(abilityId);
             }
         }

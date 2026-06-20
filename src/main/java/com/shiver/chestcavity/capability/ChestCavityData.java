@@ -1,6 +1,18 @@
 package com.shiver.chestcavity.capability;
 
+import com.shiver.chestcavity.chest.organs.OrganData;
+import com.shiver.chestcavity.chest.types.ChestCavityType;
+import com.shiver.chestcavity.crt.CrTChestCavityEvents;
+import com.shiver.chestcavity.layout.LayoutMigrationStrategy;
+import com.shiver.chestcavity.network.ChestCavityNetwork;
+import com.shiver.chestcavity.runtime.ChestCavityRuntime;
+import com.shiver.chestcavity.runtime.OrganInstance;
+import com.shiver.chestcavity.util.ChestCavityTypeUtil;
+import com.shiver.chestcavity.util.OrganCompatibilityUtil;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -8,23 +20,26 @@ import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 
-public class ChestCavityData implements IChestCavity {
+public class ChestCavityData {
 
     public static final int DEFAULT_SLOT_COUNT = 27;
 
     private EntityLivingBase owner;
     private boolean opened;
     private UUID compatibilityId = UUID.randomUUID();
-    private NonNullList<ItemStack> organs = NonNullList.withSize(DEFAULT_SLOT_COUNT, ItemStack.EMPTY);
-    private final Map<String, Float> organScores = new HashMap<>();
-    private final Map<String, Float> oldOrganScores = new HashMap<>();
+    private NonNullList<ItemStack> organs;
+    private OrganInstance[] organInstances;
     private final IItemHandlerModifiable organInventory = new OrganItemHandler();
+    private ChestCavityRuntime runtime = ChestCavityRuntime.rebuild(null, null);
+    private boolean runtimeDirty = true;
+    private long organVersion;
+    private long runtimeVersion;
+    private long scoreVersion;
 
     private int heartBleedTimer;
     private int bloodPoisonTimer;
@@ -36,12 +51,10 @@ public class ChestCavityData implements IChestCavity {
     private int connectedCrystalId = -1;
     private final Queue<String> projectileQueue = new LinkedList<>();
 
-    @Override
     public EntityLivingBase getOwner() {
         return owner;
     }
 
-    @Override
     public void setOwner(EntityLivingBase owner) {
         this.owner = owner;
         if (owner != null && compatibilityId == null) {
@@ -49,17 +62,10 @@ public class ChestCavityData implements IChestCavity {
         }
     }
 
-    @Override
     public boolean isOpened() {
         return opened;
     }
 
-    @Override
-    public void setOpened(boolean opened) {
-        this.opened = opened;
-    }
-
-    @Override
     public UUID getCompatibilityId() {
         if (compatibilityId == null) {
             compatibilityId = owner == null ? UUID.randomUUID() : owner.getUniqueID();
@@ -67,188 +73,169 @@ public class ChestCavityData implements IChestCavity {
         return compatibilityId;
     }
 
-    @Override
-    public void setCompatibilityId(UUID compatibilityId) {
-        this.compatibilityId = compatibilityId;
-    }
-
-    @Override
     public int getSlotCount() {
-        return organs.size();
+        return getLayoutSlotCount();
     }
 
-    @Override
     public NonNullList<ItemStack> getOrgans() {
-        return organs;
+        ensureOrganStorageMatchesLayout();
+        return organs == null ? NonNullList.withSize(getSlotCount(), ItemStack.EMPTY) : organs;
     }
 
-    @Override
     public IItemHandlerModifiable getOrganInventory() {
         return organInventory;
     }
 
-    @Override
     public ItemStack getOrgan(int slot) {
-        return organs.get(slot);
+        validateSlot(slot);
+        ensureOrganStorageMatchesLayout();
+        return organs == null ? ItemStack.EMPTY : organs.get(slot);
     }
 
-    @Override
-    public void setOrgan(int slot, ItemStack stack) {
-        setOrganInternal(slot, stack, true);
+    public OrganInstance getOrganInstance(int slot, ChestCavityType type) {
+        validateSlot(slot);
+        ensureOrganStorageMatchesLayout();
+        if (organs == null) {
+            return OrganInstance.empty();
+        }
+        ensureOrganInstanceCache();
+        OrganInstance instance = organInstances[slot];
+        if (instance == null) {
+            instance = resolveOrganInstance(type, organs.get(slot));
+            organInstances[slot] = instance;
+        }
+        return instance;
     }
 
-    @Override
     public Map<String, Float> getOrganScores() {
-        return organScores;
+        refreshRuntimeIfDirty();
+        return runtime.getScoreValues();
     }
 
-    @Override
-    public Map<String, Float> getOldOrganScores() {
-        return oldOrganScores;
-    }
-
-    @Override
     public float getOrganScore(String id) {
-        Float value = organScores.get(id);
-        return value == null ? 0.0F : value;
+        refreshRuntimeIfDirty();
+        return runtime.getScoreValue(id);
     }
 
-    @Override
-    public float getOldOrganScore(String id) {
-        Float value = oldOrganScores.get(id);
-        return value == null ? 0.0F : value;
+    public ChestCavityRuntime getRuntime() {
+        refreshRuntimeIfDirty();
+        return runtime;
     }
 
-    @Override
-    public void setOrganScore(String id, float value) {
-        organScores.put(id, value);
+    public ChestCavityRuntime peekRuntime() {
+        return runtime;
     }
 
-    @Override
-    public void addOrganScore(String id, float value) {
-        setOrganScore(id, getOrganScore(id) + value);
+    void setRuntimeCommitted(ChestCavityRuntime runtime) {
+        Map<String, Float> oldScores = this.runtime.getScoreValues();
+        this.runtime = runtime == null ? ChestCavityRuntime.rebuild(null, null) : runtime;
+        runtimeDirty = false;
+        runtimeVersion++;
+        if (!oldScores.equals(this.runtime.getScoreValues())) {
+            scoreVersion++;
+        }
     }
 
-    @Override
-    public void clearOrganScores() {
-        organScores.clear();
+    public boolean isRuntimeDirty() {
+        return runtimeDirty;
     }
 
-    @Override
-    public void replaceOrganScores(Map<String, Float> scores) {
-        organScores.clear();
-        organScores.putAll(scores);
+    public long getOrganVersion() {
+        return organVersion;
     }
 
-    @Override
-    public void copyCurrentScoresToOld() {
-        oldOrganScores.clear();
-        oldOrganScores.putAll(organScores);
+    public long getRuntimeVersion() {
+        refreshRuntimeIfDirty();
+        return runtimeVersion;
     }
 
-    @Override
+    public long getScoreVersion() {
+        refreshRuntimeIfDirty();
+        return scoreVersion;
+    }
+
     public int getHeartBleedTimer() {
         return heartBleedTimer;
     }
 
-    @Override
     public void setHeartBleedTimer(int value) {
         heartBleedTimer = value;
     }
 
-    @Override
     public int getBloodPoisonTimer() {
         return bloodPoisonTimer;
     }
 
-    @Override
     public void setBloodPoisonTimer(int value) {
         bloodPoisonTimer = value;
     }
 
-    @Override
     public int getLiverTimer() {
         return liverTimer;
     }
 
-    @Override
     public void setLiverTimer(int value) {
         liverTimer = value;
     }
 
-    @Override
     public float getMetabolismRemainder() {
         return metabolismRemainder;
     }
 
-    @Override
     public void setMetabolismRemainder(float value) {
         metabolismRemainder = value;
     }
 
-    @Override
     public float getLungRemainder() {
         return lungRemainder;
     }
 
-    @Override
     public void setLungRemainder(float value) {
         lungRemainder = value;
     }
 
-    @Override
     public int getFurnaceProgress() {
         return furnaceProgress;
     }
 
-    @Override
     public void setFurnaceProgress(int value) {
         furnaceProgress = value;
     }
 
-    @Override
     public int getPhotosynthesisProgress() {
         return photosynthesisProgress;
     }
 
-    @Override
     public void setPhotosynthesisProgress(int value) {
         photosynthesisProgress = value;
     }
 
-    @Override
     public int getConnectedCrystalId() {
         return connectedCrystalId;
     }
 
-    @Override
     public void setConnectedCrystalId(int entityId) {
         connectedCrystalId = entityId;
     }
 
-    @Override
     public void enqueueProjectileAbility(String abilityId) {
         if (abilityId != null) {
             projectileQueue.add(abilityId);
         }
     }
 
-    @Override
     public String pollProjectileAbility() {
         return projectileQueue.poll();
     }
 
-    @Override
     public void clearProjectileQueue() {
         projectileQueue.clear();
     }
 
-    @Override
-    public void copyFrom(IChestCavity other) {
+    public void copyFrom(ChestCavityData other) {
         deserializeNBT(other.serializeNBT());
     }
 
-    @Override
     public NBTTagCompound serializeNBT() {
         NBTTagCompound tag = new NBTTagCompound();
         tag.setBoolean("Opened", opened);
@@ -260,12 +247,12 @@ public class ChestCavityData implements IChestCavity {
         tag.setFloat("LungRemainder", lungRemainder);
         tag.setInteger("FurnaceProgress", furnaceProgress);
         tag.setInteger("PhotosynthesisProgress", photosynthesisProgress);
-        tag.setTag("Inventory", writeInventory());
-        tag.setTag("OrganScores", writeScores(organScores));
+        if (organs != null) {
+            tag.setTag("Inventory", writeInventory());
+        }
         return tag;
     }
 
-    @Override
     public void deserializeNBT(NBTTagCompound tag) {
         opened = tag.getBoolean("Opened");
         if (tag.hasKey("opened", Constants.NBT.TAG_BYTE)) {
@@ -286,15 +273,17 @@ public class ChestCavityData implements IChestCavity {
         furnaceProgress = readInt(tag, "FurnaceProgress", 0);
         photosynthesisProgress = readInt(tag, "PhotosynthesisProgress", 0);
 
+        organs = null;
+        organInstances = null;
         if (tag.hasKey("Inventory", Constants.NBT.TAG_LIST)) {
             readInventory(tag.getTagList("Inventory", Constants.NBT.TAG_COMPOUND));
         }
 
-        organScores.clear();
-        if (tag.hasKey("OrganScores", Constants.NBT.TAG_LIST)) {
-            readScores(tag.getTagList("OrganScores", Constants.NBT.TAG_COMPOUND), organScores);
-        }
-        copyCurrentScoresToOld();
+        runtime = ChestCavityRuntime.rebuild(this, ChestCavityTypeUtil.getChestCavityType(this));
+        runtimeDirty = false;
+        organVersion++;
+        runtimeVersion++;
+        scoreVersion++;
     }
 
     private int readInt(NBTTagCompound tag, String key, int fallback) {
@@ -307,6 +296,10 @@ public class ChestCavityData implements IChestCavity {
 
     private NBTTagList writeInventory() {
         NBTTagList list = new NBTTagList();
+        if (organs == null) {
+            return list;
+        }
+        ensureOrganStorageMatchesLayout();
         for (int i = 0; i < organs.size(); i++) {
             ItemStack stack = organs.get(i);
             if (!stack.isEmpty()) {
@@ -320,46 +313,238 @@ public class ChestCavityData implements IChestCavity {
     }
 
     private void readInventory(NBTTagList list) {
-        organs = NonNullList.withSize(DEFAULT_SLOT_COUNT, ItemStack.EMPTY);
+        organs = null;
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound stackTag = list.getCompoundTagAt(i);
             int slot = stackTag.getByte("Slot") & 255;
-            if (slot >= 0 && slot < organs.size()) {
+            if (slot >= 0 && slot < getSlotCount()) {
+                ensureOrganStorage();
                 organs.set(slot, new ItemStack(stackTag));
+                clearOrganInstanceCache();
             }
         }
     }
 
-    private NBTTagList writeScores(Map<String, Float> scores) {
-        NBTTagList list = new NBTTagList();
-        for (Map.Entry<String, Float> entry : scores.entrySet()) {
-            NBTTagCompound scoreTag = new NBTTagCompound();
-            scoreTag.setString("Id", entry.getKey());
-            scoreTag.setFloat("Value", entry.getValue());
-            list.appendTag(scoreTag);
-        }
-        return list;
-    }
-
-    private void readScores(NBTTagList list, Map<String, Float> scores) {
-        for (int i = 0; i < list.tagCount(); i++) {
-            NBTTagCompound scoreTag = list.getCompoundTagAt(i);
-            scores.put(scoreTag.getString("Id"), scoreTag.getFloat("Value"));
-        }
-    }
-
-    private void setOrganInternal(int slot, ItemStack stack, boolean recalculate) {
+    void setOrganInternal(int slot, ItemStack stack) {
         validateSlot(slot);
-        organs.set(slot, stack == null || stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
-        if (recalculate) {
-            ChestCavityHelper.recalculateOrganScores(this);
+        ensureOrganStorageMatchesLayout();
+        ItemStack normalized = stack == null || stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
+        ItemStack current = organs == null ? ItemStack.EMPTY : organs.get(slot);
+        if (sameStack(current, normalized)) {
+            return;
         }
+        if (!normalized.isEmpty()) {
+            ensureOrganStorage();
+        }
+        if (organs == null) {
+            return;
+        }
+        organs.set(slot, normalized);
+        clearOrganInstance(slot);
+        clearOrganStorageIfEmpty();
+        organVersion++;
+        markRuntimeDirty();
+    }
+
+    public void refreshRuntimeIfDirty() {
+        if (runtimeDirty) {
+            setRuntimeCommitted(ChestCavityRuntime.rebuild(this, ChestCavityTypeUtil.getChestCavityType(this)));
+        }
+    }
+
+    public void openChestCavity() {
+        ChestCavityMutations.open(this);
+    }
+
+    public void destroyOrgansWithScore(String scoreId) {
+        ChestCavityMutations.destroyOrgansWithScore(this, scoreId);
+    }
+
+    public void syncOwner() {
+        if (owner != null && !owner.world.isRemote) {
+            ChestCavityNetwork.sendChestCavitySync(owner);
+        }
+    }
+
+    void markRuntimeDirty() {
+        runtimeDirty = true;
+    }
+
+    void setOpenedRaw(boolean opened) {
+        if (this.opened != opened) {
+            this.opened = opened;
+            markRuntimeDirty();
+        }
+    }
+
+    void setCompatibilityIdRaw(UUID compatibilityId) {
+        this.compatibilityId = compatibilityId;
+    }
+
+    void invalidateOrganInstancesRaw() {
+        clearOrganInstanceCache();
+        markRuntimeDirty();
+    }
+
+    void publishOrganChange(int slot, ItemStack oldStack, ItemStack newStack) {
+        if (owner == null) {
+            return;
+        }
+        ChestCavityType type = ChestCavityTypeUtil.getChestCavityType(this);
+        if (oldStack != null && !oldStack.isEmpty()) {
+            OrganData oldData = resolveOrganData(type, oldStack);
+            CrTChestCavityEvents.publishOrganUnequipped(owner, slot, oldStack, oldData != null && oldData.isPseudoOrgan());
+        }
+        if (newStack != null && !newStack.isEmpty()) {
+            OrganData newData = resolveOrganData(type, newStack);
+            CrTChestCavityEvents.publishOrganEquipped(owner, slot, newStack, newData != null && newData.isPseudoOrgan());
+        }
+    }
+
+    OrganData resolveOrganData(ChestCavityType type, ItemStack stack) {
+        return resolveOrganInstance(type, stack).getData();
+    }
+
+    private EntityEnderCrystal getConnectedCrystal() {
+        int crystalId = getConnectedCrystalId();
+        if (crystalId < 0 || owner == null || owner.world == null) {
+            return null;
+        }
+        Entity entityById = owner.world.getEntityByID(crystalId);
+        return entityById instanceof EntityEnderCrystal && entityById.isEntityAlive()
+                ? (EntityEnderCrystal) entityById
+                : null;
+    }
+
+    void disconnectCrystal() {
+        EntityEnderCrystal crystal = getConnectedCrystal();
+        if (crystal != null) {
+            crystal.setBeamTarget(null);
+        }
+        setConnectedCrystalId(-1);
+    }
+
+    private boolean sameStack(ItemStack left, ItemStack right) {
+        if (left == null || left.isEmpty()) {
+            return right == null || right.isEmpty();
+        }
+        if (right == null || right.isEmpty()) {
+            return false;
+        }
+        return left.getCount() == right.getCount()
+                && ItemStack.areItemsEqual(left, right)
+                && ItemStack.areItemStackTagsEqual(left, right);
     }
 
     private void validateSlot(int slot) {
-        if (slot < 0 || slot >= organs.size()) {
-            throw new IndexOutOfBoundsException("Organ slot " + slot + " outside 0-" + (organs.size() - 1));
+        int slotCount = getSlotCount();
+        if (slot < 0 || slot >= slotCount) {
+            throw new IndexOutOfBoundsException("Organ slot " + slot + " outside 0-" + (slotCount - 1));
         }
+    }
+
+    void ensureOrganStorage() {
+        int slotCount = getSlotCount();
+        if (organs == null) {
+            organs = NonNullList.withSize(slotCount, ItemStack.EMPTY);
+        } else if (organs.size() != slotCount) {
+            resizeOrganStorage(slotCount, ChestCavityTypeUtil.getChestLayout(this).getMigrationStrategy());
+        }
+    }
+
+    private int getLayoutSlotCount() {
+        return ChestCavityTypeUtil.getChestLayout(this).getSlotCount();
+    }
+
+    private void ensureOrganStorageMatchesLayout() {
+        if (organs != null && organs.size() != getSlotCount()) {
+            resizeOrganStorage(getSlotCount(), ChestCavityTypeUtil.getChestLayout(this).getMigrationStrategy());
+        }
+    }
+
+    private void resizeOrganStorage(int newSlotCount, LayoutMigrationStrategy strategy) {
+        if (organs == null) {
+            return;
+        }
+        LayoutMigrationStrategy effectiveStrategy = strategy == null ? LayoutMigrationStrategy.KEEP_BY_INDEX : strategy;
+        NonNullList<ItemStack> oldOrgans = organs;
+        NonNullList<ItemStack> newOrgans = NonNullList.withSize(newSlotCount, ItemStack.EMPTY);
+        if (effectiveStrategy != LayoutMigrationStrategy.CLEAR) {
+            int copiedSlots = Math.min(oldOrgans.size(), newSlotCount);
+            for (int slot = 0; slot < copiedSlots; slot++) {
+                ItemStack stack = oldOrgans.get(slot);
+                newOrgans.set(slot, stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
+            }
+        }
+        if (oldOrgans.size() > newSlotCount && effectiveStrategy != LayoutMigrationStrategy.CLEAR) {
+            for (int slot = newSlotCount; slot < oldOrgans.size(); slot++) {
+                handleOverflowOrgan(oldOrgans.get(slot), effectiveStrategy);
+            }
+        }
+        organs = newOrgans;
+        clearOrganInstanceCache();
+        clearOrganStorageIfEmpty();
+        organVersion++;
+        markRuntimeDirty();
+    }
+
+    private void ensureOrganInstanceCache() {
+        int slotCount = getSlotCount();
+        if (organInstances == null || organInstances.length != slotCount) {
+            organInstances = new OrganInstance[slotCount];
+        }
+    }
+
+    private void clearOrganInstance(int slot) {
+        if (organInstances != null && slot >= 0 && slot < organInstances.length) {
+            organInstances[slot] = null;
+        }
+    }
+
+    private void clearOrganInstanceCache() {
+        organInstances = null;
+    }
+
+    private OrganInstance resolveOrganInstance(ChestCavityType type, ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return OrganInstance.empty();
+        }
+        OrganData data = type == null ? null : type.catchExceptionalOrgan(stack);
+        if (data == null) {
+            data = OrganData.fromStack(stack);
+        }
+        int compatibilityLevel = data == null || data.isPseudoOrgan()
+                ? 1
+                : OrganCompatibilityUtil.getCompatibilityLevel(this, stack);
+        return OrganInstance.of(stack, data, compatibilityLevel);
+    }
+
+    private void handleOverflowOrgan(ItemStack stack, LayoutMigrationStrategy strategy) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+        if (strategy == LayoutMigrationStrategy.MOVE_TO_PLAYER && owner instanceof EntityPlayer) {
+            ItemStack remainder = stack.copy();
+            if (((EntityPlayer) owner).inventory.addItemStackToInventory(remainder)) {
+                return;
+            }
+        }
+        if (owner != null && owner.world != null && !owner.world.isRemote
+                && (strategy == LayoutMigrationStrategy.DROP_OVERFLOW || strategy == LayoutMigrationStrategy.MOVE_TO_PLAYER)) {
+            owner.entityDropItem(stack.copy(), 0.0F);
+        }
+    }
+
+    private void clearOrganStorageIfEmpty() {
+        if (organs == null || opened) {
+            return;
+        }
+        for (ItemStack stack : organs) {
+            if (!stack.isEmpty()) {
+                return;
+            }
+        }
+        organs = null;
     }
 
     private final class OrganItemHandler implements IItemHandlerModifiable {
@@ -367,21 +552,22 @@ public class ChestCavityData implements IChestCavity {
         @Override
         public void setStackInSlot(int slot, ItemStack stack) {
             validateSlot(slot);
-            if (ChestCavityHelper.isSlotForbidden(ChestCavityData.this, slot) && stack != null && !stack.isEmpty()) {
+            if (!ChestCavityTypeUtil.canPlaceOrgan(ChestCavityData.this, slot, stack)) {
                 return;
             }
-            ChestCavityHelper.setOrganAndRecalculate(ChestCavityData.this, slot, stack);
+            ChestCavityMutations.setOrgan(ChestCavityData.this, slot, stack);
         }
 
         @Override
         public int getSlots() {
-            return DEFAULT_SLOT_COUNT;
+            return getSlotCount();
         }
 
         @Override
         public ItemStack getStackInSlot(int slot) {
             validateSlot(slot);
-            ItemStack stack = organs.get(slot);
+            ensureOrganStorageMatchesLayout();
+            ItemStack stack = organs == null ? ItemStack.EMPTY : organs.get(slot);
             return stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
         }
 
@@ -395,7 +581,8 @@ public class ChestCavityData implements IChestCavity {
                 return stack;
             }
 
-            ItemStack existing = organs.get(slot);
+            ensureOrganStorageMatchesLayout();
+            ItemStack existing = organs == null ? ItemStack.EMPTY : organs.get(slot);
             int limit = Math.min(getSlotLimit(slot), stack.getMaxStackSize());
             if (!existing.isEmpty()) {
                 if (!ItemStack.areItemsEqual(existing, stack) || !ItemStack.areItemStackTagsEqual(existing, stack)) {
@@ -412,7 +599,7 @@ public class ChestCavityData implements IChestCavity {
             if (!simulate) {
                 ItemStack result = existing.isEmpty() ? stack.copy() : existing.copy();
                 result.setCount(existing.isEmpty() ? inserted : existing.getCount() + inserted);
-                ChestCavityHelper.setOrganAndRecalculate(ChestCavityData.this, slot, result);
+                ChestCavityMutations.setOrgan(ChestCavityData.this, slot, result);
             }
 
             if (inserted >= stack.getCount()) {
@@ -431,7 +618,8 @@ public class ChestCavityData implements IChestCavity {
                 return ItemStack.EMPTY;
             }
 
-            ItemStack existing = organs.get(slot);
+            ensureOrganStorageMatchesLayout();
+            ItemStack existing = organs == null ? ItemStack.EMPTY : organs.get(slot);
             if (existing.isEmpty()) {
                 return ItemStack.EMPTY;
             }
@@ -443,7 +631,7 @@ public class ChestCavityData implements IChestCavity {
             if (!simulate) {
                 ItemStack remaining = existing.copy();
                 remaining.shrink(extracted);
-                ChestCavityHelper.setOrganAndRecalculate(ChestCavityData.this, slot, remaining.isEmpty() ? ItemStack.EMPTY : remaining);
+                ChestCavityMutations.setOrgan(ChestCavityData.this, slot, remaining.isEmpty() ? ItemStack.EMPTY : remaining);
             }
 
             return result;
@@ -452,16 +640,13 @@ public class ChestCavityData implements IChestCavity {
         @Override
         public int getSlotLimit(int slot) {
             validateSlot(slot);
-            if (ChestCavityHelper.isSlotForbidden(ChestCavityData.this, slot)) {
-                return 0;
-            }
-            return 64;
+            return ChestCavityTypeUtil.getSlotLimit(ChestCavityData.this, slot);
         }
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             validateSlot(slot);
-            return !ChestCavityHelper.isSlotForbidden(ChestCavityData.this, slot);
+            return ChestCavityTypeUtil.canPlaceOrgan(ChestCavityData.this, slot, stack);
         }
     }
 }
