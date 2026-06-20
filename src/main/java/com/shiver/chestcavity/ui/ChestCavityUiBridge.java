@@ -1,6 +1,7 @@
 package com.shiver.chestcavity.ui;
 
 import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.capability.IChestCavity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -29,11 +30,12 @@ public final class ChestCavityUiBridge {
 
     public static boolean canKeepOpen(EntityPlayer player, ChestCavityGuiData data) {
         EntityLivingBase target = data.getTarget();
+        IChestCavity chestCavity = ChestCavityHelper.getOrNull(target);
         return player != null
                 && target != null
                 && target.isEntityAlive()
                 && player.getDistanceSq(target) <= MAX_INTERACT_DISTANCE_SQ
-                && ChestCavityHelper.getOrNull(target) != null;
+                && ChestCavityHelper.hasAssignedChestCavityType(chestCavity);
     }
 
     public static boolean open(EntityPlayerMP player, EntityLivingBase target) {

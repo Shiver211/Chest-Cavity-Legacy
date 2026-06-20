@@ -99,6 +99,9 @@ public class ChestOpener extends Item {
         }
 
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(target);
+        if (!ChestCavityHelper.hasAssignedChestCavityType(chestCavity)) {
+            return false;
+        }
         return target == player || ChestCavityHelper.isOpenable(chestCavity);
     }
 }

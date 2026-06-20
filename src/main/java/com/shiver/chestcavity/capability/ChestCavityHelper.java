@@ -178,7 +178,10 @@ public final class ChestCavityHelper {
 
     public static void openChestCavity(IChestCavity chestCavity) {
         if (!chestCavity.isOpened()) {
-            ChestCavityType type = getChestCavityType(chestCavity);
+            ChestCavityType type = getAssignedChestCavityType(chestCavity);
+            if (type == null) {
+                return;
+            }
             for (int i = 0; i < chestCavity.getSlotCount() && i < type.getDefaultChestCavity().size(); i++) {
                 ItemStack stack = type.getDefaultChestCavity().getStack(i);
                 chestCavity.setOrgan(i, stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
@@ -521,6 +524,9 @@ public final class ChestCavityHelper {
         if (chestCavity == null) {
             return false;
         }
+        if (getAssignedChestCavityType(chestCavity) == null) {
+            return false;
+        }
 
         EntityLivingBase owner = chestCavity.getOwner();
         if (owner == null || !owner.getItemStackFromSlot(net.minecraft.inventory.EntityEquipmentSlot.CHEST).isEmpty()) {
@@ -534,18 +540,33 @@ public final class ChestCavityHelper {
         return weakEnough || easyAccess;
     }
 
+    public static boolean hasAssignedChestCavityType(IChestCavity chestCavity) {
+        return getAssignedChestCavityType(chestCavity) != null;
+    }
+
     public static ChestCavityType getChestCavityType(IChestCavity chestCavity) {
+        ChestCavityType assignedType = getAssignedChestCavityType(chestCavity);
+        if (assignedType != null) {
+            return assignedType;
+        }
+        return DataLoaders.getType(CCConfig.getDefaultChestCavityId());
+    }
+
+    private static ChestCavityType getAssignedChestCavityType(IChestCavity chestCavity) {
+        if (chestCavity == null) {
+            return null;
+        }
         EntityLivingBase owner = chestCavity.getOwner();
         if (owner != null) {
             ResourceLocation entityId = owner instanceof EntityPlayer
                     ? new ResourceLocation("minecraft", "player")
                     : EntityList.getKey(owner);
             String typeId = DataLoaders.getAssignedTypeId(entityId);
-            if (typeId != null) {
+            if (typeId != null && DataLoaders.getTypes().containsKey(typeId)) {
                 return DataLoaders.getType(typeId);
             }
         }
-        return DataLoaders.getType(CCConfig.getDefaultChestCavityId());
+        return null;
     }
 
     public static List<ItemStack> generateUnopenedOrganDrops(IChestCavity chestCavity, Random random, int baseLooting, EntityLivingBase killer) {

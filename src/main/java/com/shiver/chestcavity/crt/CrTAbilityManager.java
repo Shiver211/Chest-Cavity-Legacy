@@ -15,12 +15,22 @@ public final class CrTAbilityManager {
 
     @ZenMethod
     public static void registerAbility(String scoreId, String displayName) {
-        ChestCavityApis.ABILITIES.registerAbility(scoreId, displayName, (player, chestCavity) -> true);
+        registerAbility(scoreId, displayName, 0);
+    }
+
+    @ZenMethod
+    public static void registerAbility(String scoreId, String displayName, int cooldownTicks) {
+        ChestCavityApis.ABILITIES.registerAbility(scoreId, displayName, cooldownTicks, (player, chestCavity) -> true);
     }
 
     @ZenMethod
     public static void registerAbility(String scoreId, String displayName, IEventHandler<CrTAbilityActivatedEvent> handler) {
-        ChestCavityApis.ABILITIES.registerAbility(scoreId, displayName, (player, chestCavity) -> {
+        registerAbility(scoreId, displayName, 0, handler);
+    }
+
+    @ZenMethod
+    public static void registerAbility(String scoreId, String displayName, int cooldownTicks, IEventHandler<CrTAbilityActivatedEvent> handler) {
+        ChestCavityApis.ABILITIES.registerAbility(scoreId, displayName, cooldownTicks, (player, chestCavity) -> {
             if (handler == null) {
                 return true;
             }
