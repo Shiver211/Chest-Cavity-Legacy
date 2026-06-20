@@ -350,7 +350,7 @@ public class ChestCavityData implements IChestCavity {
 
     private void setOrganInternal(int slot, ItemStack stack, boolean recalculate) {
         validateSlot(slot);
-        organs.set(slot, stack == null ? ItemStack.EMPTY : stack);
+        organs.set(slot, stack == null || stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
         if (recalculate) {
             ChestCavityHelper.recalculateOrganScores(this);
         }
@@ -381,7 +381,8 @@ public class ChestCavityData implements IChestCavity {
         @Override
         public ItemStack getStackInSlot(int slot) {
             validateSlot(slot);
-            return organs.get(slot);
+            ItemStack stack = organs.get(slot);
+            return stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
         }
 
         @Override
