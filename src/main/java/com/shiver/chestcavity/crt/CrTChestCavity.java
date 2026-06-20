@@ -66,16 +66,6 @@ public final class CrTChestCavity {
     }
 
     @ZenMethod
-    public void setOrganScore(String scoreId, float value) {
-        view.setOrganScore(scoreId, value);
-    }
-
-    @ZenMethod
-    public void addOrganScore(String scoreId, float value) {
-        view.addOrganScore(scoreId, value);
-    }
-
-    @ZenMethod
     public void recalculateScores() {
         view.recalculateScores();
     }
