@@ -40,7 +40,6 @@
     {"id": "nerves","value": ".5"},
     {"id": "metabolism","value": ".5"},
     {"id": "digestion","value": ".5"},
-    {"id": "breath","value": "1"},
     {"id": "endurance","value": "1"}
   ],
   "dropRateMultiplier": ".3",

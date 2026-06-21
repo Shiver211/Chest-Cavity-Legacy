@@ -26,7 +26,6 @@ public final class CCOrganScores {
     public static final String FURNACE_POWERED = "furnace_powered";
     public static final String GRAZING = "grazing";
     public static final String IRON_REPAIR = "iron_repair";
-    public static final String BREATH = "breath";
     public static final String BREATH_CAPACITY = "breath_capacity";
     public static final String WATER_BREATH = "water_breath";
     public static final String BUOYANT = "buoyant";

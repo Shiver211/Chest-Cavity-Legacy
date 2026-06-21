@@ -28,7 +28,5 @@
     {"item": "minecraft:snowball", "position": 25},
     {"item": "minecraft:snowball", "position": 26}
   ],
-  "baseOrganScores": [
-    {"id": "breath", "value": "2"}
-  ]
+  "baseOrganScores": []
 }

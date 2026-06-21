@@ -5,7 +5,6 @@ import com.shiver.chestcavity.entity.EntityForcefulSpit;
 
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.Item;
-import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
@@ -34,11 +33,6 @@ public final class RegistryHandler {
     @SubscribeEvent
     public static void registerEnchantments(RegistryEvent.Register<Enchantment> event) {
         CCEnchantments.register(event.getRegistry());
-    }
-
-    @SubscribeEvent
-    public static void registerRecipes(RegistryEvent.Register<IRecipe> event) {
-        CCRecipes.register(event.getRegistry());
     }
 
     @SubscribeEvent

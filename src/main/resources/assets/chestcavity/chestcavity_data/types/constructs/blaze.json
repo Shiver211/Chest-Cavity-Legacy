@@ -24,7 +24,6 @@
       "ingredient": {"item": "minecraft:magma"},
       "value": [
         {"id": "detoxification", "value": "2"},
-        {"id": "breath", "value": "4"},
         {"id": "filtration", "value": "4"},
         {"id": "metabolism", "value": "2"},
         {"id": "luck", "value": "2"}

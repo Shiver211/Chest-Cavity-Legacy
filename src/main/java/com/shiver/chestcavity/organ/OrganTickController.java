@@ -200,7 +200,7 @@ public final class OrganTickController {
         }
         String abilityId = chestCavity.pollProjectileAbility();
         if (abilityId != null) {
-            ActiveOrganAbilities.fireQueuedProjectile(entity, chestCavity, abilityId);
+            ActiveOrganAbilities.fireQueuedProjectile(entity, abilityId);
         }
     }
 

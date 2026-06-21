@@ -4,7 +4,6 @@ import com.shiver.chestcavity.ChestCavityLegacy;
 import com.shiver.chestcavity.ability.builtin.BuiltinOrganAbilities;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.crt.CrTChestCavityEvents;
-import com.shiver.chestcavity.registry.CCOrganScores;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 
@@ -12,18 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class ActiveOrganAbilities {
-
-    public static final String FURNACE_POWERED = CCOrganScores.FURNACE_POWERED;
-    public static final String GRAZING = CCOrganScores.GRAZING;
-    public static final String IRON_REPAIR = CCOrganScores.IRON_REPAIR;
-    public static final String BUOYANT = CCOrganScores.BUOYANT;
-    public static final String CREEPY = CCOrganScores.CREEPY;
-    public static final String PYROMANCY = CCOrganScores.PYROMANCY;
-    public static final String DRAGON_BOMBS = CCOrganScores.DRAGON_BOMBS;
-    public static final String FORCEFUL_SPIT = CCOrganScores.FORCEFUL_SPIT;
-    public static final String GHASTLY = CCOrganScores.GHASTLY;
-    public static final String SHULKER_BULLETS = CCOrganScores.SHULKER_BULLETS;
-    public static final String SILK = CCOrganScores.SILK;
 
     private static final Map<String, ActiveOrganAbility> ABILITIES = new LinkedHashMap<String, ActiveOrganAbility>();
 
@@ -55,7 +42,7 @@ public final class ActiveOrganAbilities {
         return activated;
     }
 
-    public static boolean fireQueuedProjectile(EntityLivingBase entity, IChestCavity chestCavity, String abilityId) {
+    public static boolean fireQueuedProjectile(EntityLivingBase entity, String abilityId) {
         return QueuedProjectileAbilities.fire(entity, abilityId);
     }
 }

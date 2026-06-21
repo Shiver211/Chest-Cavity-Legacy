@@ -5,7 +5,6 @@ import com.shiver.chestcavity.capability.IChestCavity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
 
 public final class ChestCavityUiBridge {
 
@@ -15,17 +14,7 @@ public final class ChestCavityUiBridge {
     public static final int SLOTS_PER_ROW = 9;
     public static final double MAX_INTERACT_DISTANCE_SQ = 64.0D;
 
-    private static SlotPolicy slotPolicy = SlotPolicy.ALLOW_ALL;
-
     private ChestCavityUiBridge() {
-    }
-
-    public static void setSlotPolicy(SlotPolicy policy) {
-        slotPolicy = policy == null ? SlotPolicy.ALLOW_ALL : policy;
-    }
-
-    public static SlotPolicy getSlotPolicy() {
-        return slotPolicy;
     }
 
     public static boolean canKeepOpen(EntityPlayer player, ChestCavityGuiData data) {
@@ -50,23 +39,5 @@ public final class ChestCavityUiBridge {
 
         ChestCavityGuiFactory.open(player, data);
         return true;
-    }
-
-    public interface SlotPolicy {
-        SlotPolicy ALLOW_ALL = new SlotPolicy() {
-            @Override
-            public boolean isForbidden(int slot) {
-                return false;
-            }
-
-            @Override
-            public boolean isItemValid(int slot, ItemStack stack) {
-                return true;
-            }
-        };
-
-        boolean isForbidden(int slot);
-
-        boolean isItemValid(int slot, ItemStack stack);
     }
 }

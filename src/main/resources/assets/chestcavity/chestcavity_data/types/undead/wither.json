@@ -37,7 +37,6 @@
     {"id": "nerves","value": ".5"},
     {"id": "metabolism","value": "1"},
     {"id": "digestion","value": "1"},
-    {"id": "breath","value": "2"},
     {"id": "endurance","value": "2"}
   ],
   "exceptionalOrgans": [
