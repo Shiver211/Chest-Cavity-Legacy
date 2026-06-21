@@ -102,6 +102,7 @@ effect.chestcavity.silk_cooldown=蛛丝冷却
 effect.chestcavity.water_vulnerability=水弱点
 category.chestcavity.organ_abilities=激活器官能力
 gui.chestcavity.no_abilities=无可用技能
+gui.chestcavity.score_summary=分数总结
 key.chestcavity.ability_wheel=技能轮盘
 key.chestcavity.release_ability=释放技能
 key.chestcavity.buoyant=呼气

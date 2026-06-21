@@ -102,6 +102,7 @@ effect.chestcavity.silk_cooldown=Silk Cooldown
 effect.chestcavity.water_vulnerability=Water Vulnerability
 category.chestcavity.organ_abilities=Activated Organ Abilities
 gui.chestcavity.no_abilities=No available abilities
+gui.chestcavity.score_summary=Score Summary
 key.chestcavity.ability_wheel=Ability Wheel
 key.chestcavity.release_ability=Release Ability
 key.chestcavity.buoyant=Exhale
