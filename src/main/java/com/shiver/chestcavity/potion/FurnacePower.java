@@ -11,8 +11,7 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 public class FurnacePower extends CCPotion {
 
@@ -55,7 +54,7 @@ public class FurnacePower extends CCPotion {
         if (player == null || !player.isPotionActive(CCPotions.FURNACE_POWER)) {
             return 0;
         }
-        return readFuelLayers(player, true).size();
+        return readFuelLayers(player, true).length;
     }
 
     public static boolean addFuelLayer(EntityPlayer player, int burnTime, int maxLayers) {
@@ -63,12 +62,13 @@ public class FurnacePower extends CCPotion {
             return false;
         }
 
-        List<Integer> layers = readFuelLayers(player, true);
-        if (layers.size() >= maxLayers) {
+        int[] layers = readFuelLayers(player, true);
+        if (layers.length >= maxLayers) {
             return false;
         }
 
-        layers.add(Integer.valueOf(burnTime));
+        layers = Arrays.copyOf(layers, layers.length + 1);
+        layers[layers.length - 1] = burnTime;
         writeFuelLayers(player, layers);
         syncVisibleEffect(player, layers);
         return true;
@@ -86,65 +86,68 @@ public class FurnacePower extends CCPotion {
             return;
         }
 
-        List<Integer> layers = readFuelLayers(player, true);
-        List<Integer> remaining = new ArrayList<Integer>();
-        for (Integer layer : layers) {
-            int duration = layer.intValue() - 1;
+        int[] layers = readFuelLayers(player, true);
+        int remainingCount = 0;
+        for (int i = 0; i < layers.length; i++) {
+            int duration = layers[i] - 1;
             if (duration > 0) {
-                remaining.add(Integer.valueOf(duration));
+                layers[remainingCount++] = duration;
             }
         }
 
-        if (remaining.isEmpty()) {
+        if (remainingCount == 0) {
             clearFuelLayers(player);
             resetFurnaceProgress(player);
             player.removePotionEffect(CCPotions.FURNACE_POWER);
             return;
         }
 
-        writeFuelLayers(player, remaining);
-        syncVisibleEffect(player, remaining);
+        boolean layerCountChanged = remainingCount != layers.length;
+        if (layerCountChanged) {
+            layers = Arrays.copyOf(layers, remainingCount);
+        }
+        writeFuelLayers(player, layers);
+        PotionEffect current = player.getActivePotionEffect(CCPotions.FURNACE_POWER);
+        if (layerCountChanged || current == null || current.getAmplifier() != layers.length - 1) {
+            syncVisibleEffect(player, layers);
+        }
     }
 
-    private static List<Integer> readFuelLayers(EntityPlayer player, boolean seedFromPotion) {
+    private static int[] readFuelLayers(EntityPlayer player, boolean seedFromPotion) {
         NBTTagCompound data = player.getEntityData();
-        List<Integer> layers = new ArrayList<Integer>();
         if (data.hasKey(FUEL_LAYERS_KEY, Constants.NBT.TAG_INT_ARRAY)) {
             int[] values = data.getIntArray(FUEL_LAYERS_KEY);
+            int count = 0;
             for (int value : values) {
                 if (value > 0) {
-                    layers.add(Integer.valueOf(value));
+                    values[count++] = value;
                 }
             }
-            return layers;
+            return count == values.length ? values : Arrays.copyOf(values, count);
         }
 
         PotionEffect current = player.getActivePotionEffect(CCPotions.FURNACE_POWER);
         if (seedFromPotion && current != null && current.getDuration() > 0) {
             int layerCount = Math.max(1, current.getAmplifier() + 1);
-            for (int i = 0; i < layerCount; i++) {
-                layers.add(Integer.valueOf(current.getDuration()));
-            }
+            int[] layers = new int[layerCount];
+            Arrays.fill(layers, current.getDuration());
             writeFuelLayers(player, layers);
+            return layers;
         }
-        return layers;
+        return new int[0];
     }
 
-    private static void writeFuelLayers(EntityPlayer player, List<Integer> layers) {
-        int[] values = new int[layers.size()];
-        for (int i = 0; i < layers.size(); i++) {
-            values[i] = layers.get(i).intValue();
-        }
-        player.getEntityData().setIntArray(FUEL_LAYERS_KEY, values);
+    private static void writeFuelLayers(EntityPlayer player, int[] layers) {
+        player.getEntityData().setIntArray(FUEL_LAYERS_KEY, layers);
     }
 
     private static void clearFuelLayers(EntityPlayer player) {
         player.getEntityData().removeTag(FUEL_LAYERS_KEY);
     }
 
-    private static void syncVisibleEffect(EntityPlayer player, List<Integer> layers) {
+    private static void syncVisibleEffect(EntityPlayer player, int[] layers) {
         int duration = shortestDuration(layers);
-        int amplifier = layers.size() - 1;
+        int amplifier = layers.length - 1;
         PotionEffect current = player.getActivePotionEffect(CCPotions.FURNACE_POWER);
 
         if (current == null || current.getAmplifier() != amplifier) {
@@ -161,10 +164,10 @@ public class FurnacePower extends CCPotion {
         }
     }
 
-    private static int shortestDuration(List<Integer> layers) {
+    private static int shortestDuration(int[] layers) {
         int duration = Integer.MAX_VALUE;
-        for (Integer layer : layers) {
-            duration = Math.min(duration, layer.intValue());
+        for (int layer : layers) {
+            duration = Math.min(duration, layer);
         }
         return Math.max(1, duration);
     }

@@ -52,6 +52,7 @@ public final class DataLoaders {
     private static final List<Runnable> RUNTIME_OVERRIDES = new ArrayList<>();
     private static boolean replayingRuntimeOverrides;
     private static final ResourceLocation PLAYER_ENTITY_ID = new ResourceLocation("minecraft", "player");
+    private static int dataVersion;
 
     private DataLoaders() {
     }
@@ -70,6 +71,7 @@ public final class DataLoaders {
         loadClasspathAssets(scannedDirectories);
         loadDirectory(configDataDir, "config data", scannedDirectories);
         replayRuntimeOverrides();
+        dataVersion++;
 
         ChestCavityLegacy.LOGGER.info(
                 "Loaded chest cavity data. assetPath={}, configPath={}, organs={}, types={}, entityAssignments={}",
@@ -88,6 +90,9 @@ public final class DataLoaders {
             RUNTIME_OVERRIDES.add(override);
         }
         override.run();
+        if (!replayingRuntimeOverrides) {
+            dataVersion++;
+        }
     }
 
     private static void replayRuntimeOverrides() {
@@ -108,25 +113,33 @@ public final class DataLoaders {
     public static void registerType(String id, ChestCavityType type) {
         if (id != null && type != null) {
             CHEST_CAVITY_TYPES.put(id, type);
+            dataVersion++;
         }
     }
 
     public static void unregisterType(String id) {
         if (id != null && !FALLBACK_ID.equals(id)) {
             CHEST_CAVITY_TYPES.remove(id);
+            dataVersion++;
         }
     }
 
     public static void registerEntityAssignment(ResourceLocation entityId, String typeId) {
         if (entityId != null && typeId != null) {
             ENTITY_ASSIGNMENTS.put(entityId, typeId);
+            dataVersion++;
         }
     }
 
     public static void unregisterEntityAssignment(ResourceLocation entityId) {
         if (entityId != null) {
             ENTITY_ASSIGNMENTS.remove(entityId);
+            dataVersion++;
         }
+    }
+
+    public static int getDataVersion() {
+        return dataVersion;
     }
 
     public static ChestCavityType getType(String id) {

@@ -85,6 +85,7 @@ public final class ChestCavityHelper {
     private static final String COMPATIBILITY_TAG = "chestcavity:organ_compatibility";
     private static final String COMPATIBILITY_OWNER_KEY = "owner";
     private static final String COMPATIBILITY_NAME_KEY = "name";
+    private static final int ATTRIBUTE_REFRESH_INTERVAL_TICKS = 20;
 
     private ChestCavityHelper() {
     }
@@ -109,11 +110,13 @@ public final class ChestCavityHelper {
     }
 
     public static void tick(EntityLivingBase entity, IChestCavity chestCavity) {
-        recalculateOrganScores(chestCavity);
+        ensureOrganScoresUpToDate(chestCavity);
         boolean scoreChanges = hasScoreChanges(chestCavity);
 
         if (!entity.world.isRemote) {
-            applyBasicAttributeModifiers(entity, chestCavity);
+            if (shouldRefreshAttributeModifiers(entity, chestCavity, scoreChanges)) {
+                applyBasicAttributeModifiers(entity, chestCavity);
+            }
             if (scoreChanges && chestCavity.getOldOrganScore(CCOrganScores.INCOMPATIBILITY) != chestCavity.getOrganScore(CCOrganScores.INCOMPATIBILITY)) {
                 entity.removePotionEffect(CCPotions.ORGAN_REJECTION);
             }
@@ -165,6 +168,7 @@ public final class ChestCavityHelper {
         }
 
         chestCavity.replaceOrganScores(scores);
+        markScoresClean(chestCavity);
     }
 
     public static void setOrganAndRecalculate(IChestCavity chestCavity, int slot, ItemStack stack) {
@@ -903,6 +907,33 @@ public final class ChestCavityHelper {
                 ChestCavityNetwork.sendChestCavitySync(owner);
             }
         }
+    }
+
+    private static void ensureOrganScoresUpToDate(IChestCavity chestCavity) {
+        if (chestCavity instanceof ChestCavityData) {
+            ChestCavityData data = (ChestCavityData) chestCavity;
+            if (!data.needsScoreRecalculation(DataLoaders.getDataVersion())) {
+                return;
+            }
+        }
+        recalculateOrganScores(chestCavity);
+    }
+
+    private static void markScoresClean(IChestCavity chestCavity) {
+        if (chestCavity instanceof ChestCavityData) {
+            ((ChestCavityData) chestCavity).markScoresClean(DataLoaders.getDataVersion());
+        }
+    }
+
+    private static boolean shouldRefreshAttributeModifiers(EntityLivingBase entity, IChestCavity chestCavity, boolean scoreChanges) {
+        if (chestCavity instanceof ChestCavityData) {
+            ChestCavityData data = (ChestCavityData) chestCavity;
+            if (scoreChanges) {
+                data.markAttributeModifiersDirty();
+            }
+            return data.shouldRefreshAttributeModifiers(entity.ticksExisted, ATTRIBUTE_REFRESH_INTERVAL_TICKS);
+        }
+        return true;
     }
 
     private static void drawOrgansFromPile(List<ItemStack> organPile, int rolls, Random random, List<ItemStack> loot) {

@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.capability;
 
+import com.shiver.chestcavity.data.DataLoaders;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -35,6 +36,10 @@ public class ChestCavityData implements IChestCavity {
     private int photosynthesisProgress;
     private int connectedCrystalId = -1;
     private final Queue<String> projectileQueue = new LinkedList<>();
+    private boolean scoresDirty = true;
+    private int cleanDataVersion = -1;
+    private boolean attributeModifiersDirty = true;
+    private int lastAttributeRefreshTick = Integer.MIN_VALUE;
 
     @Override
     public EntityLivingBase getOwner() {
@@ -122,6 +127,7 @@ public class ChestCavityData implements IChestCavity {
     @Override
     public void setOrganScore(String id, float value) {
         organScores.put(id, value);
+        markScoresDirty();
     }
 
     @Override
@@ -132,12 +138,14 @@ public class ChestCavityData implements IChestCavity {
     @Override
     public void clearOrganScores() {
         organScores.clear();
+        markScoresDirty();
     }
 
     @Override
     public void replaceOrganScores(Map<String, Float> scores) {
         organScores.clear();
         organScores.putAll(scores);
+        attributeModifiersDirty = true;
     }
 
     @Override
@@ -295,6 +303,37 @@ public class ChestCavityData implements IChestCavity {
             readScores(tag.getTagList("OrganScores", Constants.NBT.TAG_COMPOUND), organScores);
         }
         copyCurrentScoresToOld();
+        markScoresDirty();
+    }
+
+    public boolean needsScoreRecalculation(int dataVersion) {
+        return scoresDirty || cleanDataVersion != dataVersion;
+    }
+
+    public void markScoresDirty() {
+        scoresDirty = true;
+        attributeModifiersDirty = true;
+    }
+
+    public void markScoresClean(int dataVersion) {
+        scoresDirty = false;
+        cleanDataVersion = dataVersion;
+        attributeModifiersDirty = true;
+    }
+
+    public void markAttributeModifiersDirty() {
+        attributeModifiersDirty = true;
+    }
+
+    public boolean shouldRefreshAttributeModifiers(int ticksExisted, int intervalTicks) {
+        if (attributeModifiersDirty || lastAttributeRefreshTick == Integer.MIN_VALUE
+                || ticksExisted < lastAttributeRefreshTick
+                || ticksExisted - lastAttributeRefreshTick >= intervalTicks) {
+            attributeModifiersDirty = false;
+            lastAttributeRefreshTick = ticksExisted;
+            return true;
+        }
+        return false;
     }
 
     private int readInt(NBTTagCompound tag, String key, int fallback) {
@@ -351,8 +390,10 @@ public class ChestCavityData implements IChestCavity {
     private void setOrganInternal(int slot, ItemStack stack, boolean recalculate) {
         validateSlot(slot);
         organs.set(slot, stack == null || stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
+        markScoresDirty();
         if (recalculate) {
             ChestCavityHelper.recalculateOrganScores(this);
+            markScoresClean(DataLoaders.getDataVersion());
         }
     }
 
