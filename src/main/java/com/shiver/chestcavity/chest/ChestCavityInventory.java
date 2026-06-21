@@ -1,6 +1,5 @@
 package com.shiver.chestcavity.chest;
 
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -10,23 +9,12 @@ public class ChestCavityInventory extends InventoryBasic {
 
     public static final int DEFAULT_SIZE = 27;
 
-    private ChestCavityInstance instance;
-
     public ChestCavityInventory() {
-        this(DEFAULT_SIZE, null);
+        this(DEFAULT_SIZE);
     }
 
-    public ChestCavityInventory(int size, ChestCavityInstance instance) {
+    public ChestCavityInventory(int size) {
         super("container.chestcavity", false, size);
-        this.instance = instance;
-    }
-
-    public ChestCavityInstance getInstance() {
-        return instance;
-    }
-
-    public void setInstance(ChestCavityInstance instance) {
-        this.instance = instance;
     }
 
     public int size() {
@@ -64,14 +52,6 @@ public class ChestCavityInventory extends InventoryBasic {
             }
         }
         return list;
-    }
-
-    @Override
-    public boolean isUsableByPlayer(EntityPlayer player) {
-        if (instance == null || instance.getOwner() == null) {
-            return true;
-        }
-        return instance.getOwner().isEntityAlive() && player.getDistance(instance.getOwner()) < 8.0F;
     }
 
     @Override
