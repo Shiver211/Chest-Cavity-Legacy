@@ -1,5 +1,7 @@
-package com.shiver.chestcavity.capability;
+package com.shiver.chestcavity.organ;
 
+import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.registry.CCItems;
@@ -19,7 +21,7 @@ import net.minecraftforge.common.util.Constants;
 
 import java.util.Random;
 
-final class OrganFoodController {
+public final class OrganFoodController {
 
     private static final String ENDURANCE_LAST_EXHAUSTION_KEY = "chestcavity:last_exhaustion";
     private static final String FOOD_EXHAUSTION_KEY = "foodExhaustionLevel";
@@ -28,7 +30,7 @@ final class OrganFoodController {
     private OrganFoodController() {
     }
 
-    static void applyFoodEffects(EntityPlayer player, ItemStack eaten) {
+    public static void applyFoodEffects(EntityPlayer player, ItemStack eaten) {
         if (player == null || player.world.isRemote || eaten == null || eaten.isEmpty() || !(eaten.getItem() instanceof ItemFood)) {
             return;
         }
@@ -78,7 +80,7 @@ final class OrganFoodController {
         adjustFoodStats(player, vanillaFood, vanillaSaturation, effectiveFood, effectiveSaturation);
     }
 
-    static void consumeFurnacePowerFood(EntityPlayer player) {
+    public static void consumeFurnacePowerFood(EntityPlayer player) {
         if (player == null || player.world.isRemote || !(CCItems.FURNACE_POWER instanceof ItemFood)) {
             return;
         }

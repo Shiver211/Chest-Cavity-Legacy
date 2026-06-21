@@ -1,5 +1,7 @@
-package com.shiver.chestcavity.capability;
+package com.shiver.chestcavity.organ;
 
+import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.crt.CrTChestCavityEvents;
@@ -15,12 +17,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-final class OrganLifecycleController {
+public final class OrganLifecycleController {
 
     private OrganLifecycleController() {
     }
 
-    static void setOrganAndRecalculate(IChestCavity chestCavity, int slot, ItemStack stack) {
+    public static void setOrganAndRecalculate(IChestCavity chestCavity, int slot, ItemStack stack) {
         ItemStack oldStack = chestCavity.getOrgan(slot);
         ItemStack oldCopy = oldStack.isEmpty() ? ItemStack.EMPTY : oldStack.copy();
         ItemStack newCopy = stack == null || stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
@@ -29,7 +31,7 @@ final class OrganLifecycleController {
         applyAndSyncScoreChanges(chestCavity);
     }
 
-    static void openChestCavity(IChestCavity chestCavity) {
+    public static void openChestCavity(IChestCavity chestCavity) {
         if (!chestCavity.isOpened()) {
             ChestCavityType type = OrganTypeResolver.getAssignedType(chestCavity);
             if (type == null) {
@@ -52,7 +54,7 @@ final class OrganLifecycleController {
         }
     }
 
-    static void copy(EntityLivingBase original, EntityLivingBase replacement, boolean wasDeath) {
+    public static void copy(EntityLivingBase original, EntityLivingBase replacement, boolean wasDeath) {
         IChestCavity oldCavity = ChestCavityHelper.getOrNull(original);
         IChestCavity newCavity = ChestCavityHelper.getOrNull(replacement);
         if (oldCavity != null && newCavity != null) {
@@ -64,7 +66,7 @@ final class OrganLifecycleController {
         }
     }
 
-    static void destroyOrgansWithScore(IChestCavity chestCavity, String scoreId) {
+    public static void destroyOrgansWithScore(IChestCavity chestCavity, String scoreId) {
         if (chestCavity == null || scoreId == null) {
             return;
         }
@@ -83,7 +85,7 @@ final class OrganLifecycleController {
         }
     }
 
-    static boolean isOpenable(IChestCavity chestCavity) {
+    public static boolean isOpenable(IChestCavity chestCavity) {
         if (chestCavity == null) {
             return false;
         }
@@ -103,7 +105,7 @@ final class OrganLifecycleController {
         return weakEnough || easyAccess;
     }
 
-    static void applyAndSyncScoreChanges(IChestCavity chestCavity) {
+    public static void applyAndSyncScoreChanges(IChestCavity chestCavity) {
         EntityLivingBase owner = chestCavity.getOwner();
         if (owner == null) {
             return;

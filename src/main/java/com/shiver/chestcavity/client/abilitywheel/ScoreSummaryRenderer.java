@@ -1,4 +1,4 @@
-package com.shiver.chestcavity.client;
+package com.shiver.chestcavity.client.abilitywheel;
 
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;

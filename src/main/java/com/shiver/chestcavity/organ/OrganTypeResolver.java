@@ -1,5 +1,6 @@
-package com.shiver.chestcavity.capability;
+package com.shiver.chestcavity.organ;
 
+import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
@@ -8,16 +9,16 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 
-final class OrganTypeResolver {
+public final class OrganTypeResolver {
 
     private OrganTypeResolver() {
     }
 
-    static boolean hasAssignedType(IChestCavity chestCavity) {
+    public static boolean hasAssignedType(IChestCavity chestCavity) {
         return getAssignedType(chestCavity) != null;
     }
 
-    static ChestCavityType getType(IChestCavity chestCavity) {
+    public static ChestCavityType getType(IChestCavity chestCavity) {
         ChestCavityType assignedType = getAssignedType(chestCavity);
         if (assignedType != null) {
             return assignedType;

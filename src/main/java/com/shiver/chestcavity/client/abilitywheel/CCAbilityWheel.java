@@ -1,5 +1,6 @@
-package com.shiver.chestcavity.client;
+package com.shiver.chestcavity.client.abilitywheel;
 
+import com.shiver.chestcavity.client.CCKeyBindings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;

@@ -1,4 +1,4 @@
-package com.shiver.chestcavity.capability;
+package com.shiver.chestcavity.organ;
 
 import com.shiver.chestcavity.config.CCConfig;
 import net.minecraft.entity.EntityLivingBase;

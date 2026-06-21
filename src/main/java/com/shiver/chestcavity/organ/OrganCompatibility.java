@@ -1,12 +1,13 @@
-package com.shiver.chestcavity.capability;
+package com.shiver.chestcavity.organ;
 
+import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.registry.CCEnchantments;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants;
 
-final class OrganCompatibility {
+public final class OrganCompatibility {
 
     private static final String COMPATIBILITY_TAG = "chestcavity:organ_compatibility";
     private static final String OWNER_KEY = "owner";
@@ -15,7 +16,7 @@ final class OrganCompatibility {
     private OrganCompatibility() {
     }
 
-    static int getLevel(IChestCavity chestCavity, ItemStack stack) {
+    public static int getLevel(IChestCavity chestCavity, ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return 1;
         }
@@ -34,11 +35,11 @@ final class OrganCompatibility {
         return Math.max(oNegative, ownership);
     }
 
-    static boolean hasTag(ItemStack stack) {
+    public static boolean hasTag(ItemStack stack) {
         return getTag(stack) != null;
     }
 
-    static String getName(ItemStack stack) {
+    public static String getName(ItemStack stack) {
         NBTTagCompound tag = getTag(stack);
         return tag == null ? "" : tag.getString(NAME_KEY);
     }

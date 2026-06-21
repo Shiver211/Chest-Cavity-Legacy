@@ -1,4 +1,4 @@
-package com.shiver.chestcavity.client;
+package com.shiver.chestcavity.client.abilitywheel;
 
 import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Mouse;

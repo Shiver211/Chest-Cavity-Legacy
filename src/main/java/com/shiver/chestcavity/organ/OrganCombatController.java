@@ -1,5 +1,7 @@
-package com.shiver.chestcavity.capability;
+package com.shiver.chestcavity.organ;
 
+import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.config.CCConfig;
@@ -24,7 +26,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-final class OrganCombatController {
+public final class OrganCombatController {
 
     private static final Field POTION_EFFECT_DURATION_FIELD = findPotionEffectDurationField();
     private static final float DEFENSE_HALF_DAMAGE_STEP = 4.0F;
@@ -34,7 +36,7 @@ final class OrganCombatController {
     private OrganCombatController() {
     }
 
-    static float applyDefense(IChestCavity chestCavity, DamageSource source, float damage) {
+    public static float applyDefense(IChestCavity chestCavity, DamageSource source, float damage) {
         if (chestCavity == null || !chestCavity.isOpened() || damage <= 0.0F) {
             return damage;
         }
@@ -63,7 +65,7 @@ final class OrganCombatController {
         return damage;
     }
 
-    static boolean attemptProjectileDodge(EntityLivingBase entity, IChestCavity chestCavity, DamageSource source) {
+    public static boolean attemptProjectileDodge(EntityLivingBase entity, IChestCavity chestCavity, DamageSource source) {
         if (entity == null || chestCavity == null || !chestCavity.isOpened() || source == null || !source.isProjectile()) {
             return false;
         }
@@ -83,7 +85,7 @@ final class OrganCombatController {
         return true;
     }
 
-    static void adjustIncomingPotionEffect(EntityLivingBase entity, PotionEffect effect) {
+    public static void adjustIncomingPotionEffect(EntityLivingBase entity, PotionEffect effect) {
         if (entity == null || effect == null || effect.getPotion() == null || effect.getDuration() <= 1) {
             return;
         }
@@ -114,7 +116,7 @@ final class OrganCombatController {
         }
     }
 
-    static float applyFinalDamageEffects(EntityLivingBase target, DamageSource source, float damage) {
+    public static float applyFinalDamageEffects(EntityLivingBase target, DamageSource source, float damage) {
         if (target == null || source == null || damage <= 0.0F) {
             return damage;
         }
@@ -138,7 +140,7 @@ final class OrganCombatController {
         return damage;
     }
 
-    static void applyDestructiveCollisions(EntityLivingBase entity, IChestCavity chestCavity, DamageSource source, float damage) {
+    public static void applyDestructiveCollisions(EntityLivingBase entity, IChestCavity chestCavity, DamageSource source, float damage) {
         if (entity == null || chestCavity == null || source == null || damage <= 0.0F || entity.world.isRemote) {
             return;
         }
@@ -163,7 +165,7 @@ final class OrganCombatController {
         breakWeakCollisionBlocks(entity, center, budget, maxHardness);
     }
 
-    static void applyJump(EntityLivingBase entity, IChestCavity chestCavity) {
+    public static void applyJump(EntityLivingBase entity, IChestCavity chestCavity) {
         if (entity == null || chestCavity == null || !chestCavity.isOpened()) {
             return;
         }

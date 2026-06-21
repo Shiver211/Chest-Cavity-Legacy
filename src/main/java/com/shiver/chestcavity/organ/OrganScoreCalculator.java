@@ -1,5 +1,8 @@
-package com.shiver.chestcavity.capability;
+package com.shiver.chestcavity.organ;
 
+import com.shiver.chestcavity.capability.ChestCavityData;
+import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.data.DataLoaders;
@@ -9,12 +12,12 @@ import net.minecraft.item.ItemStack;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-final class OrganScoreCalculator {
+public final class OrganScoreCalculator {
 
     private OrganScoreCalculator() {
     }
 
-    static void recalculate(IChestCavity chestCavity) {
+    public static void recalculate(IChestCavity chestCavity) {
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
         Map<String, Float> scores = new LinkedHashMap<>();
 

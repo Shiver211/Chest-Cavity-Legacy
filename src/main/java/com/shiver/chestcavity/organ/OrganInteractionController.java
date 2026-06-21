@@ -1,5 +1,7 @@
-package com.shiver.chestcavity.capability;
+package com.shiver.chestcavity.organ;
 
+import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import com.shiver.chestcavity.registry.CCPotions;
@@ -17,12 +19,12 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.List;
 
-final class OrganInteractionController {
+public final class OrganInteractionController {
 
     private OrganInteractionController() {
     }
 
-    static void applyWaterSplash(Entity source) {
+    public static void applyWaterSplash(Entity source) {
         if (source == null || source.world == null || source.world.isRemote) {
             return;
         }
@@ -47,7 +49,7 @@ final class OrganInteractionController {
         }
     }
 
-    static boolean milkSilk(EntityLivingBase entity) {
+    public static boolean milkSilk(EntityLivingBase entity) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
         if (chestCavity == null || !chestCavity.isOpened()
                 || chestCavity.getOrganScore(CCOrganScores.SILK) <= 0.0F
@@ -62,7 +64,7 @@ final class OrganInteractionController {
         return spun;
     }
 
-    static boolean shearSilk(EntityLivingBase entity) {
+    public static boolean shearSilk(EntityLivingBase entity) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
         if (chestCavity == null || !chestCavity.isOpened()) {
             return false;

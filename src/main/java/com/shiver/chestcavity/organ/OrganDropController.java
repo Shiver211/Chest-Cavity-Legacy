@@ -1,5 +1,7 @@
-package com.shiver.chestcavity.capability;
+package com.shiver.chestcavity.organ;
 
+import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
@@ -16,14 +18,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-final class OrganDropController {
+public final class OrganDropController {
 
     private static final String BUTCHERING_TOOL_ORE = "chestcavity:butchering_tool";
 
     private OrganDropController() {
     }
 
-    static List<ItemStack> generateUnopenedOrganDrops(IChestCavity chestCavity, Random random, int baseLooting, EntityLivingBase killer) {
+    public static List<ItemStack> generateUnopenedOrganDrops(IChestCavity chestCavity, Random random, int baseLooting, EntityLivingBase killer) {
         List<ItemStack> loot = new ArrayList<ItemStack>();
         if (chestCavity == null || random == null) {
             return loot;
@@ -66,7 +68,7 @@ final class OrganDropController {
         return loot;
     }
 
-    static List<ItemStack> removeUnboundOrgansForDeath(IChestCavity chestCavity) {
+    public static List<ItemStack> removeUnboundOrgansForDeath(IChestCavity chestCavity) {
         List<ItemStack> drops = new ArrayList<ItemStack>();
         if (chestCavity == null || !chestCavity.isOpened()) {
             return drops;

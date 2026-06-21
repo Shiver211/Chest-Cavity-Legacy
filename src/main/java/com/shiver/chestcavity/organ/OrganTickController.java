@@ -1,6 +1,9 @@
-package com.shiver.chestcavity.capability;
+package com.shiver.chestcavity.organ;
 
 import com.shiver.chestcavity.ability.ActiveOrganAbilities;
+import com.shiver.chestcavity.capability.ChestCavityData;
+import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.data.DataLoaders;
@@ -21,7 +24,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.List;
 
-final class OrganTickController {
+public final class OrganTickController {
 
     private static final DamageSource HEART_BLEED_DAMAGE = new DamageSource("cc_heartbleed").setDamageBypassesArmor();
     private static final int HYDROPHOBIA_INTERVAL_TICKS = 20;
@@ -29,7 +32,7 @@ final class OrganTickController {
     private OrganTickController() {
     }
 
-    static void tick(EntityLivingBase entity, IChestCavity chestCavity) {
+    public static void tick(EntityLivingBase entity, IChestCavity chestCavity) {
         ensureOrganScoresUpToDate(chestCavity);
         boolean scoreChanges = ChestCavityHelper.hasScoreChanges(chestCavity);
 

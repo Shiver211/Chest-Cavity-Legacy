@@ -1,6 +1,7 @@
 package com.shiver.chestcavity.client;
 
 import com.shiver.chestcavity.Tags;
+import com.shiver.chestcavity.client.abilitywheel.CCAbilityWheel;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
