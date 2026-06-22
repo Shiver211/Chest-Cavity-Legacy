@@ -11,8 +11,19 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.List;
 
+/**
+ * 负责能力轮盘本体、扇区和文字的渲染。
+ */
 final class AbilityWheelRenderer {
 
+    /**
+     * 绘制“没有可用能力”时的空轮盘界面。
+     *
+     * @param minecraft 客户端实例。
+     * @param centerX 轮盘中心 X。
+     * @param centerY 轮盘中心 Y。
+     * @param alphaScale 当前透明度缩放。
+     */
     void drawEmpty(Minecraft minecraft, int centerX, int centerY, double alphaScale) {
         beginShapeRendering();
         drawCircle(centerX, centerY, AbilityWheelConstants.RADIUS + 5, 10, 10, 12, (int) (140 * alphaScale));
@@ -22,6 +33,16 @@ final class AbilityWheelRenderer {
                 I18n.format("gui.chestcavity.no_abilities"), centerX, centerY - 4, 0xFFFFFF, alphaScale);
     }
 
+    /**
+     * 绘制包含能力扇区、指针与名称的完整轮盘。
+     *
+     * @param minecraft 客户端实例。
+     * @param centerX 轮盘中心 X。
+     * @param centerY 轮盘中心 Y。
+     * @param abilities 当前可用能力列表。
+     * @param state 轮盘状态。
+     * @param alphaScale 当前透明度缩放。
+     */
     void drawAbilities(Minecraft minecraft, int centerX, int centerY,
                        List<String> abilities, AbilityWheelState state, double alphaScale) {
         beginShapeRendering();
@@ -37,6 +58,9 @@ final class AbilityWheelRenderer {
                 centerX, centerY - 4, 0xFFD700, alphaScale);
     }
 
+    /**
+     * 准备形状渲染所需的 OpenGL 状态。
+     */
     private static void beginShapeRendering() {
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
@@ -49,6 +73,15 @@ final class AbilityWheelRenderer {
                 GlStateManager.DestFactor.ZERO);
     }
 
+    /**
+     * 绘制能力轮盘的所有扇区，并根据悬停状态应用渐变和高亮。
+     *
+     * @param centerX 轮盘中心 X。
+     * @param centerY 轮盘中心 Y。
+     * @param abilities 当前可用能力列表。
+     * @param state 轮盘状态。
+     * @param alphaScale 当前透明度缩放。
+     */
     private static void drawAbilitySegments(int centerX, int centerY,
                                             List<String> abilities, AbilityWheelState state, double alphaScale) {
         double step = AbilityWheelConstants.TWO_PI / abilities.size();
@@ -92,6 +125,16 @@ final class AbilityWheelRenderer {
         }
     }
 
+    /**
+     * 绘制每个能力扇区的名称标签。
+     *
+     * @param fontRenderer 字体渲染器。
+     * @param centerX 轮盘中心 X。
+     * @param centerY 轮盘中心 Y。
+     * @param abilities 当前可用能力列表。
+     * @param state 轮盘状态。
+     * @param alphaScale 当前透明度缩放。
+     */
     private static void drawAbilityLabels(FontRenderer fontRenderer, int centerX, int centerY,
                                           List<String> abilities, AbilityWheelState state, double alphaScale) {
         double step = AbilityWheelConstants.TWO_PI / abilities.size();
@@ -114,6 +157,17 @@ final class AbilityWheelRenderer {
         }
     }
 
+    /**
+     * 绘制一个纯色圆形。
+     *
+     * @param centerX 圆心 X。
+     * @param centerY 圆心 Y。
+     * @param radius 半径。
+     * @param red 红色分量。
+     * @param green 绿色分量。
+     * @param blue 蓝色分量。
+     * @param alpha 透明度。
+     */
     private static void drawCircle(int centerX, int centerY, int radius, int red, int green, int blue, int alpha) {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
@@ -128,6 +182,24 @@ final class AbilityWheelRenderer {
         tessellator.draw();
     }
 
+    /**
+     * 绘制一个带内外渐变的扇形区域。
+     *
+     * @param centerX 圆心 X。
+     * @param centerY 圆心 Y。
+     * @param innerRadius 内半径。
+     * @param outerRadius 外半径。
+     * @param start 起始角度。
+     * @param end 结束角度。
+     * @param inR 内圈红色分量。
+     * @param inG 内圈绿色分量。
+     * @param inB 内圈蓝色分量。
+     * @param inA 内圈透明度。
+     * @param outR 外圈红色分量。
+     * @param outG 外圈绿色分量。
+     * @param outB 外圈蓝色分量。
+     * @param outA 外圈透明度。
+     */
     private static void drawWedgeWithGradient(int centerX, int centerY, int innerRadius, int outerRadius,
                                               double start, double end,
                                               int inR, int inG, int inB, int inA,
@@ -156,6 +228,9 @@ final class AbilityWheelRenderer {
         tessellator.draw();
     }
 
+    /**
+     * 恢复形状渲染前的 OpenGL 状态。
+     */
     private static void finishShapeRendering() {
         GlStateManager.enableDepth();
         GlStateManager.enableTexture2D();
@@ -163,6 +238,16 @@ final class AbilityWheelRenderer {
         GlStateManager.popMatrix();
     }
 
+    /**
+     * 以指定透明度绘制居中文字。
+     *
+     * @param fontRenderer 字体渲染器。
+     * @param text 文本内容。
+     * @param x 绘制中心 X。
+     * @param y 绘制位置 Y。
+     * @param color RGB 颜色值。
+     * @param alphaScale 透明度缩放。
+     */
     static void drawCenteredStringWithAlpha(FontRenderer fontRenderer, String text,
                                             int x, int y, int color, double alphaScale) {
         int alpha = (int) (255 * alphaScale);
@@ -181,6 +266,16 @@ final class AbilityWheelRenderer {
         fontRenderer.drawStringWithShadow(text, x - fontRenderer.getStringWidth(text) / 2.0F, y, finalColor);
     }
 
+    /**
+     * 以指定透明度绘制普通左对齐文字。
+     *
+     * @param fontRenderer 字体渲染器。
+     * @param text 文本内容。
+     * @param x 绘制位置 X。
+     * @param y 绘制位置 Y。
+     * @param color RGB 颜色值。
+     * @param alphaScale 透明度缩放。
+     */
     static void drawStringWithAlpha(FontRenderer fontRenderer, String text,
                                     int x, int y, int color, double alphaScale) {
         int alpha = (int) (255 * alphaScale);

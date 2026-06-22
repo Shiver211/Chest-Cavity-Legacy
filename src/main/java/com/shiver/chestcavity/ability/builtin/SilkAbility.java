@@ -17,13 +17,26 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+/**
+ * 将丝腺分数转化为方块或线掉落的主动能力。
+ */
 final class SilkAbility implements ActiveOrganAbility {
 
     static final SilkAbility INSTANCE = new SilkAbility();
 
+    /**
+     * 单例能力实现，不允许外部实例化。
+     */
     private SilkAbility() {
     }
 
+    /**
+     * 尝试在玩家身后生成蛛网或羊毛，并把剩余分数转化为线。
+     *
+     * @param player 发动能力的玩家。
+     * @param chestCavity 玩家当前胸腔数据。
+     * @return `true` 表示能力成功发动。
+     */
     @Override
     public boolean activate(EntityPlayerMP player, IChestCavity chestCavity) {
         float silk = chestCavity.getOrganScore(CCOrganScores.SILK);
@@ -67,6 +80,14 @@ final class SilkAbility implements ActiveOrganAbility {
         return true;
     }
 
+    /**
+     * 尝试在指定位置放置一个丝质方块。
+     *
+     * @param player 发动能力的玩家。
+     * @param block 要放置的方块。
+     * @param pos 目标位置。
+     * @return `true` 表示方块放置成功。
+     */
     private static boolean placeSilkBlock(EntityPlayerMP player, Block block, BlockPos pos) {
         World world = player.world;
         ItemStack blockStack = new ItemStack(Item.getItemFromBlock(block));

@@ -39,6 +39,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
+/**
+ * 负责从资源包、配置目录和运行时覆盖中加载胸腔相关数据。
+ */
 public final class DataLoaders {
 
     public static final String DATA_ROOT = "chestcavity_data";
@@ -54,9 +57,17 @@ public final class DataLoaders {
     private static final ResourceLocation PLAYER_ENTITY_ID = new ResourceLocation("minecraft", "player");
     private static int dataVersion;
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private DataLoaders() {
     }
 
+    /**
+     * 重新加载全部胸腔数据，包括器官、类型和实体分配。
+     *
+     * @param gameDir 游戏根目录。
+     */
     public static void reload(File gameDir) {
         CHEST_CAVITY_TYPES.clear();
         ENTITY_ASSIGNMENTS.clear();
@@ -82,6 +93,11 @@ public final class DataLoaders {
                 ENTITY_ASSIGNMENTS.size());
     }
 
+    /**
+     * 应用一条运行时覆盖逻辑，并在重载后自动重放。
+     *
+     * @param override 运行时覆盖逻辑。
+     */
     public static void applyRuntimeOverride(Runnable override) {
         if (override == null) {
             return;
@@ -95,6 +111,9 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 在基础数据加载完成后重放全部运行时覆盖。
+     */
     private static void replayRuntimeOverrides() {
         if (RUNTIME_OVERRIDES.isEmpty()) {
             return;
@@ -110,6 +129,12 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 注册一个胸腔类型。
+     *
+     * @param id 类型标识。
+     * @param type 胸腔类型对象。
+     */
     public static void registerType(String id, ChestCavityType type) {
         if (id != null && type != null) {
             CHEST_CAVITY_TYPES.put(id, type);
@@ -117,6 +142,11 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 注销一个胸腔类型。
+     *
+     * @param id 类型标识。
+     */
     public static void unregisterType(String id) {
         if (id != null && !FALLBACK_ID.equals(id)) {
             CHEST_CAVITY_TYPES.remove(id);
@@ -124,6 +154,12 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 注册一个实体到胸腔类型的分配关系。
+     *
+     * @param entityId 实体注册名。
+     * @param typeId 胸腔类型标识。
+     */
     public static void registerEntityAssignment(ResourceLocation entityId, String typeId) {
         if (entityId != null && typeId != null) {
             ENTITY_ASSIGNMENTS.put(entityId, typeId);
@@ -131,6 +167,11 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 注销一个实体到胸腔类型的分配关系。
+     *
+     * @param entityId 实体注册名。
+     */
     public static void unregisterEntityAssignment(ResourceLocation entityId) {
         if (entityId != null) {
             ENTITY_ASSIGNMENTS.remove(entityId);
@@ -138,31 +179,69 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 返回当前数据版本号。
+     *
+     * @return 数据版本号。
+     */
     public static int getDataVersion() {
         return dataVersion;
     }
 
+    /**
+     * 按类型标识返回胸腔类型；找不到时回退到保底类型。
+     *
+     * @param id 类型标识。
+     * @return 对应的胸腔类型。
+     */
     public static ChestCavityType getType(String id) {
         ChestCavityType type = CHEST_CAVITY_TYPES.get(id);
         return type == null ? FALLBACK_TYPE : type;
     }
 
+    /**
+     * 返回保底胸腔类型。
+     *
+     * @return 保底胸腔类型。
+     */
     public static ChestCavityType getFallbackType() {
         return FALLBACK_TYPE;
     }
 
+    /**
+     * 返回指定实体被分配到的胸腔类型标识。
+     *
+     * @param entityId 实体注册名。
+     * @return 胸腔类型标识。
+     */
     public static String getAssignedTypeId(ResourceLocation entityId) {
         return ENTITY_ASSIGNMENTS.get(entityId);
     }
 
+    /**
+     * 返回全部胸腔类型的只读视图。
+     *
+     * @return 胸腔类型映射。
+     */
     public static Map<String, ChestCavityType> getTypes() {
         return Collections.unmodifiableMap(CHEST_CAVITY_TYPES);
     }
 
+    /**
+     * 返回全部实体分配关系的只读视图。
+     *
+     * @return 实体分配映射。
+     */
     public static Map<ResourceLocation, String> getEntityAssignments() {
         return Collections.unmodifiableMap(ENTITY_ASSIGNMENTS);
     }
 
+    /**
+     * 收集所有可能存在资源数据的目录位置。
+     *
+     * @param gameDir 游戏根目录。
+     * @return 可能的数据目录列表。
+     */
     private static List<File> getAssetDataDirectories(File gameDir) {
         List<File> directories = new ArrayList<>();
         directories.add(new File("build/resources/main/" + ASSET_DATA_PATH));
@@ -174,6 +253,11 @@ public final class DataLoaders {
         return directories;
     }
 
+    /**
+     * 从 classpath 中补充加载打包后的资源数据。
+     *
+     * @param scannedDirectories 已扫描目录集合，用于去重。
+     */
     private static void loadClasspathAssets(Set<String> scannedDirectories) {
         URL resource = DataLoaders.class.getClassLoader().getResource(ASSET_DATA_PATH);
         if (resource == null) {
@@ -192,6 +276,11 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 从 jar 内部读取打包后的胸腔数据资源。
+     *
+     * @param resource 指向数据根目录的 jar 资源 URL。
+     */
     private static void loadJarAssets(URL resource) {
         try {
             JarURLConnection connection = (JarURLConnection) resource.openConnection();
@@ -219,6 +308,13 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 扫描一个目录并加载其中的全部 JSON 数据。
+     *
+     * @param root 要扫描的目录。
+     * @param sourceName 日志中使用的数据来源名称。
+     * @param scannedDirectories 已扫描目录集合，用于去重。
+     */
     private static void loadDirectory(File root, String sourceName, Set<String> scannedDirectories) {
         if (root == null || !root.isDirectory()) {
             return;
@@ -246,6 +342,12 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 加载单个 JSON 文件。
+     *
+     * @param rootPath 根目录路径。
+     * @param jsonPath JSON 文件路径。
+     */
     private static void loadJsonFile(Path rootPath, Path jsonPath) {
         String relativePath = rootPath.relativize(jsonPath).toString().replace(File.separatorChar, '/');
         try (Reader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(jsonPath), StandardCharsets.UTF_8))) {
@@ -256,6 +358,12 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 根据相对路径分发一份 JSON 数据到对应加载器。
+     *
+     * @param relativePath 相对数据路径。
+     * @param reader JSON 读取器。
+     */
     private static void loadJson(String relativePath, Reader reader) {
         ResourceLocation id = new ResourceLocation(Tags.MOD_ID, relativePath);
         JsonElement root = new JsonParser().parse(reader);
@@ -273,11 +381,24 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 从类型数据路径中提取胸腔类型标识。
+     *
+     * @param relativePath 相对数据路径。
+     * @return 类型标识。
+     */
     private static String typeIdFromPath(String relativePath) {
         String fileName = relativePath.substring(relativePath.lastIndexOf('/') + 1);
         return fileName.endsWith(".json") ? fileName.substring(0, fileName.length() - 5) : fileName;
     }
 
+    /**
+     * 从 JSON 中读取一个胸腔类型定义。
+     *
+     * @param typeId 类型标识。
+     * @param id 数据文件资源标识。
+     * @param json 解析后的 JSON 对象。
+     */
     private static void loadType(String typeId, ResourceLocation id, JsonObject json) {
         GeneratedChestCavityType type = new GeneratedChestCavityType();
         List<Integer> forbiddenSlots = readForbiddenSlots(id, json.get("forbiddenSlots"));
@@ -303,6 +424,12 @@ public final class DataLoaders {
         registerType(typeId, type);
     }
 
+    /**
+     * 从 JSON 中读取实体到胸腔类型的分配定义。
+     *
+     * @param id 数据文件资源标识。
+     * @param json 解析后的 JSON 对象。
+     */
     private static void loadEntityAssignment(ResourceLocation id, JsonObject json) {
         if (!json.has("chestcavity") || !json.has("entities")) {
             ChestCavityLegacy.LOGGER.warn("Skipping entity assignment {} because chestcavity or entities is missing.", id);
@@ -330,6 +457,14 @@ public final class DataLoaders {
         }
     }
 
+    /**
+     * 从 JSON 中读取默认胸腔布局。
+     *
+     * @param id 数据文件资源标识。
+     * @param element 默认布局对应的 JSON 元素。
+     * @param forbiddenSlots 禁用槽位列表。
+     * @return 解析出的默认胸腔布局。
+     */
     private static ChestCavityInventory readDefaultChestCavity(ResourceLocation id, JsonElement element, List<Integer> forbiddenSlots) {
         ChestCavityInventory inventory = new ChestCavityInventory();
         if (element == null || !element.isJsonArray()) {
@@ -377,6 +512,13 @@ public final class DataLoaders {
         return inventory;
     }
 
+    /**
+     * 从 JSON 数组中读取器官分数字典。
+     *
+     * @param id 数据文件资源标识。
+     * @param element 记录器官分数的 JSON 元素。
+     * @return 器官分数字典。
+     */
     private static Map<String, Float> readOrganScores(ResourceLocation id, JsonElement element) {
         Map<String, Float> scores = new LinkedHashMap<>();
         if (element == null || !element.isJsonArray()) {
@@ -402,6 +544,13 @@ public final class DataLoaders {
         return scores;
     }
 
+    /**
+     * 从 JSON 中读取特殊器官匹配规则列表。
+     *
+     * @param id 数据文件资源标识。
+     * @param element 记录特殊器官的 JSON 元素。
+     * @return 特殊器官规则列表。
+     */
     private static List<GeneratedChestCavityType.ExceptionalOrgan> readExceptionalOrgans(ResourceLocation id, JsonElement element) {
         List<GeneratedChestCavityType.ExceptionalOrgan> organs = new ArrayList<>();
         if (element == null || !element.isJsonArray()) {
@@ -449,6 +598,12 @@ public final class DataLoaders {
         return organs;
     }
 
+    /**
+     * 把部分标签名称映射成 1.12.2 可用的矿辞名称。
+     *
+     * @param tag 标签名称。
+     * @return 对应的矿辞名称；如果不支持则返回 `null`。
+     */
     private static String mapTagToOreName(String tag) {
         if ("minecraft:logs".equals(tag)) {
             return "logWood";
@@ -459,6 +614,13 @@ public final class DataLoaders {
         return null;
     }
 
+    /**
+     * 从 JSON 中读取禁用槽位列表。
+     *
+     * @param id 数据文件资源标识。
+     * @param element 记录禁用槽位的 JSON 元素。
+     * @return 禁用槽位列表。
+     */
     private static List<Integer> readForbiddenSlots(ResourceLocation id, JsonElement element) {
         List<Integer> slots = new ArrayList<>();
         if (element == null) {
@@ -479,6 +641,12 @@ public final class DataLoaders {
         return slots;
     }
 
+    /**
+     * 判断一个实体在当前 1.12.2 环境中是否已注册。
+     *
+     * @param entityId 实体注册名。
+     * @return `true` 表示该实体存在。
+     */
     public static boolean isEntityPresent(ResourceLocation entityId) {
         return PLAYER_ENTITY_ID.equals(entityId) || ForgeRegistries.ENTITIES.getValue(entityId) != null;
     }

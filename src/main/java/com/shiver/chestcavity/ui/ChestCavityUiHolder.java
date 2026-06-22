@@ -12,8 +12,19 @@ import com.shiver.chestcavity.capability.IChestCavity;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 
+/**
+ * 负责构建胸腔界面的 ModularUI 面板内容。
+ */
 public class ChestCavityUiHolder implements IGuiHolder<ChestCavityGuiData> {
 
+    /**
+     * 根据目标实体的胸腔数据构建交互界面。
+     *
+     * @param data 界面同步数据。
+     * @param syncManager 面板同步管理器。
+     * @param settings 界面设置。
+     * @return 构建好的胸腔界面面板。
+     */
     @Override
     public ModularPanel buildUI(ChestCavityGuiData data, PanelSyncManager syncManager, UISettings settings) {
         settings.canInteractWith(player -> ChestCavityUiBridge.canKeepOpen(player, data));

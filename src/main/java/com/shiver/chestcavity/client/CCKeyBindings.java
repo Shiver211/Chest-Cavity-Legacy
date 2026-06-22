@@ -15,6 +15,9 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
+/**
+ * 注册并处理客户端的器官能力快捷键。
+ */
 @SideOnly(Side.CLIENT)
 public final class CCKeyBindings {
 
@@ -27,9 +30,15 @@ public final class CCKeyBindings {
 
     private static boolean registered;
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private CCKeyBindings() {
     }
 
+    /**
+     * 注册能力轮盘与释放能力快捷键，并挂接输入事件监听。
+     */
     public static void register() {
         if (registered) {
             return;
@@ -43,6 +52,11 @@ public final class CCKeyBindings {
         registered = true;
     }
 
+    /**
+     * 监听按键输入，并在按下释放键时向服务端发送能力激活请求。
+     *
+     * @param event Forge 键盘输入事件。
+     */
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (Minecraft.getMinecraft().player == null) {
@@ -57,12 +71,25 @@ public final class CCKeyBindings {
         }
     }
 
+    /**
+     * 创建并注册一个按键绑定。
+     *
+     * @param id 按键标识。
+     * @param defaultKey 默认键位。
+     * @return 注册后的按键对象。
+     */
     private static KeyBinding register(ResourceLocation id, int defaultKey) {
         KeyBinding keyBinding = new KeyBinding("key." + id.getNamespace() + "." + id.getPath(), defaultKey, CATEGORY);
         ClientRegistry.registerKeyBinding(keyBinding);
         return keyBinding;
     }
 
+    /**
+     * 根据路径创建本模组命名空间下的资源标识。
+     *
+     * @param path 资源路径。
+     * @return 对应的资源标识。
+     */
     private static ResourceLocation id(String path) {
         return new ResourceLocation(Tags.MOD_ID, path);
     }

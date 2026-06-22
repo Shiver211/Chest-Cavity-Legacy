@@ -19,6 +19,9 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.registries.IForgeRegistry;
 
+/**
+ * 集中定义并注册模组中的全部物品。
+ */
 public final class CCItems {
 
     private static final List<Item> ITEMS = new ArrayList<Item>();
@@ -181,17 +184,33 @@ public final class CCItems {
 
     public static final Item FURNACE_POWER = register("furnace_power", food(1, 0.6F, 64, false), CCTabs.MAIN);
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private CCItems() {
     }
 
+    /**
+     * 把全部物品注册到 Forge 注册表中。
+     *
+     * @param registry 物品注册表。
+     */
     public static void register(IForgeRegistry<Item> registry) {
         registry.registerAll(ITEMS.toArray(new Item[ITEMS.size()]));
     }
 
+    /**
+     * 返回全部已注册物品的只读列表。
+     *
+     * @return 物品列表。
+     */
     public static List<Item> getItems() {
         return Collections.unmodifiableList(ITEMS);
     }
 
+    /**
+     * 把模组物品批量注册到矿辞中，供配方和掉落逻辑使用。
+     */
     public static void registerOreDictionary() {
         registerOre("chestcavity:butchering_tool",
                 "wooden_cleaver",
@@ -350,6 +369,9 @@ public final class CCItems {
         registerSalvageableUnion();
     }
 
+    /**
+     * 注册总的“可拆解器官”矿辞集合。
+     */
     private static void registerSalvageableUnion() {
         registerOre("chestcavity:salvageable",
                 "appendix",
@@ -474,34 +496,82 @@ public final class CCItems {
                 "writhing_soulsand");
     }
 
+    /**
+     * 创建一个标准动物器官食物物品。
+     *
+     * @return 动物器官物品。
+     */
     private static Item animalOrgan() {
         return food(2, 0.6F, 1);
     }
 
+    /**
+     * 创建一个仅设置堆叠上限的基础物品。
+     *
+     * @param maxStackSize 最大堆叠数量。
+     * @return 基础物品。
+     */
     private static Item basicItem(int maxStackSize) {
         Item item = new Item();
         item.setMaxStackSize(maxStackSize);
         return item;
     }
 
+    /**
+     * 创建一把指定材质的切割刀。
+     *
+     * @param material 工具材质。
+     * @return 切割刀物品。
+     */
     private static ItemSword cleaver(Item.ToolMaterial material) {
         return new ItemSword(material);
     }
 
+    /**
+     * 创建一个默认允许狼食用的食物物品。
+     *
+     * @param amount 回复饥饿值。
+     * @param saturation 饱和度。
+     * @param maxStackSize 最大堆叠数量。
+     * @return 食物物品。
+     */
     private static ItemFood food(int amount, float saturation, int maxStackSize) {
         return food(amount, saturation, maxStackSize, true);
     }
 
+    /**
+     * 创建一个可配置是否为狼食物的食物物品。
+     *
+     * @param amount 回复饥饿值。
+     * @param saturation 饱和度。
+     * @param maxStackSize 最大堆叠数量。
+     * @param isWolfFood 是否允许狼食用。
+     * @return 食物物品。
+     */
     private static ItemFood food(int amount, float saturation, int maxStackSize, boolean isWolfFood) {
         ItemFood item = new ItemFood(amount, saturation, isWolfFood);
         item.setMaxStackSize(maxStackSize);
         return item;
     }
 
+    /**
+     * 创建一个标准人类器官食物物品。
+     *
+     * @return 人类器官物品。
+     */
     private static Item humanOrgan() {
         return food(3, 0.6F, 1);
     }
 
+    /**
+     * 批量注册一组普通食物物品。
+     *
+     * @param amount 回复饥饿值。
+     * @param saturation 饱和度。
+     * @param maxStackSize 最大堆叠数量。
+     * @param names 物品注册名列表。
+     * @return 注册后的物品数组。
+     */
     private static Item[] registerFoods(int amount, float saturation, int maxStackSize, String... names) {
         Item[] items = new Item[names.length];
         for (int i = 0; i < names.length; i++) {
@@ -510,6 +580,15 @@ public final class CCItems {
         return items;
     }
 
+    /**
+     * 批量注册一组带中毒效果的食物物品。
+     *
+     * @param amount 回复饥饿值。
+     * @param saturation 饱和度。
+     * @param maxStackSize 最大堆叠数量。
+     * @param names 物品注册名列表。
+     * @return 注册后的物品数组。
+     */
     private static Item[] registerToxicFoods(int amount, float saturation, int maxStackSize, String... names) {
         Item[] items = new Item[names.length];
         for (int i = 0; i < names.length; i++) {
@@ -518,22 +597,47 @@ public final class CCItems {
         return items;
     }
 
+    /**
+     * 创建一个带饥饿副作用的腐烂食物。
+     *
+     * @param amount 回复饥饿值。
+     * @param maxStackSize 最大堆叠数量。
+     * @return 腐烂食物物品。
+     */
     private static ItemFood rottenFood(int amount, int maxStackSize) {
         ItemFood item = food(amount, 0.1F, maxStackSize);
         item.setPotionEffect(new PotionEffect(MobEffects.HUNGER, 600, 0), 0.8F);
         return item;
     }
 
+    /**
+     * 创建一个标准腐烂器官物品。
+     *
+     * @return 腐烂器官物品。
+     */
     private static Item rottenOrgan() {
         return rottenFood(4, 1);
     }
 
+    /**
+     * 创建一个必定带中毒效果的食物。
+     *
+     * @param amount 回复饥饿值。
+     * @param saturation 饱和度。
+     * @param maxStackSize 最大堆叠数量。
+     * @return 有毒食物物品。
+     */
     private static ItemFood toxicFood(int amount, float saturation, int maxStackSize) {
         ItemFood item = food(amount, saturation, maxStackSize);
         item.setPotionEffect(new PotionEffect(MobEffects.POISON, 80, 0), 1.0F);
         return item;
     }
 
+    /**
+     * 创建一个毒腺食物物品。
+     *
+     * @return 毒腺物品。
+     */
     private static ItemFood venomGland() {
         ItemFood item = new ItemFood(2, 0.6F, true);
         item.setMaxStackSize(1);
@@ -541,6 +645,14 @@ public final class CCItems {
         return item;
     }
 
+    /**
+     * 写入物品注册信息并加入待注册列表。
+     *
+     * @param name 注册名。
+     * @param item 物品对象。
+     * @param tab 创造标签页。
+     * @return 原物品对象，便于常量初始化。
+     */
     private static Item register(String name, Item item, CreativeTabs tab) {
         if (ITEMS_BY_NAME.containsKey(name)) {
             throw new IllegalStateException("Duplicate item name: " + Tags.MOD_ID + ":" + name);
@@ -553,6 +665,12 @@ public final class CCItems {
         return item;
     }
 
+    /**
+     * 把一组已注册物品写入同一个矿辞条目。
+     *
+     * @param name 矿辞名称。
+     * @param itemNames 物品注册名列表。
+     */
     private static void registerOre(String name, String... itemNames) {
         for (String itemName : itemNames) {
             Item item = ITEMS_BY_NAME.get(itemName);

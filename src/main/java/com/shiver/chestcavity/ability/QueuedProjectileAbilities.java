@@ -17,13 +17,26 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.List;
 
+/**
+ * 负责把排队中的投射物能力转换成实际实体。
+ */
 final class QueuedProjectileAbilities {
 
     private static final float FORCEFUL_SPIT_VELOCITY = 2.0F;
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private QueuedProjectileAbilities() {
     }
 
+    /**
+     * 按能力标识生成对应的投射物实体。
+     *
+     * @param entity 发动能力的实体。
+     * @param abilityId 要执行的能力标识。
+     * @return `true` 表示投射物成功生成。
+     */
     static boolean fire(EntityLivingBase entity, String abilityId) {
         if (!(entity instanceof EntityPlayerMP)) {
             return false;
@@ -48,6 +61,12 @@ final class QueuedProjectileAbilities {
         return false;
     }
 
+    /**
+     * 生成一枚小型火球。
+     *
+     * @param player 发动能力的玩家。
+     * @return `true` 表示火球成功生成。
+     */
     private static boolean spawnPyromancyFireball(EntityPlayerMP player) {
         Vec3d look = getNormalizedLook(player);
         if (look == null) {
@@ -58,6 +77,12 @@ final class QueuedProjectileAbilities {
         return player.world.spawnEntity(fireball);
     }
 
+    /**
+     * 生成一枚龙息火球。
+     *
+     * @param player 发动能力的玩家。
+     * @return `true` 表示火球成功生成。
+     */
     private static boolean spawnDragonBomb(EntityPlayerMP player) {
         Vec3d look = getNormalizedLook(player);
         if (look == null) {
@@ -68,6 +93,12 @@ final class QueuedProjectileAbilities {
         return player.world.spawnEntity(fireball);
     }
 
+    /**
+     * 生成一枚强力吐息投射物。
+     *
+     * @param player 发动能力的玩家。
+     * @return `true` 表示投射物成功生成。
+     */
     private static boolean spawnForcefulSpit(EntityPlayerMP player) {
         Vec3d look = getNormalizedLook(player);
         if (look == null) {
@@ -79,6 +110,12 @@ final class QueuedProjectileAbilities {
         return player.world.spawnEntity(spit);
     }
 
+    /**
+     * 生成一枚大型恶魂火球。
+     *
+     * @param player 发动能力的玩家。
+     * @return `true` 表示火球成功生成。
+     */
     private static boolean spawnGhastlyFireball(EntityPlayerMP player) {
         Vec3d look = getNormalizedLook(player);
         if (look == null) {
@@ -90,6 +127,12 @@ final class QueuedProjectileAbilities {
         return player.world.spawnEntity(fireball);
     }
 
+    /**
+     * 生成一枚自动追踪最近目标的潜影贝子弹。
+     *
+     * @param player 发动能力的玩家。
+     * @return `true` 表示子弹成功生成。
+     */
     private static boolean spawnShulkerBullet(EntityPlayerMP player) {
         EntityLivingBase target = findNearestTarget(player, CCConfig.SHULKER_BULLET_TARGETING_RANGE);
         if (target == null) {
@@ -99,6 +142,12 @@ final class QueuedProjectileAbilities {
         return player.world.spawnEntity(bullet);
     }
 
+    /**
+     * 获取玩家视线方向的单位向量。
+     *
+     * @param player 发动能力的玩家。
+     * @return 归一化后的朝向向量；如果朝向无效则返回 `null`。
+     */
     private static Vec3d getNormalizedLook(EntityPlayerMP player) {
         Vec3d look = player.getLookVec();
         if (look == null || look.lengthSquared() < 1.0E-4D) {
@@ -107,12 +156,26 @@ final class QueuedProjectileAbilities {
         return look.normalize();
     }
 
+    /**
+     * 将投射物起点设置到玩家眼前。
+     *
+     * @param player 发动能力的玩家。
+     * @param projectile 要放置的投射物实体。
+     * @param look 玩家当前视线方向。
+     */
     private static void setProjectileStart(EntityPlayerMP player, Entity projectile, Vec3d look) {
         projectile.setPosition(player.posX + look.x,
                 player.posY + player.getEyeHeight() - 0.1D,
                 player.posZ + look.z);
     }
 
+    /**
+     * 在给定范围内寻找距离玩家最近的有效目标。
+     *
+     * @param player 发动能力的玩家。
+     * @param range 搜索半径。
+     * @return 最近的有效目标；如果不存在则返回 `null`。
+     */
     private static EntityLivingBase findNearestTarget(EntityPlayerMP player, double range) {
         AxisAlignedBB box = player.getEntityBoundingBox().grow(range);
         List<EntityLivingBase> targets = player.world.getEntitiesWithinAABB(EntityLivingBase.class, box);

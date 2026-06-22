@@ -9,6 +9,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.math.Vec3d;
 
+/**
+ * 将龙弹能力压入投射物队列并施加冷却与后坐力。
+ */
 final class DragonBombsAbility implements ActiveOrganAbility {
 
     static final DragonBombsAbility INSTANCE = new DragonBombsAbility();
@@ -16,9 +19,19 @@ final class DragonBombsAbility implements ActiveOrganAbility {
     private static final float EXHAUSTION = 0.6F;
     private static final double RECOIL = 0.2D;
 
+    /**
+     * 单例能力实现，不允许外部实例化。
+     */
     private DragonBombsAbility() {
     }
 
+    /**
+     * 按龙弹分数排队发射对应数量的龙息火球。
+     *
+     * @param player 发动能力的玩家。
+     * @param chestCavity 玩家当前胸腔数据。
+     * @return `true` 表示能力成功发动。
+     */
     @Override
     public boolean activate(EntityPlayerMP player, IChestCavity chestCavity) {
         float dragonBombs = chestCavity.getOrganScore(CCOrganScores.DRAGON_BOMBS);

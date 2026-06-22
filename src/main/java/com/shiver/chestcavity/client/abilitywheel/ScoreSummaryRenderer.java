@@ -16,6 +16,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 在能力轮盘旁渲染当前胸腔分数摘要面板。
+ */
 final class ScoreSummaryRenderer {
 
     private static final List<String> ACTIVE_ABILITIES = Arrays.asList(AbilityWheelConstants.ABILITIES);
@@ -32,6 +35,16 @@ final class ScoreSummaryRenderer {
         }
     }
 
+    /**
+     * 绘制当前玩家的分数摘要面板。
+     *
+     * @param fontRenderer 字体渲染器。
+     * @param centerX 轮盘中心 X。
+     * @param centerY 轮盘中心 Y。
+     * @param minecraft 客户端实例。
+     * @param resolution 当前缩放分辨率。
+     * @param alphaScale 当前透明度缩放。
+     */
     void draw(FontRenderer fontRenderer, int centerX, int centerY,
               Minecraft minecraft, ScaledResolution resolution, double alphaScale) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(minecraft.player);
@@ -113,6 +126,12 @@ final class ScoreSummaryRenderer {
         GlStateManager.popMatrix();
     }
 
+    /**
+     * 过滤出值大于零的有效分数项。
+     *
+     * @param chestCavity 当前胸腔数据。
+     * @return 可展示的分数列表。
+     */
     private static List<Map.Entry<String, Float>> getValidScores(IChestCavity chestCavity) {
         Map<String, Float> rawScores = chestCavity.getOrganScores();
         List<Map.Entry<String, Float>> validScores = new ArrayList<Map.Entry<String, Float>>();
@@ -124,6 +143,13 @@ final class ScoreSummaryRenderer {
         return validScores;
     }
 
+    /**
+     * 根据分数类型和值决定显示颜色。
+     *
+     * @param scoreId 分数标识。
+     * @param value 分数值。
+     * @return RGB 颜色值。
+     */
     private static int getScoreValueColor(String scoreId, float value) {
         boolean isNegative = AbilityWheelText.isNegativeScore(scoreId);
         if (value > 1.05F) {
@@ -135,6 +161,18 @@ final class ScoreSummaryRenderer {
         return 0xFFFFFF;
     }
 
+    /**
+     * 根据屏幕大小寻找一个能容纳分数面板的位置与缩放。
+     *
+     * @param resolution 当前缩放分辨率。
+     * @param centerX 轮盘中心 X。
+     * @param centerY 轮盘中心 Y。
+     * @param scoreCount 分数条目数量。
+     * @param padding 面板内边距。
+     * @param lineSpacing 行间距。
+     * @param columnWidth 列宽。
+     * @return 计算好的面板布局。
+     */
     private static PanelLayout fitPanel(ScaledResolution resolution, int centerX, int centerY,
                                         int scoreCount, int padding, int lineSpacing, int columnWidth) {
         int titleSpace = 20;
@@ -182,7 +220,17 @@ final class ScoreSummaryRenderer {
         return layout;
     }
 
+    /**
+     * 负责决定分数摘要中各条目的排序顺序。
+     */
     private static final class ScoreEntryComparator implements Comparator<Map.Entry<String, Float>> {
+        /**
+         * 比较两个分数项的显示顺序。
+         *
+         * @param a 分数项 A。
+         * @param b 分数项 B。
+         * @return 排序结果。
+         */
         @Override
         public int compare(Map.Entry<String, Float> a, Map.Entry<String, Float> b) {
             boolean activeA = ACTIVE_ABILITIES.contains(a.getKey());
@@ -207,6 +255,9 @@ final class ScoreSummaryRenderer {
         }
     }
 
+    /**
+     * 表示一次分数面板的布局结果。
+     */
     private static final class PanelLayout {
         private float scale = 1.0F;
         private int panelWidth;
@@ -216,6 +267,17 @@ final class ScoreSummaryRenderer {
         private int titleSpace;
         private int maxRowsPerCol = 1;
 
+        /**
+         * 写入布局结果并返回当前对象，便于链式返回。
+         *
+         * @param scale 缩放比例。
+         * @param panelWidth 面板宽度。
+         * @param panelHeight 面板高度。
+         * @param startX 面板起始 X。
+         * @param startY 面板起始 Y。
+         * @param maxRowsPerCol 每列最大行数。
+         * @return 当前布局对象。
+         */
         private PanelLayout set(float scale, int panelWidth, int panelHeight, int startX, int startY, int maxRowsPerCol) {
             this.scale = scale;
             this.panelWidth = panelWidth;

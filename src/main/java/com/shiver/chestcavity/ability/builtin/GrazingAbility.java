@@ -13,13 +13,26 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+/**
+ * 啃食脚下草地并转化为反刍持续时间的主动能力。
+ */
 final class GrazingAbility implements ActiveOrganAbility {
 
     static final GrazingAbility INSTANCE = new GrazingAbility();
 
+    /**
+     * 单例能力实现，不允许外部实例化。
+     */
     private GrazingAbility() {
     }
 
+    /**
+     * 将脚下的草方块或菌丝转化为反刍效果时长。
+     *
+     * @param player 发动能力的玩家。
+     * @param chestCavity 玩家当前胸腔数据。
+     * @return `true` 表示能力成功发动。
+     */
     @Override
     public boolean activate(EntityPlayerMP player, IChestCavity chestCavity) {
         float grazing = chestCavity.getOrganScore(CCOrganScores.GRAZING);

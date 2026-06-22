@@ -6,15 +6,28 @@ import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+/**
+ * 消耗空气值把玩家向下压出浮力的主动能力。
+ */
 final class BuoyantAbility implements ActiveOrganAbility {
 
     static final BuoyantAbility INSTANCE = new BuoyantAbility();
 
     private static final float AIR_COST = 4.5F;
 
+    /**
+     * 单例能力实现，不允许外部实例化。
+     */
     private BuoyantAbility() {
     }
 
+    /**
+     * 消耗空气换取一次向下的浮力推进。
+     *
+     * @param player 发动能力的玩家。
+     * @param chestCavity 玩家当前胸腔数据。
+     * @return `true` 表示能力成功发动。
+     */
     @Override
     public boolean activate(EntityPlayerMP player, IChestCavity chestCavity) {
         if (player.getAir() <= 0) {

@@ -26,6 +26,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 负责处理由器官分数衍生出的战斗相关逻辑。
+ */
 public final class OrganCombatController {
 
     private static final Field POTION_EFFECT_DURATION_FIELD = findPotionEffectDurationField();
@@ -33,9 +36,20 @@ public final class OrganCombatController {
     private static final int DESTRUCTIVE_COLLISION_MAX_BLOCKS = 16;
     private static final float DESTRUCTIVE_COLLISION_BASE_HARDNESS = 0.75F;
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private OrganCombatController() {
     }
 
+    /**
+     * 按骨骼、防火、抗冲击等分数修正受到的伤害值。
+     *
+     * @param chestCavity 受击者胸腔数据。
+     * @param source 伤害来源。
+     * @param damage 原始伤害值。
+     * @return 修正后的伤害值。
+     */
     public static float applyDefense(IChestCavity chestCavity, DamageSource source, float damage) {
         if (chestCavity == null || !chestCavity.isOpened() || damage <= 0.0F) {
             return damage;
@@ -65,6 +79,14 @@ public final class OrganCombatController {
         return damage;
     }
 
+    /**
+     * 尝试通过传送来闪避一次投射物攻击。
+     *
+     * @param entity 被攻击的实体。
+     * @param chestCavity 实体胸腔数据。
+     * @param source 伤害来源。
+     * @return `true` 表示成功闪避。
+     */
     public static boolean attemptProjectileDodge(EntityLivingBase entity, IChestCavity chestCavity, DamageSource source) {
         if (entity == null || chestCavity == null || !chestCavity.isOpened() || source == null || !source.isProjectile()) {
             return false;
@@ -85,6 +107,12 @@ public final class OrganCombatController {
         return true;
     }
 
+    /**
+     * 在药水效果生效前根据净化、解毒等分数调整持续时间。
+     *
+     * @param entity 目标实体。
+     * @param effect 即将应用的药水效果。
+     */
     public static void adjustIncomingPotionEffect(EntityLivingBase entity, PotionEffect effect) {
         if (entity == null || effect == null || effect.getPotion() == null || effect.getDuration() <= 1) {
             return;
@@ -116,6 +144,14 @@ public final class OrganCombatController {
         }
     }
 
+    /**
+     * 处理近战命中后触发的发射、毒液等附加效果。
+     *
+     * @param target 受击目标。
+     * @param source 伤害来源。
+     * @param damage 当前伤害值。
+     * @return 原样返回伤害值，便于链式调用。
+     */
     public static float applyFinalDamageEffects(EntityLivingBase target, DamageSource source, float damage) {
         if (target == null || source == null || damage <= 0.0F) {
             return damage;
@@ -140,6 +176,14 @@ public final class OrganCombatController {
         return damage;
     }
 
+    /**
+     * 在摔落或撞墙后按分数尝试破坏周围脆弱方块。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     * @param source 伤害来源。
+     * @param damage 伤害值。
+     */
     public static void applyDestructiveCollisions(EntityLivingBase entity, IChestCavity chestCavity, DamageSource source, float damage) {
         if (entity == null || chestCavity == null || source == null || damage <= 0.0F || entity.world.isRemote) {
             return;
@@ -165,6 +209,12 @@ public final class OrganCombatController {
         breakWeakCollisionBlocks(entity, center, budget, maxHardness);
     }
 
+    /**
+     * 在实体跳跃时按跳跃分数修正纵向速度。
+     *
+     * @param entity 跳跃实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     public static void applyJump(EntityLivingBase entity, IChestCavity chestCavity) {
         if (entity == null || chestCavity == null || !chestCavity.isOpened()) {
             return;
@@ -179,6 +229,14 @@ public final class OrganCombatController {
         }
     }
 
+    /**
+     * 按抗性分数与配置比例缩放伤害值。
+     *
+     * @param score 抗性分数。
+     * @param defense 配置中的减伤强度。
+     * @param damage 原始伤害值。
+     * @return 修正后的伤害值。
+     */
     private static float applyDamageResistance(float score, float defense, float damage) {
         if (score <= 0.0F || damage <= 0.0F) {
             return damage;
@@ -186,6 +244,13 @@ public final class OrganCombatController {
         return (float) (damage * Math.pow(1.0F - defense, score / 4.0F));
     }
 
+    /**
+     * 根据发射分数把目标向上击飞。
+     *
+     * @param attacker 攻击者。
+     * @param target 被击中的目标。
+     * @param chestCavity 攻击者胸腔数据。
+     */
     private static void applyLaunching(EntityLivingBase attacker, EntityLivingBase target, IChestCavity chestCavity) {
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
         float launching = chestCavity.getOrganScore(CCOrganScores.LAUNCHING)
@@ -203,6 +268,13 @@ public final class OrganCombatController {
         }
     }
 
+    /**
+     * 根据毒液器官为目标施加毒性效果，并给攻击者附加冷却。
+     *
+     * @param attacker 攻击者。
+     * @param target 被击中的目标。
+     * @param chestCavity 攻击者胸腔数据。
+     */
     private static void applyVenom(EntityLivingBase attacker, EntityLivingBase target, IChestCavity chestCavity) {
         if (chestCavity.getOrganScore(CCOrganScores.VENOMOUS) <= 0.0F
                 || attacker.isPotionActive(CCPotions.VENOM_COOLDOWN)) {
@@ -223,6 +295,12 @@ public final class OrganCombatController {
         }
     }
 
+    /**
+     * 汇总胸腔内所有带毒液分数器官自带的药水效果。
+     *
+     * @param chestCavity 目标胸腔数据。
+     * @return 可用于攻击的药水效果列表。
+     */
     private static List<PotionEffect> getVenomEffects(IChestCavity chestCavity) {
         List<PotionEffect> effects = new ArrayList<PotionEffect>();
         for (ItemStack stack : chestCavity.getOrgans()) {
@@ -236,6 +314,14 @@ public final class OrganCombatController {
         return effects;
     }
 
+    /**
+     * 在给定预算内尝试破坏目标附近的脆弱方块。
+     *
+     * @param entity 造成碰撞的实体。
+     * @param center 搜索中心。
+     * @param budget 最多可破坏的方块数量。
+     * @param maxHardness 允许破坏的最大硬度。
+     */
     private static void breakWeakCollisionBlocks(EntityLivingBase entity, BlockPos center, int budget, float maxHardness) {
         int broken = 0;
         for (int y = -1; y <= 1 && broken < budget; y++) {
@@ -249,6 +335,14 @@ public final class OrganCombatController {
         }
     }
 
+    /**
+     * 尝试破坏单个碰撞方块。
+     *
+     * @param entity 造成碰撞的实体。
+     * @param pos 目标方块位置。
+     * @param maxHardness 允许破坏的最大硬度。
+     * @return `true` 表示方块被成功破坏。
+     */
     private static boolean tryBreakCollisionBlock(EntityLivingBase entity, BlockPos pos, float maxHardness) {
         IBlockState state = entity.world.getBlockState(pos);
         Material material = state.getMaterial();
@@ -266,10 +360,23 @@ public final class OrganCombatController {
         return entity.world.destroyBlock(pos, true);
     }
 
+    /**
+     * 把正向分数换算为药水持续时间缩短倍率。
+     *
+     * @param score 相关分数。
+     * @param scalar 缩放系数。
+     * @return 持续时间倍率。
+     */
     private static float durationReductionFactor(float score, float scalar) {
         return score <= 0.0F ? 1.0F : 1.0F / (1.0F + scalar * score);
     }
 
+    /**
+     * 根据解毒分数计算负面效果持续时间倍率。
+     *
+     * @param chestCavity 目标胸腔数据。
+     * @return 持续时间倍率。
+     */
     private static float detoxificationDurationFactor(IChestCavity chestCavity) {
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
         float defaultDetoxification = type.getDefaultOrganScore(CCOrganScores.DETOXIFICATION);
@@ -282,6 +389,12 @@ public final class OrganCombatController {
         return ratio > -1.0F ? Math.max(0.05F, 2.0F / (1.0F + ratio)) : 9999.0F;
     }
 
+    /**
+     * 通过反射强制修改药水效果持续时间。
+     *
+     * @param effect 要修改的药水效果。
+     * @param duration 新的持续时间。
+     */
     private static void setPotionDuration(PotionEffect effect, int duration) {
         if (POTION_EFFECT_DURATION_FIELD == null) {
             return;
@@ -292,6 +405,11 @@ public final class OrganCombatController {
         }
     }
 
+    /**
+     * 通过反射查找药水效果内部的持续时间字段。
+     *
+     * @return 持续时间字段；查找失败时返回 `null`。
+     */
     private static Field findPotionEffectDurationField() {
         try {
             Field field = ReflectionHelper.findField(PotionEffect.class, "duration", "field_76460_b");

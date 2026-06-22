@@ -10,6 +10,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
 
+/**
+ * 负责能力轮盘的整体输入状态与 HUD 渲染流程。
+ */
 @SideOnly(Side.CLIENT)
 public final class CCAbilityWheel {
 
@@ -18,10 +21,20 @@ public final class CCAbilityWheel {
     private final AbilityWheelRenderer wheelRenderer = new AbilityWheelRenderer();
     private final ScoreSummaryRenderer scoreSummaryRenderer = new ScoreSummaryRenderer();
 
+    /**
+     * 返回当前轮盘选中的能力标识。
+     *
+     * @return 当前选中的能力标识。
+     */
     public static String getSelectedAbility() {
         return STATE.getSelectedAbility();
     }
 
+    /**
+     * 在游戏 HUD 渲染阶段绘制能力轮盘和分数摘要。
+     *
+     * @param event Forge HUD 渲染事件。
+     */
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
         if (event.getType() != RenderGameOverlayEvent.ElementType.ALL) {

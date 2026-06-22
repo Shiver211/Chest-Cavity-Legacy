@@ -1,5 +1,8 @@
 package com.shiver.chestcavity.registry;
 
+/**
+ * 集中定义模组使用的全部器官分数标识。
+ */
 public final class CCOrganScores {
 
     public static final String HEALTH = "health";
@@ -55,6 +58,9 @@ public final class CCOrganScores {
     public static final String PHOTOSYNTHESIS = "photosynthesis";
     public static final String DESTRUCTIVE_COLLISIONS = "destructive_collisions";
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private CCOrganScores() {
     }
 }

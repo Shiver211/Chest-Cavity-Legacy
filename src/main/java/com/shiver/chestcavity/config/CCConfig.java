@@ -4,6 +4,9 @@ import net.minecraftforge.common.config.Configuration;
 
 import java.io.File;
 
+/**
+ * 负责加载并保存模组运行时配置项。
+ */
 public final class CCConfig {
 
     public static String DEFAULT_CHEST_CAVITY = "dirt";
@@ -60,14 +63,25 @@ public final class CCConfig {
 
     private static Configuration configuration;
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private CCConfig() {
     }
 
+    /**
+     * 从指定配置文件加载配置。
+     *
+     * @param file 配置文件。
+     */
     public static void load(File file) {
         configuration = new Configuration(file);
         sync();
     }
 
+    /**
+     * 将配置文件中的值同步到静态字段中。
+     */
     public static void sync() {
         if (configuration == null) {
             return;
@@ -130,14 +144,35 @@ public final class CCConfig {
         }
     }
 
+    /**
+     * 返回默认胸腔类型标识。
+     *
+     * @return 默认胸腔类型标识。
+     */
     public static String getDefaultChestCavityId() {
         return DEFAULT_CHEST_CAVITY;
     }
 
+    /**
+     * 从配置中读取一个整数值。
+     *
+     * @param category 配置分类。
+     * @param name 配置项名称。
+     * @param defaultValue 默认值。
+     * @return 读取到的整数值。
+     */
     private static int getInt(String category, String name, int defaultValue) {
         return configuration.getInt(name, category, defaultValue, Integer.MIN_VALUE, Integer.MAX_VALUE, "");
     }
 
+    /**
+     * 从配置中读取一个浮点值。
+     *
+     * @param category 配置分类。
+     * @param name 配置项名称。
+     * @param defaultValue 默认值。
+     * @return 读取到的浮点值。
+     */
     private static float getFloat(String category, String name, float defaultValue) {
         return configuration.getFloat(name, category, defaultValue, -Float.MAX_VALUE, Float.MAX_VALUE, "");
     }

@@ -17,11 +17,24 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * 负责器官装备、胸腔开启、复制和死亡重置等生命周期逻辑。
+ */
 public final class OrganLifecycleController {
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private OrganLifecycleController() {
     }
 
+    /**
+     * 设置槽位中的器官，并发布装备变更事件和分数同步。
+     *
+     * @param chestCavity 要修改的胸腔数据。
+     * @param slot 槽位索引。
+     * @param stack 要放入的器官物品。
+     */
     public static void setOrganAndRecalculate(IChestCavity chestCavity, int slot, ItemStack stack) {
         ItemStack oldStack = chestCavity.getOrgan(slot);
         ItemStack oldCopy = oldStack.isEmpty() ? ItemStack.EMPTY : oldStack.copy();
@@ -31,6 +44,11 @@ public final class OrganLifecycleController {
         applyAndSyncScoreChanges(chestCavity);
     }
 
+    /**
+     * 打开胸腔，并用默认布局填充槽位。
+     *
+     * @param chestCavity 要打开的胸腔数据。
+     */
     public static void openChestCavity(IChestCavity chestCavity) {
         if (!chestCavity.isOpened()) {
             ChestCavityType type = OrganTypeResolver.getAssignedType(chestCavity);
@@ -54,6 +72,13 @@ public final class OrganLifecycleController {
         }
     }
 
+    /**
+     * 把一个实体的胸腔状态复制到另一个实体。
+     *
+     * @param original 源实体。
+     * @param replacement 目标实体。
+     * @param wasDeath 是否由于死亡导致复制。
+     */
     public static void copy(EntityLivingBase original, EntityLivingBase replacement, boolean wasDeath) {
         IChestCavity oldCavity = ChestCavityHelper.getOrNull(original);
         IChestCavity newCavity = ChestCavityHelper.getOrNull(replacement);
@@ -66,6 +91,12 @@ public final class OrganLifecycleController {
         }
     }
 
+    /**
+     * 销毁所有带有指定分数标签的器官。
+     *
+     * @param chestCavity 要处理的胸腔数据。
+     * @param scoreId 分数标识。
+     */
     public static void destroyOrgansWithScore(IChestCavity chestCavity, String scoreId) {
         if (chestCavity == null || scoreId == null) {
             return;
@@ -85,6 +116,12 @@ public final class OrganLifecycleController {
         }
     }
 
+    /**
+     * 判断一个胸腔当前是否允许被打开。
+     *
+     * @param chestCavity 要检查的胸腔数据。
+     * @return `true` 表示允许打开。
+     */
     public static boolean isOpenable(IChestCavity chestCavity) {
         if (chestCavity == null) {
             return false;
@@ -105,6 +142,11 @@ public final class OrganLifecycleController {
         return weakEnough || easyAccess;
     }
 
+    /**
+     * 应用器官分数变更，并在服务端同步到客户端。
+     *
+     * @param chestCavity 要处理的胸腔数据。
+     */
     public static void applyAndSyncScoreChanges(IChestCavity chestCavity) {
         EntityLivingBase owner = chestCavity.getOwner();
         if (owner == null) {
@@ -123,6 +165,11 @@ public final class OrganLifecycleController {
         }
     }
 
+    /**
+     * 为胸腔中的真实器官写入或调整兼容性标签。
+     *
+     * @param chestCavity 要处理的胸腔数据。
+     */
     private static void setOrganCompatibility(IChestCavity chestCavity) {
         EntityLivingBase owner = chestCavity.getOwner();
         if (owner == null) {
@@ -160,6 +207,12 @@ public final class OrganLifecycleController {
         }
     }
 
+    /**
+     * 在玩家死亡后重建胸腔内容，并保留符合条件的器官。
+     *
+     * @param oldCavity 死亡前胸腔数据。
+     * @param newCavity 新玩家实体上的胸腔数据。
+     */
     private static void resetPlayerChestCavityAfterDeath(IChestCavity oldCavity, IChestCavity newCavity) {
         if (com.shiver.chestcavity.config.CCConfig.KEEP_CHEST_CAVITY) {
             ChestCavityHelper.recalculateOrganScores(newCavity);
@@ -197,6 +250,14 @@ public final class OrganLifecycleController {
         applyAndSyncScoreChanges(newCavity);
     }
 
+    /**
+     * 向 CraftTweaker 事件系统发布器官装备或卸下事件。
+     *
+     * @param chestCavity 要处理的胸腔数据。
+     * @param slot 变更槽位。
+     * @param oldStack 旧器官。
+     * @param newStack 新器官。
+     */
     private static void publishOrganChange(IChestCavity chestCavity, int slot, ItemStack oldStack, ItemStack newStack) {
         EntityLivingBase owner = chestCavity.getOwner();
         if (owner == null) {

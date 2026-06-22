@@ -24,14 +24,26 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.List;
 
+/**
+ * 负责在每个游戏刻推进胸腔相关的持续性效果与生存逻辑。
+ */
 public final class OrganTickController {
 
     private static final DamageSource HEART_BLEED_DAMAGE = new DamageSource("cc_heartbleed").setDamageBypassesArmor();
     private static final int HYDROPHOBIA_INTERVAL_TICKS = 20;
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private OrganTickController() {
     }
 
+    /**
+     * 在每个 tick 处理一个实体胸腔的全部持续逻辑。
+     *
+     * @param entity 要处理的实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     public static void tick(EntityLivingBase entity, IChestCavity chestCavity) {
         ensureOrganScoresUpToDate(chestCavity);
         boolean scoreChanges = ChestCavityHelper.hasScoreChanges(chestCavity);
@@ -61,6 +73,11 @@ public final class OrganTickController {
         }
     }
 
+    /**
+     * 断开胸腔与当前连接末地水晶之间的链接。
+     *
+     * @param chestCavity 要处理的胸腔数据。
+     */
     static void disconnectCrystal(IChestCavity chestCavity) {
         EntityLivingBase owner = chestCavity.getOwner();
         EntityEnderCrystal crystal = owner == null ? null : getConnectedCrystal(owner, chestCavity);
@@ -70,6 +87,11 @@ public final class OrganTickController {
         chestCavity.setConnectedCrystalId(-1);
     }
 
+    /**
+     * 确保胸腔分数已按当前数据版本重新计算。
+     *
+     * @param chestCavity 要检查的胸腔数据。
+     */
     private static void ensureOrganScoresUpToDate(IChestCavity chestCavity) {
         if (chestCavity instanceof ChestCavityData) {
             ChestCavityData data = (ChestCavityData) chestCavity;
@@ -80,6 +102,12 @@ public final class OrganTickController {
         ChestCavityHelper.recalculateOrganScores(chestCavity);
     }
 
+    /**
+     * 处理器官排异药水的施加与移除。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     private static void tickOrganRejection(EntityLivingBase entity, IChestCavity chestCavity) {
         if (CCConfig.DISABLE_ORGAN_REJECTION) {
             if (entity.isPotionActive(CCPotions.ORGAN_REJECTION)) {
@@ -102,6 +130,12 @@ public final class OrganTickController {
         }
     }
 
+    /**
+     * 处理过滤分数不足导致的血液中毒逻辑。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     private static void tickFiltration(EntityLivingBase entity, IChestCavity chestCavity) {
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
         float defaultFiltration = type.getDefaultOrganScore(CCOrganScores.FILTRATION);
@@ -125,6 +159,12 @@ public final class OrganTickController {
         chestCavity.setBloodPoisonTimer(timer);
     }
 
+    /**
+     * 处理水下呼吸容量和水下呼吸分数带来的空气变化。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     private static void tickBreathing(EntityLivingBase entity, IChestCavity chestCavity) {
         if (!chestCavity.isOpened()) {
             chestCavity.setLungRemainder(0.0F);
@@ -149,12 +189,24 @@ public final class OrganTickController {
         chestCavity.setLungRemainder(0.0F);
     }
 
+    /**
+     * 处理玩家代谢逻辑。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     private static void tickMetabolism(EntityLivingBase entity, IChestCavity chestCavity) {
         if (entity instanceof EntityPlayer) {
             OrganFoodController.tickMetabolism((EntityPlayer) entity, chestCavity);
         }
     }
 
+    /**
+     * 处理发光、浮力、轻量化、亲水恐水等被动效果。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     private static void tickPassiveEffects(EntityLivingBase entity, IChestCavity chestCavity) {
         float glowing = chestCavity.getOrganScore(CCOrganScores.GLOWING);
         if (glowing > 0.0F && !entity.isPotionActive(MobEffects.GLOWING)) {
@@ -194,6 +246,12 @@ public final class OrganTickController {
         tickCrystalsynthesis(entity, chestCavity);
     }
 
+    /**
+     * 按固定频率从投射物队列中取出并执行能力。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     private static void tickProjectileQueue(EntityLivingBase entity, IChestCavity chestCavity) {
         if (entity.ticksExisted % 5 != 0) {
             return;
@@ -204,6 +262,11 @@ public final class OrganTickController {
         }
     }
 
+    /**
+     * 在分数变更后重置与其相关的计时器。
+     *
+     * @param chestCavity 要处理的胸腔数据。
+     */
     private static void onScoreChanged(IChestCavity chestCavity) {
         if (chestCavity.getOrganScore(CCOrganScores.FILTRATION) >= chestCavity.getOldOrganScore(CCOrganScores.FILTRATION)) {
             chestCavity.setBloodPoisonTimer(0);
@@ -213,6 +276,12 @@ public final class OrganTickController {
         }
     }
 
+    /**
+     * 处理缺失关键器官时的基础生存惩罚。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     private static void tickBasicSurvival(EntityLivingBase entity, IChestCavity chestCavity) {
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
         float defaultHealth = type.getDefaultOrganScore(CCOrganScores.HEALTH);
@@ -237,6 +306,13 @@ public final class OrganTickController {
         entity.attackEntityFrom(HEART_BLEED_DAMAGE, cap == Integer.MAX_VALUE ? bleedLevel : Math.min(bleedLevel, cap));
     }
 
+    /**
+     * 按轻量化分数调整实体下落速度和摔落距离。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     * @param type 当前胸腔类型。
+     */
     private static void applyLightweight(EntityLivingBase entity, IChestCavity chestCavity, ChestCavityType type) {
         if (entity.onGround || entity.hasNoGravity() || entity.isInWater() || entity.isInLava() || entity.motionY >= 0.0D) {
             return;
@@ -257,6 +333,13 @@ public final class OrganTickController {
         entity.velocityChanged = true;
     }
 
+    /**
+     * 处理光合作用带来的饱食或治疗效果。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     * @param type 当前胸腔类型。
+     */
     private static void tickPhotosynthesis(EntityLivingBase entity, IChestCavity chestCavity, ChestCavityType type) {
         float photosynthesis = chestCavity.getOrganScore(CCOrganScores.PHOTOSYNTHESIS)
                 - type.getDefaultOrganScore(CCOrganScores.PHOTOSYNTHESIS);
@@ -293,6 +376,12 @@ public final class OrganTickController {
         }
     }
 
+    /**
+     * 处理结晶合成与末地水晶连线带来的回复逻辑。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     private static void tickCrystalsynthesis(EntityLivingBase entity, IChestCavity chestCavity) {
         float crystalsynthesis = chestCavity.getOrganScore(CCOrganScores.CRYSTALSYNTHESIS);
         EntityEnderCrystal connectedCrystal = getConnectedCrystal(entity, chestCavity);
@@ -346,6 +435,13 @@ public final class OrganTickController {
         }
     }
 
+    /**
+     * 按保存的实体 ID 获取当前连接的末地水晶。
+     *
+     * @param entity 持有胸腔的实体。
+     * @param chestCavity 实体胸腔数据。
+     * @return 当前连接的末地水晶；如果无效则返回 `null`。
+     */
     private static EntityEnderCrystal getConnectedCrystal(EntityLivingBase entity, IChestCavity chestCavity) {
         int crystalId = chestCavity.getConnectedCrystalId();
         if (crystalId < 0 || entity.world == null) {
@@ -357,6 +453,12 @@ public final class OrganTickController {
                 : null;
     }
 
+    /**
+     * 在配置范围内查找距离实体最近的末地水晶。
+     *
+     * @param entity 目标实体。
+     * @return 最近的末地水晶；如果不存在则返回 `null`。
+     */
     private static EntityEnderCrystal findNearestCrystal(EntityLivingBase entity) {
         AxisAlignedBB box = entity.getEntityBoundingBox().grow(CCConfig.CRYSTALSYNTHESIS_RANGE);
         List<EntityEnderCrystal> crystals = entity.world.getEntitiesWithinAABB(EntityEnderCrystal.class, box);

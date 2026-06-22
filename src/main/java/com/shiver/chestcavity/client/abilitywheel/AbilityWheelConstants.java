@@ -2,6 +2,9 @@ package com.shiver.chestcavity.client.abilitywheel;
 
 import com.shiver.chestcavity.registry.CCOrganScores;
 
+/**
+ * 统一保存能力轮盘渲染与布局使用的常量。
+ */
 final class AbilityWheelConstants {
 
     static final String[] ABILITIES = {
@@ -22,6 +25,9 @@ final class AbilityWheelConstants {
     static final int RADIUS = 82;
     static final int INNER_RADIUS = 24;
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private AbilityWheelConstants() {
     }
 }

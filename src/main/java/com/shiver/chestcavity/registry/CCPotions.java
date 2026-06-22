@@ -13,6 +13,9 @@ import com.shiver.chestcavity.potion.WaterVulnerability;
 import net.minecraft.potion.Potion;
 import net.minecraftforge.registries.IForgeRegistry;
 
+/**
+ * 集中定义并注册模组中的全部药水效果。
+ */
 public final class CCPotions {
 
     private static final List<Potion> POTIONS = new ArrayList<Potion>();
@@ -32,13 +35,28 @@ public final class CCPotions {
     public static final Potion VENOM_COOLDOWN = register("venom_cooldown", new CCPotion(false, 0x000000));
     public static final Potion WATER_VULNERABILITY = register("water_vulnerability", new WaterVulnerability());
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private CCPotions() {
     }
 
+    /**
+     * 把全部药水效果注册到 Forge 注册表中。
+     *
+     * @param registry 药水注册表。
+     */
     public static void register(IForgeRegistry<Potion> registry) {
         registry.registerAll(POTIONS.toArray(new Potion[POTIONS.size()]));
     }
 
+    /**
+     * 设置药水的注册信息并加入待注册列表。
+     *
+     * @param name 注册名。
+     * @param potion 药水对象。
+     * @return 原药水对象，便于常量初始化。
+     */
     private static Potion register(String name, Potion potion) {
         potion.setRegistryName(Tags.MOD_ID, name);
         potion.setPotionName("effect." + Tags.MOD_ID + "." + name);

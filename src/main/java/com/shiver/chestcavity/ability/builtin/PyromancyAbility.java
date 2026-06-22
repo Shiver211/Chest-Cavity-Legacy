@@ -9,6 +9,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.math.Vec3d;
 
+/**
+ * 将火焰弹能力压入投射物队列并施加少量后坐力。
+ */
 final class PyromancyAbility implements ActiveOrganAbility {
 
     static final PyromancyAbility INSTANCE = new PyromancyAbility();
@@ -16,9 +19,19 @@ final class PyromancyAbility implements ActiveOrganAbility {
     private static final float EXHAUSTION = 0.1F;
     private static final double RECOIL = 0.2D;
 
+    /**
+     * 单例能力实现，不允许外部实例化。
+     */
     private PyromancyAbility() {
     }
 
+    /**
+     * 按火焰分数排队发射对应数量的小型火球。
+     *
+     * @param player 发动能力的玩家。
+     * @param chestCavity 玩家当前胸腔数据。
+     * @return `true` 表示能力成功发动。
+     */
     @Override
     public boolean activate(EntityPlayerMP player, IChestCavity chestCavity) {
         float pyromancy = chestCavity.getOrganScore(CCOrganScores.PYROMANCY);

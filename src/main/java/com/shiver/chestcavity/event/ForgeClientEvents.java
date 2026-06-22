@@ -26,12 +26,23 @@ import net.minecraft.util.text.TextFormatting;
 
 import java.util.Map;
 
+/**
+ * 处理仅客户端需要的模型注册和物品提示事件。
+ */
 @Mod.EventBusSubscriber(modid = "chestcavity", value = Side.CLIENT)
 public final class ForgeClientEvents {
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private ForgeClientEvents() {
     }
 
+    /**
+     * 注册模组物品模型和自定义实体渲染器。
+     *
+     * @param event 模型注册事件。
+     */
     @SubscribeEvent
     public static void registerModels(ModelRegistryEvent event) {
         for (Item item : CCItems.getItems()) {
@@ -40,6 +51,11 @@ public final class ForgeClientEvents {
         RenderingRegistry.registerEntityRenderingHandler(EntityForcefulSpit.class, RenderLlamaSpit::new);
     }
 
+    /**
+     * 为器官物品和特殊物品追加客户端提示文本。
+     *
+     * @param event 物品提示事件。
+     */
     @SubscribeEvent
     public static void itemTooltip(ItemTooltipEvent event) {
         ItemStack stack = event.getItemStack();
@@ -60,6 +76,12 @@ public final class ForgeClientEvents {
         addCompatibilityTooltip(event, stack);
     }
 
+    /**
+     * 为少数特殊物品追加固定的趣味提示。
+     *
+     * @param event 物品提示事件。
+     * @param stack 当前物品堆。
+     */
     private static void addSpecialItemTooltip(ItemTooltipEvent event, ItemStack stack) {
         if (stack.isEmpty() || stack.getItem().getRegistryName() == null) {
             return;
@@ -71,6 +93,13 @@ public final class ForgeClientEvents {
         }
     }
 
+    /**
+     * 返回一个器官分数对应的显示名称。
+     *
+     * @param id 分数标识。
+     * @param value 分数值。
+     * @return 本地化后的显示名称。
+     */
     private static String getScoreName(String id, float value) {
         String displayName = ChestCavityApis.SCORES.getDisplayName(id);
         if (displayName != null && !displayName.isEmpty()) {
@@ -84,10 +113,22 @@ public final class ForgeClientEvents {
         return id;
     }
 
+    /**
+     * 把分数格式化为带符号的文本。
+     *
+     * @param value 分数值。
+     * @return 格式化后的文本。
+     */
     private static String formatScore(float value) {
         return value > 0.0F ? "+" + value : Float.toString(value);
     }
 
+    /**
+     * 根据玩家当前胸腔兼容性给物品添加安全性提示。
+     *
+     * @param event 物品提示事件。
+     * @param stack 当前物品堆。
+     */
     private static void addCompatibilityTooltip(ItemTooltipEvent event, ItemStack stack) {
         IChestCavity playerCavity = Minecraft.getMinecraft().player == null
                 ? null

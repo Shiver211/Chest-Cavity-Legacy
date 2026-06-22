@@ -9,6 +9,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.math.Vec3d;
 
+/**
+ * 将恶魂火球能力压入投射物队列并施加强后坐力。
+ */
 final class GhastlyAbility implements ActiveOrganAbility {
 
     static final GhastlyAbility INSTANCE = new GhastlyAbility();
@@ -16,9 +19,19 @@ final class GhastlyAbility implements ActiveOrganAbility {
     private static final float EXHAUSTION = 0.3F;
     private static final double RECOIL = 0.8D;
 
+    /**
+     * 单例能力实现，不允许外部实例化。
+     */
     private GhastlyAbility() {
     }
 
+    /**
+     * 按恶魂分数排队发射对应数量的大型火球。
+     *
+     * @param player 发动能力的玩家。
+     * @param chestCavity 玩家当前胸腔数据。
+     * @return `true` 表示能力成功发动。
+     */
     @Override
     public boolean activate(EntityPlayerMP player, IChestCavity chestCavity) {
         float ghastly = chestCavity.getOrganScore(CCOrganScores.GHASTLY);

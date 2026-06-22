@@ -21,12 +21,26 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 
+/**
+ * 用于打开自己或目标实体胸腔界面的工具物品。
+ */
 public class ChestOpener extends Item {
 
+    /**
+     * 创建胸腔开启器，并限制为不可堆叠。
+     */
     public ChestOpener() {
         setMaxStackSize(1);
     }
 
+    /**
+     * 右键时优先尝试打开玩家自己的胸腔。
+     *
+     * @param worldIn 当前世界。
+     * @param playerIn 使用物品的玩家。
+     * @param handIn 使用的手。
+     * @return 物品使用结果。
+     */
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
         ItemStack stack = playerIn.getHeldItem(handIn);
@@ -41,10 +55,25 @@ public class ChestOpener extends Item {
         return new ActionResult<ItemStack>(EnumActionResult.PASS, stack);
     }
 
+    /**
+     * 尝试打开目标实体胸腔，并在成功时附带击退效果。
+     *
+     * @param player 使用开启器的玩家。
+     * @param target 目标实体。
+     * @return `true` 表示成功打开或已在客户端提前确认。
+     */
     public boolean openChestCavity(EntityPlayer player, EntityLivingBase target) {
         return openChestCavity(player, target, true);
     }
 
+    /**
+     * 尝试打开目标胸腔，并可选择是否附带击退效果。
+     *
+     * @param player 使用开启器的玩家。
+     * @param target 目标实体。
+     * @param shouldKnockback 是否在成功打开后施加击退。
+     * @return `true` 表示成功打开或已在客户端提前确认。
+     */
     public boolean openChestCavity(EntityPlayer player, @Nullable EntityLivingBase target, boolean shouldKnockback) {
         if (!canOpen(player, target)) {
             return false;
@@ -85,6 +114,13 @@ public class ChestOpener extends Item {
         return true;
     }
 
+    /**
+     * 判断当前玩家是否满足打开目标胸腔的全部条件。
+     *
+     * @param player 使用开启器的玩家。
+     * @param target 目标实体。
+     * @return `true` 表示允许打开。
+     */
     private boolean canOpen(EntityPlayer player, @Nullable EntityLivingBase target) {
         if (!(player != null
                 && target != null

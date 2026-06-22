@@ -12,11 +12,22 @@ import net.minecraft.item.ItemStack;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * 负责根据胸腔内容重新计算全部器官分数。
+ */
 public final class OrganScoreCalculator {
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private OrganScoreCalculator() {
     }
 
+    /**
+     * 重新计算胸腔当前应生效的全部器官分数。
+     *
+     * @param chestCavity 要重新计算的胸腔数据。
+     */
     public static void recalculate(IChestCavity chestCavity) {
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
         Map<String, Float> scores = new LinkedHashMap<>();
@@ -46,6 +57,13 @@ public final class OrganScoreCalculator {
         markScoresClean(chestCavity);
     }
 
+    /**
+     * 把单个器官物品贡献的分数累加到结果字典中。
+     *
+     * @param scores 目标分数字典。
+     * @param data 当前器官数据。
+     * @param stack 当前器官物品堆。
+     */
     private static void addOrganScores(Map<String, Float> scores, OrganData data, ItemStack stack) {
         float stackRatio = Math.min((float) stack.getCount() / (float) stack.getMaxStackSize(), 1.0F);
         for (Map.Entry<String, Float> entry : data.getOrganScores().entrySet()) {
@@ -55,6 +73,11 @@ public final class OrganScoreCalculator {
         }
     }
 
+    /**
+     * 当底层实现支持时，把分数状态标记为与当前数据版本同步。
+     *
+     * @param chestCavity 要处理的胸腔数据。
+     */
     private static void markScoresClean(IChestCavity chestCavity) {
         if (chestCavity instanceof ChestCavityData) {
             ((ChestCavityData) chestCavity).markScoresClean(DataLoaders.getDataVersion());

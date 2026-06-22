@@ -13,6 +13,9 @@ import net.minecraft.entity.ai.attributes.IAttributeInstance;
 
 import java.util.UUID;
 
+/**
+ * 负责把器官分数映射到实体属性修正器上。
+ */
 final class OrganAttributeController {
 
     private static final UUID HEALTH_MODIFIER_ID = UUID.fromString("1187ab41-0e24-42bb-a39d-fb3b5b5492d5");
@@ -24,9 +27,20 @@ final class OrganAttributeController {
     private static final UUID SWIM_SPEED_MODIFIER_ID = UUID.fromString("32d5f52b-796a-4194-a8e3-1acb45f5a365");
     private static final int REFRESH_INTERVAL_TICKS = 20;
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private OrganAttributeController() {
     }
 
+    /**
+     * 判断当前 tick 是否需要重新刷新实体属性修正器。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     * @param scoreChanges 本 tick 是否检测到分数变化。
+     * @return `true` 表示需要刷新属性。
+     */
     static boolean shouldRefresh(EntityLivingBase entity, IChestCavity chestCavity, boolean scoreChanges) {
         if (chestCavity instanceof ChestCavityData) {
             ChestCavityData data = (ChestCavityData) chestCavity;
@@ -38,6 +52,12 @@ final class OrganAttributeController {
         return true;
     }
 
+    /**
+     * 按当前器官分数重建实体属性修正器。
+     *
+     * @param entity 目标实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     static void apply(EntityLivingBase entity, IChestCavity chestCavity) {
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH),
@@ -78,10 +98,27 @@ final class OrganAttributeController {
         }
     }
 
+    /**
+     * 应用一个默认使用操作类型 `0` 的属性修正器。
+     *
+     * @param attribute 目标属性实例。
+     * @param id 修正器 UUID。
+     * @param name 修正器名称。
+     * @param amount 修正值。
+     */
     private static void applyScoreModifier(IAttributeInstance attribute, UUID id, String name, float amount) {
         applyScoreModifier(attribute, id, name, amount, 0);
     }
 
+    /**
+     * 按给定数值更新一个属性修正器，若值不变则跳过。
+     *
+     * @param attribute 目标属性实例。
+     * @param id 修正器 UUID。
+     * @param name 修正器名称。
+     * @param amount 修正值。
+     * @param operation 修正器操作类型。
+     */
     private static void applyScoreModifier(IAttributeInstance attribute, UUID id, String name, float amount, int operation) {
         if (attribute == null) {
             return;

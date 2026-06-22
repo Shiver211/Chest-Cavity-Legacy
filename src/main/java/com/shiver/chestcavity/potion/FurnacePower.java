@@ -13,6 +13,9 @@ import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
+/**
+ * 表示炉火能量效果，并维护其分层燃料持续时间。
+ */
 public class FurnacePower extends CCPotion {
 
     private static final String FUEL_LAYERS_KEY = "chestcavity:furnace_power_layers";
@@ -20,16 +23,32 @@ public class FurnacePower extends CCPotion {
     private static final Field POTION_EFFECT_DURATION_FIELD = findPotionEffectField("duration", "field_76460_b");
     private static final Field POTION_EFFECT_AMPLIFIER_FIELD = findPotionEffectField("amplifier", "field_76461_c");
 
+    /**
+     * 创建炉火能量药水效果。
+     */
     public FurnacePower() {
         super(false, 0xFF8C24);
         setBeneficial();
     }
 
+    /**
+     * 让该效果每个 tick 都执行一次。
+     *
+     * @param duration 剩余持续时间。
+     * @param amplifier 当前层数。
+     * @return 始终返回 `true`。
+     */
     @Override
     public boolean isReady(int duration, int amplifier) {
         return true;
     }
 
+    /**
+     * 推进炉火能量进度，并在达到阈值时转化为进食效果。
+     *
+     * @param entityLivingBaseIn 目标实体。
+     * @param amplifier 当前层数。
+     */
     @Override
     public void performEffect(EntityLivingBase entityLivingBaseIn, int amplifier) {
         if (entityLivingBaseIn.world.isRemote || !(entityLivingBaseIn instanceof EntityPlayer)) {
@@ -50,6 +69,12 @@ public class FurnacePower extends CCPotion {
         chestCavity.setFurnaceProgress(progress);
     }
 
+    /**
+     * 返回玩家当前炉火能量的活跃层数。
+     *
+     * @param player 目标玩家。
+     * @return 活跃层数。
+     */
     public static int getActiveLayerCount(EntityPlayer player) {
         if (player == null || !player.isPotionActive(CCPotions.FURNACE_POWER)) {
             return 0;
@@ -57,6 +82,14 @@ public class FurnacePower extends CCPotion {
         return readFuelLayers(player, true).length;
     }
 
+    /**
+     * 为玩家新增一层燃料持续时间。
+     *
+     * @param player 目标玩家。
+     * @param burnTime 本层持续时间。
+     * @param maxLayers 允许的最大层数。
+     * @return `true` 表示成功加入一层。
+     */
     public static boolean addFuelLayer(EntityPlayer player, int burnTime, int maxLayers) {
         if (player == null || player.world.isRemote || burnTime <= 0 || maxLayers <= 0) {
             return false;
@@ -74,6 +107,11 @@ public class FurnacePower extends CCPotion {
         return true;
     }
 
+    /**
+     * 在每个 tick 中推进全部炉火燃料层的剩余时间。
+     *
+     * @param entity 目标实体。
+     */
     public static void tickFuelLayers(EntityLivingBase entity) {
         if (!(entity instanceof EntityPlayer) || entity.world.isRemote) {
             return;
@@ -113,6 +151,13 @@ public class FurnacePower extends CCPotion {
         }
     }
 
+    /**
+     * 读取玩家当前保存的全部燃料层。
+     *
+     * @param player 目标玩家。
+     * @param seedFromPotion 当没有缓存时，是否尝试从药水效果中恢复层数。
+     * @return 燃料层持续时间数组。
+     */
     private static int[] readFuelLayers(EntityPlayer player, boolean seedFromPotion) {
         NBTTagCompound data = player.getEntityData();
         if (data.hasKey(FUEL_LAYERS_KEY, Constants.NBT.TAG_INT_ARRAY)) {
@@ -137,14 +182,31 @@ public class FurnacePower extends CCPotion {
         return new int[0];
     }
 
+    /**
+     * 把燃料层数组写回玩家实体数据。
+     *
+     * @param player 目标玩家。
+     * @param layers 燃料层数组。
+     */
     private static void writeFuelLayers(EntityPlayer player, int[] layers) {
         player.getEntityData().setIntArray(FUEL_LAYERS_KEY, layers);
     }
 
+    /**
+     * 清空玩家保存的全部燃料层。
+     *
+     * @param player 目标玩家。
+     */
     private static void clearFuelLayers(EntityPlayer player) {
         player.getEntityData().removeTag(FUEL_LAYERS_KEY);
     }
 
+    /**
+     * 把内部燃料层状态同步为可见的药水效果层数与持续时间。
+     *
+     * @param player 目标玩家。
+     * @param layers 当前燃料层数组。
+     */
     private static void syncVisibleEffect(EntityPlayer player, int[] layers) {
         int duration = shortestDuration(layers);
         int amplifier = layers.length - 1;
@@ -164,6 +226,12 @@ public class FurnacePower extends CCPotion {
         }
     }
 
+    /**
+     * 返回所有燃料层中最短的剩余持续时间。
+     *
+     * @param layers 燃料层数组。
+     * @return 最短持续时间。
+     */
     private static int shortestDuration(int[] layers) {
         int duration = Integer.MAX_VALUE;
         for (int layer : layers) {
@@ -172,6 +240,11 @@ public class FurnacePower extends CCPotion {
         return Math.max(1, duration);
     }
 
+    /**
+     * 把玩家胸腔中的熔炉进度归零。
+     *
+     * @param player 目标玩家。
+     */
     private static void resetFurnaceProgress(EntityPlayer player) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(player);
         if (chestCavity != null) {
@@ -179,6 +252,13 @@ public class FurnacePower extends CCPotion {
         }
     }
 
+    /**
+     * 通过反射修改药水效果内部字段值。
+     *
+     * @param effect 要修改的药水效果。
+     * @param field 目标字段。
+     * @param value 新的数值。
+     */
     private static void setPotionEffectValue(PotionEffect effect, Field field, int value) {
         if (field == null) {
             return;
@@ -189,6 +269,13 @@ public class FurnacePower extends CCPotion {
         }
     }
 
+    /**
+     * 通过反射查找药水效果内部字段。
+     *
+     * @param name MCP 字段名。
+     * @param srgName SRG 字段名。
+     * @return 查找到的字段；失败时返回 `null`。
+     */
     private static Field findPotionEffectField(String name, String srgName) {
         try {
             Field field = ReflectionHelper.findField(PotionEffect.class, name, srgName);

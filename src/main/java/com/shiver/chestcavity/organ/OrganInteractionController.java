@@ -19,11 +19,22 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.List;
 
+/**
+ * 负责水、丝等与世界交互相关的器官逻辑。
+ */
 public final class OrganInteractionController {
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private OrganInteractionController() {
     }
 
+    /**
+     * 对水瓶爆炸附近的实体应用亲水与恐水相关效果。
+     *
+     * @param source 水源实体。
+     */
     public static void applyWaterSplash(Entity source) {
         if (source == null || source.world == null || source.world.isRemote) {
             return;
@@ -49,6 +60,12 @@ public final class OrganInteractionController {
         }
     }
 
+    /**
+     * 尝试从目标实体身上“挤出”丝。
+     *
+     * @param entity 目标实体。
+     * @return `true` 表示成功产出丝或丝块。
+     */
     public static boolean milkSilk(EntityLivingBase entity) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
         if (chestCavity == null || !chestCavity.isOpened()
@@ -64,6 +81,12 @@ public final class OrganInteractionController {
         return spun;
     }
 
+    /**
+     * 尝试通过剪切直接从目标实体身上取出丝材料。
+     *
+     * @param entity 目标实体。
+     * @return `true` 表示成功产出掉落物。
+     */
     public static boolean shearSilk(EntityLivingBase entity) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
         if (chestCavity == null || !chestCavity.isOpened()) {
@@ -89,6 +112,13 @@ public final class OrganInteractionController {
         return dropped;
     }
 
+    /**
+     * 按丝分数在实体背后生成蛛网、羊毛或线，并消耗饥饿值。
+     *
+     * @param entity 目标实体。
+     * @param silkScore 丝分数。
+     * @return `true` 表示成功生成了至少一个产物。
+     */
     private static boolean spinWeb(EntityLivingBase entity, float silkScore) {
         int exhaustionCost = 0;
         if (entity instanceof EntityPlayer && ((EntityPlayer) entity).getFoodStats().getFoodLevel() < 6) {

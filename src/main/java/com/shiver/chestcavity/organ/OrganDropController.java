@@ -18,13 +18,28 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * 负责生成死亡掉落中的器官物品，并处理绑定器官的脱落逻辑。
+ */
 public final class OrganDropController {
 
     private static final String BUTCHERING_TOOL_ORE = "chestcavity:butchering_tool";
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private OrganDropController() {
     }
 
+    /**
+     * 为未打开状态的胸腔生成器官掉落列表。
+     *
+     * @param chestCavity 掉落来源胸腔。
+     * @param random 随机源。
+     * @param baseLooting 原始抢夺等级。
+     * @param killer 击杀者。
+     * @return 生成出的器官掉落列表。
+     */
     public static List<ItemStack> generateUnopenedOrganDrops(IChestCavity chestCavity, Random random, int baseLooting, EntityLivingBase killer) {
         List<ItemStack> loot = new ArrayList<ItemStack>();
         if (chestCavity == null || random == null) {
@@ -68,6 +83,12 @@ public final class OrganDropController {
         return loot;
     }
 
+    /**
+     * 从已打开的胸腔中移除所有未绑定器官，用于死亡后掉落。
+     *
+     * @param chestCavity 要处理的胸腔数据。
+     * @return 被移除的器官列表。
+     */
     public static List<ItemStack> removeUnboundOrgansForDeath(IChestCavity chestCavity) {
         List<ItemStack> drops = new ArrayList<ItemStack>();
         if (chestCavity == null || !chestCavity.isOpened()) {
@@ -85,6 +106,14 @@ public final class OrganDropController {
         return drops;
     }
 
+    /**
+     * 从一堆候选器官中按随机抽取若干个掉落。
+     *
+     * @param organPile 候选器官堆。
+     * @param rolls 抽取次数。
+     * @param random 随机源。
+     * @param loot 结果列表。
+     */
     private static void drawOrgansFromPile(List<ItemStack> organPile, int rolls, Random random, List<ItemStack> loot) {
         LinkedList<ItemStack> remaining = new LinkedList<ItemStack>();
         for (ItemStack stack : organPile) {
@@ -104,6 +133,11 @@ public final class OrganDropController {
         }
     }
 
+    /**
+     * 为掉落列表中的真实器官追加误诊附魔。
+     *
+     * @param loot 要处理的掉落列表。
+     */
     private static void processMalpractice(List<ItemStack> loot) {
         for (ItemStack stack : loot) {
             OrganData data = OrganManager.get(stack);
@@ -113,6 +147,13 @@ public final class OrganDropController {
         }
     }
 
+    /**
+     * 判断物品是否拥有指定矿辞名称。
+     *
+     * @param stack 要检查的物品。
+     * @param name 矿辞名称。
+     * @return `true` 表示命中该矿辞。
+     */
     private static boolean hasOreName(ItemStack stack, String name) {
         if (stack.isEmpty()) {
             return false;

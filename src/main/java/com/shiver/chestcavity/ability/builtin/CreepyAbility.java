@@ -10,13 +10,26 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.math.MathHelper;
 
+/**
+ * 触发自爆并销毁爆炸类器官的主动能力。
+ */
 final class CreepyAbility implements ActiveOrganAbility {
 
     static final CreepyAbility INSTANCE = new CreepyAbility();
 
+    /**
+     * 单例能力实现，不允许外部实例化。
+     */
     private CreepyAbility() {
     }
 
+    /**
+     * 根据爆炸分数在玩家位置制造爆炸。
+     *
+     * @param player 发动能力的玩家。
+     * @param chestCavity 玩家当前胸腔数据。
+     * @return `true` 表示能力成功发动。
+     */
     @Override
     public boolean activate(EntityPlayerMP player, IChestCavity chestCavity) {
         float creepy = chestCavity.getOrganScore(CCOrganScores.CREEPY);

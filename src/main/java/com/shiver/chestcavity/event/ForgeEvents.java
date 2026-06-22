@@ -59,6 +59,9 @@ import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * 集中处理胸腔系统依赖的 Forge 运行时事件。
+ */
 @Mod.EventBusSubscriber(modid = "chestcavity")
 public final class ForgeEvents {
 
@@ -66,9 +69,17 @@ public final class ForgeEvents {
     private static final LootFunction[] NO_FUNCTIONS = new LootFunction[0];
     private static final Field CREEPER_IGNITION_TIME_FIELD = findCreeperIgnitionTimeField();
 
+    /**
+     * 工具类，不允许外部实例化。
+     */
     private ForgeEvents() {
     }
 
+    /**
+     * 为所有活体实体挂接胸腔能力。
+     *
+     * @param event 能力挂接事件。
+     */
     @SubscribeEvent
     public static void attachCapabilities(AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof EntityLivingBase) {
@@ -76,6 +87,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 在实体每 tick 更新时推进胸腔逻辑与炉火层数。
+     *
+     * @param event 活体更新事件。
+     */
     @SubscribeEvent
     public static void livingUpdate(LivingEvent.LivingUpdateEvent event) {
         FurnacePower.tickFuelLayers(event.getEntityLiving());
@@ -86,6 +102,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 在攻击判定前尝试处理投射物闪避。
+     *
+     * @param event 攻击事件。
+     */
     @SubscribeEvent
     public static void livingAttack(LivingAttackEvent event) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityLiving());
@@ -94,6 +115,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 在伤害进入前按器官防御属性修正伤害值。
+     *
+     * @param event 受伤事件。
+     */
     @SubscribeEvent
     public static void livingHurt(LivingHurtEvent event) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityLiving());
@@ -102,6 +128,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 在最终伤害结算阶段处理附加效果与碰撞破坏。
+     *
+     * @param event 实际受伤事件。
+     */
     @SubscribeEvent
     public static void livingDamage(LivingDamageEvent event) {
         float amount = ChestCavityHelper.applyFinalDamageEffects(event.getEntityLiving(), event.getSource(), event.getAmount());
@@ -112,6 +143,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 在实体跳跃时应用胸腔提供的跳跃修正。
+     *
+     * @param event 跳跃事件。
+     */
     @SubscribeEvent
     public static void livingJump(LivingEvent.LivingJumpEvent event) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityLiving());
@@ -120,6 +156,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 在玩家完成进食后应用器官附带的食物效果。
+     *
+     * @param event 物品使用完成事件。
+     */
     @SubscribeEvent
     public static void finishUsingItem(LivingEntityUseItemEvent.Finish event) {
         if (event.getEntityLiving() instanceof EntityPlayer) {
@@ -127,11 +168,21 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 在药水生效前按胸腔属性调整其参数。
+     *
+     * @param event 药水可应用事件。
+     */
     @SubscribeEvent
     public static void potionApplicable(PotionEvent.PotionApplicableEvent event) {
         ChestCavityHelper.adjustIncomingPotionEffect(event.getEntityLiving(), event.getPotionEffect());
     }
 
+    /**
+     * 接管实体死亡掉落，生成胸腔器官与 API 自定义掉落。
+     *
+     * @param event 生物掉落事件。
+     */
     @SubscribeEvent
     public static void livingDrops(LivingDropsEvent event) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityLiving());
@@ -169,6 +220,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 把通过运行时 API 注册的额外器官掉落加入事件结果中。
+     *
+     * @param event 生物掉落事件。
+     */
     private static void addApiDrops(LivingDropsEvent event) {
         ResourceLocation entityId = EntityList.getKey(event.getEntityLiving());
         if (entityId == null) {
@@ -183,17 +239,32 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 处理普通实体交互，支持丝腺交互和胸腔开启器。
+     *
+     * @param event 实体交互事件。
+     */
     @SubscribeEvent
     public static void entityInteract(PlayerInteractEvent.EntityInteract event) {
         handleSilkInteract(event, event.getTarget());
         handleInteract(event, event.getTarget());
     }
 
+    /**
+     * 处理精确实体交互，支持胸腔开启器。
+     *
+     * @param event 精确实体交互事件。
+     */
     @SubscribeEvent
     public static void entityInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
         handleInteract(event, event.getTarget());
     }
 
+    /**
+     * 在玩家克隆时复制胸腔数据并重新同步客户端。
+     *
+     * @param event 玩家克隆事件。
+     */
     @SubscribeEvent
     public static void playerClone(PlayerEvent.Clone event) {
         ChestCavityHelper.copy(event.getOriginal(), event.getEntityPlayer(), event.isWasDeath());
@@ -203,6 +274,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 玩家登录后立即向客户端下发胸腔与器官注册表数据。
+     *
+     * @param event 玩家登录事件。
+     */
     @SubscribeEvent
     public static void playerLoggedIn(net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent event) {
         if (event.player instanceof EntityPlayerMP) {
@@ -212,6 +288,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 当玩家开始追踪实体时，同步目标实体的胸腔数据。
+     *
+     * @param event 开始追踪事件。
+     */
     @SubscribeEvent
     public static void startTracking(PlayerEvent.StartTracking event) {
         if (event.getEntityPlayer() instanceof EntityPlayerMP && event.getTarget() instanceof EntityLivingBase) {
@@ -219,6 +300,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 按器官分数修正玩家挖掘速度。
+     *
+     * @param event 挖掘速度事件。
+     */
     @SubscribeEvent
     public static void breakSpeed(PlayerEvent.BreakSpeed event) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityPlayer());
@@ -227,6 +313,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 处理纯净水喷溅带来的胸腔交互效果。
+     *
+     * @param event 投掷物命中事件。
+     */
     @SubscribeEvent
     public static void projectileImpact(ProjectileImpactEvent.Throwable event) {
         if (!(event.getThrowable() instanceof EntityPotion)) {
@@ -239,6 +330,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 向沙漠神殿战利品表注入额外器官掉落。
+     *
+     * @param event 战利品表加载事件。
+     */
     @SubscribeEvent
     public static void lootTableLoad(LootTableLoadEvent event) {
         if (!LootTableList.CHESTS_DESERT_PYRAMID.equals(event.getName())) {
@@ -249,6 +345,12 @@ public final class ForgeEvents {
         addDesertPyramidPool(event, "rotten_spine", CCItems.ROTTEN_SPINE, 1, 0.3F);
     }
 
+    /**
+     * 处理胸腔开启器对目标实体的交互逻辑。
+     *
+     * @param event 玩家交互事件。
+     * @param target 交互目标。
+     */
     private static void handleInteract(PlayerInteractEvent event, Entity target) {
         if (target instanceof MultiPartEntityPart && ((MultiPartEntityPart) target).parent instanceof EntityDragon) {
             target = (EntityDragon) ((MultiPartEntityPart) target).parent;
@@ -275,6 +377,12 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 处理用桶或剪刀从特定生物身上获取丝的交互。
+     *
+     * @param event 实体交互事件。
+     * @param target 交互目标。
+     */
     private static void handleSilkInteract(PlayerInteractEvent.EntityInteract event, Entity target) {
         if (event.isCanceled() || event.getWorld().isRemote || !(target instanceof EntityLivingBase)) {
             return;
@@ -302,6 +410,12 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 防止已打开但没有 Creepy 分数的苦力怕继续进入自爆状态。
+     *
+     * @param entity 要处理的实体。
+     * @param chestCavity 实体胸腔数据。
+     */
     private static void stopOpenedCreeperWithoutCreepy(EntityLivingBase entity, IChestCavity chestCavity) {
         if (!(entity instanceof EntityCreeper) || !chestCavity.isOpened()
                 || chestCavity.getOrganScore(CCOrganScores.CREEPY) > 0.0F) {
@@ -317,6 +431,12 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 当凋灵体内已经取走下界之星时，移除其原版掉落。
+     *
+     * @param event 生物掉落事件。
+     * @param chestCavity 凋灵胸腔数据。
+     */
     private static void removeTakenWitherStar(LivingDropsEvent event, IChestCavity chestCavity) {
         if (!(event.getEntityLiving() instanceof EntityWither) || containsOrgan(chestCavity, Items.NETHER_STAR)) {
             return;
@@ -330,6 +450,13 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 判断胸腔中是否仍然包含指定物品。
+     *
+     * @param chestCavity 要检查的胸腔数据。
+     * @param item 目标物品。
+     * @return `true` 表示胸腔中仍有该物品。
+     */
     private static boolean containsOrgan(IChestCavity chestCavity, net.minecraft.item.Item item) {
         for (ItemStack stack : chestCavity.getOrgans()) {
             if (!stack.isEmpty() && stack.getItem() == item) {
@@ -339,6 +466,16 @@ public final class ForgeEvents {
         return false;
     }
 
+    /**
+     * 向沙漠神殿掉落表追加一个带随机概率的独立掉落池。
+     *
+     * @param event 战利品表加载事件。
+     * @param name 掉落池名称后缀。
+     * @param item 要掉落的物品。
+     * @param attempts 添加次数。
+     * @param chance 每次添加的触发概率。
+     * @param functions 可选的掉落函数。
+     */
     private static void addDesertPyramidPool(LootTableLoadEvent event, String name, net.minecraft.item.Item item,
                                              int attempts, float chance, LootFunction... functions) {
         for (int i = 0; i < attempts; i++) {
@@ -359,6 +496,11 @@ public final class ForgeEvents {
         }
     }
 
+    /**
+     * 通过反射找到苦力怕内部的点火计时字段。
+     *
+     * @return 点火计时字段；找不到时返回 `null`。
+     */
     private static Field findCreeperIgnitionTimeField() {
         try {
             Field field = ReflectionHelper.findField(EntityCreeper.class, "timeSinceIgnited", "field_70833_d");
