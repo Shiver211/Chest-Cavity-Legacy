@@ -5,6 +5,7 @@ import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.config.CCConfig;
+import com.shiver.chestcavity.mixin.PotionEffectAccessor;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import com.shiver.chestcavity.registry.CCPotions;
 import net.minecraft.block.material.Material;
@@ -20,9 +21,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +30,6 @@ import java.util.List;
  */
 public final class OrganCombatController {
 
-    private static final Field POTION_EFFECT_DURATION_FIELD = findPotionEffectDurationField();
     private static final float DEFENSE_HALF_DAMAGE_STEP = 4.0F;
     private static final int DESTRUCTIVE_COLLISION_MAX_BLOCKS = 16;
     private static final float DESTRUCTIVE_COLLISION_BASE_HARDNESS = 0.75F;
@@ -396,27 +394,8 @@ public final class OrganCombatController {
      * @param duration 新的持续时间。
      */
     private static void setPotionDuration(PotionEffect effect, int duration) {
-        if (POTION_EFFECT_DURATION_FIELD == null) {
-            return;
-        }
-        try {
-            POTION_EFFECT_DURATION_FIELD.setInt(effect, duration);
-        } catch (IllegalAccessException ignored) {
-        }
-    }
-
-    /**
-     * 通过反射查找药水效果内部的持续时间字段。
-     *
-     * @return 持续时间字段；查找失败时返回 `null`。
-     */
-    private static Field findPotionEffectDurationField() {
-        try {
-            Field field = ReflectionHelper.findField(PotionEffect.class, "duration", "field_76460_b");
-            field.setAccessible(true);
-            return field;
-        } catch (ReflectionHelper.UnableToFindFieldException ignored) {
-            return null;
+        if (effect instanceof PotionEffectAccessor) {
+            ((PotionEffectAccessor) effect).chestcavity$setDuration(duration);
         }
     }
 }

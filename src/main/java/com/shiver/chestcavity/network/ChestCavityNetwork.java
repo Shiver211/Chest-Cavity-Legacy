@@ -7,7 +7,6 @@ import com.shiver.chestcavity.chest.organs.OrganManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -19,7 +18,7 @@ import net.minecraftforge.fml.relauncher.Side;
  */
 public final class ChestCavityNetwork {
 
-    private static final String CHANNEL_NAME = "chestcavity";
+    private static final String CHANNEL_NAME = com.shiver.chestcavity.Tags.MOD_ID;
     private static final SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel(CHANNEL_NAME);
 
     private static boolean registered;

@@ -31,7 +31,7 @@ import java.util.Random;
  */
 public final class ChestCavityHelper {
 
-    public static final ResourceLocation CAPABILITY_ID = new ResourceLocation("chestcavity", "chest_cavity");
+    public static final ResourceLocation CAPABILITY_ID = new ResourceLocation(com.shiver.chestcavity.Tags.MOD_ID, "chest_cavity");
 
     /**
      * 工具类，不允许外部实例化。
@@ -272,14 +272,8 @@ public final class ChestCavityHelper {
         OrganCombatController.applyJump(entity, chestCavity);
     }
 
-    /**
-     * 在玩家进食后应用器官带来的额外效果。
-     *
-     * @param player 进食的玩家。
-     * @param eaten 本次吃下的物品。
-     */
-    public static void applyFoodEffects(EntityPlayer player, ItemStack eaten) {
-        OrganFoodController.applyFoodEffects(player, eaten);
+    public static void finishEatingFood(EntityPlayer player, ItemStack eaten) {
+        OrganFoodController.finishEatingFood(player, eaten);
     }
 
     /**

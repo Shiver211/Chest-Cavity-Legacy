@@ -29,24 +29,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
 /**
- * 负责从资源包、配置目录和运行时覆盖中加载胸腔相关数据。
+ * Loads builtin chest-cavity JSON from this mod and reapplies CraftTweaker overrides.
  */
 public final class DataLoaders {
 
     public static final String DATA_ROOT = "chestcavity_data";
     public static final String ASSET_DATA_PATH = "assets/" + Tags.MOD_ID + "/" + DATA_ROOT;
-    public static final String CONFIG_DATA_PATH = "config/" + Tags.MOD_ID + "/data";
     public static final String FALLBACK_ID = "fallback";
 
     private static final ChestCavityType FALLBACK_TYPE = new FallbackChestCavityType();
@@ -64,30 +61,21 @@ public final class DataLoaders {
     }
 
     /**
-     * 重新加载全部胸腔数据，包括器官、类型和实体分配。
-     *
-     * @param gameDir 游戏根目录。
+     * Reloads builtin chest-cavity data from this mod's classpath.
+     * Pack customization goes through CraftTweaker runtime overrides, not extra JSON.
      */
-    public static void reload(File gameDir) {
+    public static void reload() {
         CHEST_CAVITY_TYPES.clear();
         ENTITY_ASSIGNMENTS.clear();
         OrganManager.clear();
         CHEST_CAVITY_TYPES.put(FALLBACK_ID, FALLBACK_TYPE);
 
-        File configDataDir = gameDir == null ? new File(CONFIG_DATA_PATH) : new File(gameDir, CONFIG_DATA_PATH);
-        Set<String> scannedDirectories = new HashSet<>();
-        for (File assetDir : getAssetDataDirectories(gameDir)) {
-            loadDirectory(assetDir, "asset data", scannedDirectories);
-        }
-        loadClasspathAssets(scannedDirectories);
-        loadDirectory(configDataDir, "config data", scannedDirectories);
+        loadClasspathAssets();
         replayRuntimeOverrides();
         dataVersion++;
 
         ChestCavityLegacy.LOGGER.info(
-                "Loaded chest cavity data. assetPath={}, configPath={}, organs={}, types={}, entityAssignments={}",
-                ASSET_DATA_PATH,
-                configDataDir == null ? CONFIG_DATA_PATH : configDataDir.getPath(),
+                "Loaded chest cavity data. organs={}, types={}, entityAssignments={}",
                 OrganData.getRegistry().size(),
                 Math.max(0, CHEST_CAVITY_TYPES.size() - 1),
                 ENTITY_ASSIGNMENTS.size());
@@ -236,36 +224,15 @@ public final class DataLoaders {
         return Collections.unmodifiableMap(ENTITY_ASSIGNMENTS);
     }
 
-    /**
-     * 收集所有可能存在资源数据的目录位置。
-     *
-     * @param gameDir 游戏根目录。
-     * @return 可能的数据目录列表。
-     */
-    private static List<File> getAssetDataDirectories(File gameDir) {
-        List<File> directories = new ArrayList<>();
-        directories.add(new File("build/resources/main/" + ASSET_DATA_PATH));
-        directories.add(new File("src/main/resources/" + ASSET_DATA_PATH));
-        directories.add(new File(ASSET_DATA_PATH));
-        if (gameDir != null) {
-            directories.add(new File(gameDir, ASSET_DATA_PATH));
-        }
-        return directories;
-    }
-
-    /**
-     * 从 classpath 中补充加载打包后的资源数据。
-     *
-     * @param scannedDirectories 已扫描目录集合，用于去重。
-     */
-    private static void loadClasspathAssets(Set<String> scannedDirectories) {
+    private static void loadClasspathAssets() {
         URL resource = DataLoaders.class.getClassLoader().getResource(ASSET_DATA_PATH);
         if (resource == null) {
+            ChestCavityLegacy.LOGGER.warn("Missing builtin chest cavity data at {}", ASSET_DATA_PATH);
             return;
         }
         if ("file".equals(resource.getProtocol())) {
             try {
-                loadDirectory(new File(resource.toURI()), "classpath asset data", scannedDirectories);
+                loadDirectory(new File(resource.toURI()), "classpath asset data");
             } catch (URISyntaxException e) {
                 ChestCavityLegacy.LOGGER.warn("Unable to scan classpath chest cavity data at {}", resource, e);
             }
@@ -313,20 +280,9 @@ public final class DataLoaders {
      *
      * @param root 要扫描的目录。
      * @param sourceName 日志中使用的数据来源名称。
-     * @param scannedDirectories 已扫描目录集合，用于去重。
      */
-    private static void loadDirectory(File root, String sourceName, Set<String> scannedDirectories) {
+    private static void loadDirectory(File root, String sourceName) {
         if (root == null || !root.isDirectory()) {
-            return;
-        }
-
-        try {
-            String canonicalPath = root.getCanonicalPath();
-            if (!scannedDirectories.add(canonicalPath)) {
-                return;
-            }
-        } catch (IOException e) {
-            ChestCavityLegacy.LOGGER.warn("Unable to resolve chest cavity data directory {}", root.getPath(), e);
             return;
         }
 

@@ -2,15 +2,14 @@ package com.shiver.chestcavity.potion;
 
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.mixin.PotionEffectAccessor;
 import com.shiver.chestcavity.registry.CCPotions;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 
 /**
@@ -20,8 +19,6 @@ public class FurnacePower extends CCPotion {
 
     private static final String FUEL_LAYERS_KEY = "chestcavity:furnace_power_layers";
     private static final int FOOD_INTERVAL_TICKS = 200;
-    private static final Field POTION_EFFECT_DURATION_FIELD = findPotionEffectField("duration", "field_76460_b");
-    private static final Field POTION_EFFECT_AMPLIFIER_FIELD = findPotionEffectField("amplifier", "field_76461_c");
 
     /**
      * 创建炉火能量药水效果。
@@ -221,8 +218,10 @@ public class FurnacePower extends CCPotion {
         }
 
         if (current != null) {
-            setPotionEffectValue(current, POTION_EFFECT_DURATION_FIELD, duration);
-            setPotionEffectValue(current, POTION_EFFECT_AMPLIFIER_FIELD, amplifier);
+            if (current instanceof PotionEffectAccessor) {
+                ((PotionEffectAccessor) current).chestcavity$setDuration(duration);
+                ((PotionEffectAccessor) current).chestcavity$setAmplifier(amplifier);
+            }
         }
     }
 
@@ -252,37 +251,4 @@ public class FurnacePower extends CCPotion {
         }
     }
 
-    /**
-     * 通过反射修改药水效果内部字段值。
-     *
-     * @param effect 要修改的药水效果。
-     * @param field 目标字段。
-     * @param value 新的数值。
-     */
-    private static void setPotionEffectValue(PotionEffect effect, Field field, int value) {
-        if (field == null) {
-            return;
-        }
-        try {
-            field.setInt(effect, value);
-        } catch (IllegalAccessException ignored) {
-        }
-    }
-
-    /**
-     * 通过反射查找药水效果内部字段。
-     *
-     * @param name MCP 字段名。
-     * @param srgName SRG 字段名。
-     * @return 查找到的字段；失败时返回 `null`。
-     */
-    private static Field findPotionEffectField(String name, String srgName) {
-        try {
-            Field field = ReflectionHelper.findField(PotionEffect.class, name, srgName);
-            field.setAccessible(true);
-            return field;
-        } catch (ReflectionHelper.UnableToFindFieldException ignored) {
-            return null;
-        }
-    }
 }

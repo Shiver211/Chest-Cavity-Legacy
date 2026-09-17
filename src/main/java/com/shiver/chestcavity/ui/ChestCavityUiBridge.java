@@ -11,7 +11,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
  */
 public final class ChestCavityUiBridge {
 
-    public static final String FACTORY_ID = "chestcavity:chest_cavity";
+    public static final String FACTORY_ID = com.shiver.chestcavity.Tags.MOD_ID + ":chest_cavity";
     public static final String PANEL_ID = "chest_cavity";
     public static final int CHEST_CAVITY_SLOTS = 27;
     public static final int SLOTS_PER_ROW = 9;

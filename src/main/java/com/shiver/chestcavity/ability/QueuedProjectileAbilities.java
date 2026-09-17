@@ -1,9 +1,12 @@
 package com.shiver.chestcavity.ability;
 
+import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.entity.EntityForcefulSpit;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityAreaEffectCloud;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -11,8 +14,14 @@ import net.minecraft.entity.projectile.EntityDragonFireball;
 import net.minecraft.entity.projectile.EntityLargeFireball;
 import net.minecraft.entity.projectile.EntityShulkerBullet;
 import net.minecraft.entity.projectile.EntitySmallFireball;
+import net.minecraft.init.MobEffects;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.List;
@@ -49,6 +58,9 @@ final class QueuedProjectileAbilities {
         if (CCOrganScores.DRAGON_BOMBS.equals(abilityId)) {
             return spawnDragonBomb(player);
         }
+        if (CCOrganScores.DRAGON_BREATH.equals(abilityId)) {
+            return spawnDragonBreath(player);
+        }
         if (CCOrganScores.FORCEFUL_SPIT.equals(abilityId)) {
             return spawnForcefulSpit(player);
         }
@@ -75,6 +87,50 @@ final class QueuedProjectileAbilities {
         EntitySmallFireball fireball = new EntitySmallFireball(player.world, player, look.x, look.y, look.z);
         setProjectileStart(player, fireball, look);
         return player.world.spawnEntity(fireball);
+    }
+
+    private static boolean spawnDragonBreath(EntityPlayerMP player) {
+        IChestCavity chestCavity = ChestCavityHelper.getOrNull(player);
+        if (chestCavity == null) {
+            return false;
+        }
+
+        float breath = chestCavity.getOrganScore(CCOrganScores.DRAGON_BREATH);
+        if (breath <= 0.0F) {
+            return false;
+        }
+
+        double range = Math.sqrt(breath / 2.0D) * 5.0D;
+        Vec3d eye = player.getPositionEyes(1.0F);
+        Vec3d look = player.getLookVec();
+        Vec3d end = eye.add(look.x * range, look.y * range, look.z * range);
+        RayTraceResult hit = player.world.rayTraceBlocks(eye, end, false, false, false);
+        Vec3d pos = hit == null ? end : hit.hitVec;
+
+        double x = pos.x;
+        double y = pos.y;
+        double z = pos.z;
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+        mutable.setPos(x, y, z);
+        while (player.world.isAirBlock(mutable)) {
+            --y;
+            if (y < 0.0D) {
+                return false;
+            }
+            mutable.setPos(x, y, z);
+        }
+        y = MathHelper.floor(y) + 1;
+
+        EntityAreaEffectCloud cloud = new EntityAreaEffectCloud(player.world, x, y, z);
+        cloud.setOwner(player);
+        double dx = cloud.posX - player.posX;
+        double dz = cloud.posZ - player.posZ;
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        cloud.setRadius((float) Math.max(range / 2.0D, Math.min(range, horizontal)));
+        cloud.setDuration(200);
+        cloud.setParticle(EnumParticleTypes.DRAGON_BREATH);
+        cloud.addEffect(new PotionEffect(MobEffects.INSTANT_DAMAGE));
+        return player.world.spawnEntity(cloud);
     }
 
     /**

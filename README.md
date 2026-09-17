@@ -6,7 +6,7 @@
 
 ## 简介
 
-Chest Cavity Legacy 为 Minecraft 中的所有生物添加了一套功能性的**器官系统**。每个生物都拥有一个内部"胸腔"——一个 27 格的物品栏，代表它们的内脏器官。玩家可以使用**开胸器**打开生物的胸腔，查看/替换器官，并通过器官评分系统改变实体的能力属性。已经支持Crt自定义器官、胸腔类型和实体分配。
+Chest Cavity Legacy 为 Minecraft 中的所有生物添加了一套功能性的**器官系统**。每个生物都拥有一个内部"胸腔"——一个 27 格的物品栏，代表它们的内脏器官。玩家可以使用**开胸器**打开生物的胸腔，查看/替换器官，并通过器官评分系统改变实体的能力属性。整合包自定义只通过 CraftTweaker 完成。
 
 ---
 
@@ -19,7 +19,7 @@ Chest Cavity Legacy 为 Minecraft 中的所有生物添加了一套功能性的*
 - **27 个器官槽位**：9×3 网格排列
 - **器官评分**：每个器官拥有多种属性评分，影响宿主能力
 - **器官兼容性**：器官带有所有者标记，不兼容的器官触发**器官排斥**
-- **数据驱动**：器官定义、胸腔类型、实体分配均通过 JSON 配置
+- **CraftTweaker 扩展**：器官定义、胸腔类型和实体分配可通过 ZenScript 增删改
 
 ### 器官获取
 
@@ -38,13 +38,13 @@ Chest Cavity Legacy 为 Minecraft 中的所有生物添加了一套功能性的*
 
 ## 器官评分系统
 
-模组定义了 **47 种器官评分**，涵盖生存、战斗、探索、特殊能力等方面：
+模组定义了多种器官评分，涵盖生存、战斗、探索、特殊能力等方面：
 
 **基础属性**：生命值、力量、速度、防御、神经、幸运、挖掘速度
 
 **消化系统**：消化、营养、肉食/草食消化/营养、腐烂消化、新陈代谢、耐力
 
-**呼吸系统**：肺活量、水下呼吸
+**呼吸系统**：肺活量、呼吸恢复、水下呼吸
 
 **防御系统**：火焰抗性、冲击抗性、击退抗性、轻量化、跳跃
 
@@ -52,7 +52,7 @@ Chest Cavity Legacy 为 Minecraft 中的所有生物添加了一套功能性的*
 
 **战斗能力**：毒性、发射、闪避箭矢、净化增益、凋零抗性
 
-**主动能力**：喷火、龙弹、恶魂、潜影弹、产丝、水晶合成、光合作用、放牧、熔炉供能、铁修补
+**主动能力**：喷火、龙弹、龙息、恶魂、潜影弹、产丝、水晶合成、光合作用、放牧、熔炉供能、铁修补
 
 ---
 
@@ -114,23 +114,9 @@ Chest Cavity Legacy 为 Minecraft 中的所有生物添加了一套功能性的*
 
 ---
 
-## 拓展 / 自定义 能力
+## 拓展 / 自定义
 
-### Crt 方法拓展
-
-模组提供了丰富的 Crt 方法，允许用户通过 ZenScript 定义新的器官、胸腔类型和实体分配。并添加了丰富的`ZenGetter`和`ZenSetter`以及不同的扩展事件。详见 `ChestCavity-CRT-API.md`。
-
-### Json 拓展
-所有器官定义、胸腔类型和实体分配均通过可通过 JSON 文件配置，支持用户自定义：
-
-```
-assets/chestcavity/chestcavity_data/
-├── organs/              # 器官定义
-├── types/               # 胸腔类型定义
-└── entity_assignment/   # 实体到类型的映射
-```
-
-用户可在 `config/chestcavity/data/` 目录下放置自定义 JSON 文件，会覆盖 assets 中的同名文件。
+模组内置数据只作为默认内容。整合包自定义**只通过 CraftTweaker** 完成：器官、胸腔类型、实体分配、掉落、分数显示名、主动能力和相关事件。详见 `ChestCavity-CRT-API.md`。
 
 ---
 
@@ -148,3 +134,4 @@ assets/chestcavity/chestcavity_data/
 
 - [CraftTweaker](https://www.curseforge.com/minecraft/mc-mods/crafttweaker)
 - [CleanroomMC ModularUI](https://github.com/CleanroomMC/ModularUI)
+- MixinBooter（Cleanroom / Mixin 运行时）

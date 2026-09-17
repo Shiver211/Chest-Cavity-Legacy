@@ -74,9 +74,6 @@ public final class OrganDropController {
             drawOrgansFromPile(type.getDroppableOrgans(), 1 + random.nextInt(3) + random.nextInt(3), random, loot);
         }
 
-        if (butcher) {
-            // salvage recipes removed
-        }
         if (malpractice) {
             processMalpractice(loot);
         }

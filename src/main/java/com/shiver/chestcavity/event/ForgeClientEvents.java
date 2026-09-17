@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.event;
 
+import com.shiver.chestcavity.Tags;
 import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
@@ -29,7 +30,7 @@ import java.util.Map;
 /**
  * 处理仅客户端需要的模型注册和物品提示事件。
  */
-@Mod.EventBusSubscriber(modid = "chestcavity", value = Side.CLIENT)
+@Mod.EventBusSubscriber(modid = Tags.MOD_ID, value = Side.CLIENT)
 public final class ForgeClientEvents {
 
     /**
@@ -69,7 +70,7 @@ public final class ForgeClientEvents {
             return;
         }
 
-        event.getToolTip().add(TextFormatting.DARK_GREEN + "Organ scores:");
+        event.getToolTip().add(TextFormatting.DARK_GREEN + I18n.format("tooltip.chestcavity.organ_scores"));
         for (Map.Entry<String, Float> entry : organData.getOrganScoresView().entrySet()) {
             event.getToolTip().add(TextFormatting.GRAY + "  " + getScoreName(entry.getKey(), entry.getValue()) + ": " + formatScore(entry.getValue()));
         }
@@ -87,9 +88,9 @@ public final class ForgeClientEvents {
             return;
         }
         ResourceLocation id = stack.getItem().getRegistryName();
-        if ("chestcavity".equals(id.getNamespace()) && "creeper_appendix".equals(id.getPath())) {
-            event.getToolTip().add(TextFormatting.ITALIC + "This appears to be a fuse.");
-            event.getToolTip().add(TextFormatting.ITALIC + "It won't do much by itself.");
+        if (Tags.MOD_ID.equals(id.getNamespace()) && "creeper_appendix".equals(id.getPath())) {
+            event.getToolTip().add(TextFormatting.ITALIC + I18n.format("tooltip.chestcavity.creeper_appendix.1"));
+            event.getToolTip().add(TextFormatting.ITALIC + I18n.format("tooltip.chestcavity.creeper_appendix.2"));
         }
     }
 
@@ -137,12 +138,12 @@ public final class ForgeClientEvents {
 
         TextFormatting color = compatibility > 0 ? TextFormatting.GREEN : compatibility == 0 ? TextFormatting.RED : TextFormatting.YELLOW;
         if (EnchantmentHelper.getEnchantmentLevel(CCEnchantments.MALPRACTICE, stack) > 0) {
-            event.getToolTip().add(color + "Unsafe to use");
+            event.getToolTip().add(color + I18n.format("tooltip.chestcavity.unsafe_to_use"));
         } else if (ChestCavityHelper.hasCompatibilityTag(stack)
                 && EnchantmentHelper.getEnchantmentLevel(CCEnchantments.O_NEGATIVE, stack) <= 0) {
-            event.getToolTip().add(color + "Only compatible with: " + ChestCavityHelper.getCompatibilityName(stack));
+            event.getToolTip().add(color + I18n.format("tooltip.chestcavity.only_compatible", ChestCavityHelper.getCompatibilityName(stack)));
         } else {
-            event.getToolTip().add(color + "Safe to use");
+            event.getToolTip().add(color + I18n.format("tooltip.chestcavity.safe_to_use"));
         }
     }
 }

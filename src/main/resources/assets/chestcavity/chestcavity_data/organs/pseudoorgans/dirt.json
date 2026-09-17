@@ -10,6 +10,7 @@
     {"id": "detoxification", "value": ".037037"},
     {"id": "filtration", "value": ".074074"},
     {"id": "breath_capacity", "value": ".074074"},
+    {"id": "breath_recovery", "value": ".074074"},
     {"id": "endurance", "value": ".074074"},
     {"id": "metabolism", "value": ".037037"},
     {"id": "digestion", "value": ".037037"},

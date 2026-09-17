@@ -10,6 +10,7 @@ import com.shiver.chestcavity.data.DataLoaders;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import com.shiver.chestcavity.registry.CCPotions;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
@@ -57,7 +58,6 @@ public final class OrganTickController {
             }
             tickBasicSurvival(entity, chestCavity);
             tickFiltration(entity, chestCavity);
-            tickBreathing(entity, chestCavity);
             tickMetabolism(entity, chestCavity);
             tickProjectileQueue(entity, chestCavity);
             tickPassiveEffects(entity, chestCavity);
@@ -159,34 +159,66 @@ public final class OrganTickController {
         chestCavity.setBloodPoisonTimer(timer);
     }
 
-    /**
-     * 处理水下呼吸容量和水下呼吸分数带来的空气变化。
-     *
-     * @param entity 目标实体。
-     * @param chestCavity 实体胸腔数据。
-     */
-    private static void tickBreathing(EntityLivingBase entity, IChestCavity chestCavity) {
-        if (!chestCavity.isOpened()) {
-            chestCavity.setLungRemainder(0.0F);
-            return;
+    public static int applyBreathInWater(EntityLivingBase entity, int oldAir, int vanillaNewAir) {
+        IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
+        if (chestCavity == null || !chestCavity.isOpened()) {
+            return vanillaNewAir;
         }
 
-        float capacity = chestCavity.getOrganScore(CCOrganScores.BREATH_CAPACITY);
-        float waterBreath = chestCavity.getOrganScore(CCOrganScores.WATER_BREATH);
-
-        if (entity.isInsideOfMaterial(net.minecraft.block.material.Material.WATER)) {
-            float airLoss = capacity <= 0.0F ? 20.0F : Math.min(2.0F / capacity, 20.0F);
-            airLoss -= waterBreath * 2.0F;
-            float delta = airLoss - 1.0F + chestCavity.getLungRemainder();
-            int whole = (int) delta;
-            chestCavity.setLungRemainder(delta - whole);
-            if (whole != 0) {
-                entity.setAir(Math.min(300, Math.max(-20, entity.getAir() - whole)));
-            }
-            return;
+        ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
+        if (type.getDefaultOrganScore(CCOrganScores.BREATH_CAPACITY) == chestCavity.getOrganScore(CCOrganScores.BREATH_CAPACITY)
+                && type.getDefaultOrganScore(CCOrganScores.WATER_BREATH) == chestCavity.getOrganScore(CCOrganScores.WATER_BREATH)) {
+            return vanillaNewAir;
         }
 
-        chestCavity.setLungRemainder(0.0F);
+        OrganFormulas.BreathTick tick = OrganFormulas.applyBreathInWater(
+                oldAir,
+                vanillaNewAir,
+                chestCavity.getOrganScore(CCOrganScores.BREATH_CAPACITY),
+                chestCavity.getOrganScore(CCOrganScores.WATER_BREATH),
+                entity.isSprinting(),
+                chestCavity.getLungRemainder(),
+                OrganFormulas.MAX_AIR);
+        chestCavity.setLungRemainder(tick.remainder);
+        if (tick.drown) {
+            entity.attackEntityFrom(DamageSource.DROWN, 2.0F);
+        }
+        return tick.air;
+    }
+
+    public static int applyLandAirRestore(EntityLivingBase entity, int currentAir) {
+        IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
+        if (chestCavity == null || !chestCavity.isOpened()) {
+            return OrganFormulas.MAX_AIR;
+        }
+
+        ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
+        if (type.getDefaultOrganScore(CCOrganScores.BREATH_RECOVERY) == chestCavity.getOrganScore(CCOrganScores.BREATH_RECOVERY)
+                && type.getDefaultOrganScore(CCOrganScores.BREATH_CAPACITY) == chestCavity.getOrganScore(CCOrganScores.BREATH_CAPACITY)
+                && type.getDefaultOrganScore(CCOrganScores.WATER_BREATH) == chestCavity.getOrganScore(CCOrganScores.WATER_BREATH)) {
+            return OrganFormulas.MAX_AIR;
+        }
+
+        int respiration = EnchantmentHelper.getRespirationModifier(entity);
+        boolean respirationCancels = respiration > 0 && entity.getRNG().nextInt(respiration + 1) != 0;
+        int simulatedAir = Math.min(currentAir + OrganFormulas.LAND_AIR_GAIN, OrganFormulas.MAX_AIR);
+        OrganFormulas.BreathTick tick = OrganFormulas.applyBreathOnLand(
+                simulatedAir,
+                OrganFormulas.LAND_AIR_GAIN,
+                chestCavity.getOrganScore(CCOrganScores.BREATH_RECOVERY),
+                chestCavity.getOrganScore(CCOrganScores.BREATH_CAPACITY),
+                chestCavity.getOrganScore(CCOrganScores.WATER_BREATH),
+                entity.isSprinting(),
+                entity.isWet(),
+                entity.isPotionActive(MobEffects.WATER_BREATHING),
+                respirationCancels,
+                chestCavity.getLungRemainder(),
+                OrganFormulas.MAX_AIR);
+        chestCavity.setLungRemainder(tick.remainder);
+        if (tick.drown) {
+            entity.attackEntityFrom(DamageSource.DROWN, 2.0F);
+        }
+        return tick.air;
     }
 
     /**

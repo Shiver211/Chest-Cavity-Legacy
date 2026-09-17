@@ -5,6 +5,7 @@ import com.shiver.chestcavity.capability.ChestCavityProvider;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.item.ChestOpener;
+import com.shiver.chestcavity.mixin.EntityCreeperAccessor;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.potion.FurnacePower;
 import com.shiver.chestcavity.registry.CCItems;
@@ -42,10 +43,10 @@ import net.minecraft.world.storage.loot.functions.SetCount;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.LootTableLoadEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
-import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.PotionEvent;
@@ -53,21 +54,17 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
-
-import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 
 /**
  * 集中处理胸腔系统依赖的 Forge 运行时事件。
  */
-@Mod.EventBusSubscriber(modid = "chestcavity")
+@Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public final class ForgeEvents {
 
     private static final LootCondition[] NO_CONDITIONS = new LootCondition[0];
     private static final LootFunction[] NO_FUNCTIONS = new LootFunction[0];
-    private static final Field CREEPER_IGNITION_TIME_FIELD = findCreeperIgnitionTimeField();
 
     /**
      * 工具类，不允许外部实例化。
@@ -156,15 +153,10 @@ public final class ForgeEvents {
         }
     }
 
-    /**
-     * 在玩家完成进食后应用器官附带的食物效果。
-     *
-     * @param event 物品使用完成事件。
-     */
     @SubscribeEvent
     public static void finishUsingItem(LivingEntityUseItemEvent.Finish event) {
         if (event.getEntityLiving() instanceof EntityPlayer) {
-            ChestCavityHelper.applyFoodEffects((EntityPlayer) event.getEntityLiving(), event.getItem());
+            ChestCavityHelper.finishEatingFood((EntityPlayer) event.getEntityLiving(), event.getItem());
         }
     }
 
@@ -423,11 +415,8 @@ public final class ForgeEvents {
         }
         EntityCreeper creeper = (EntityCreeper) entity;
         creeper.setCreeperState(-1);
-        if (CREEPER_IGNITION_TIME_FIELD != null) {
-            try {
-                CREEPER_IGNITION_TIME_FIELD.setInt(creeper, 1);
-            } catch (IllegalAccessException ignored) {
-            }
+        if (creeper instanceof EntityCreeperAccessor) {
+            ((EntityCreeperAccessor) creeper).chestcavity$setTimeSinceIgnited(1);
         }
     }
 
@@ -496,18 +485,4 @@ public final class ForgeEvents {
         }
     }
 
-    /**
-     * 通过反射找到苦力怕内部的点火计时字段。
-     *
-     * @return 点火计时字段；找不到时返回 `null`。
-     */
-    private static Field findCreeperIgnitionTimeField() {
-        try {
-            Field field = ReflectionHelper.findField(EntityCreeper.class, "timeSinceIgnited", "field_70833_d");
-            field.setAccessible(true);
-            return field;
-        } catch (ReflectionHelper.UnableToFindFieldException ignored) {
-            return null;
-        }
-    }
 }

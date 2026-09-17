@@ -1,6 +1,7 @@
 {
   "itemID": "chestcavity:small_animal_lung",
   "organScores": [
+    {"id":"breath_recovery","value": ".5"},
     {"id":"breath_capacity","value": ".5"},
     {"id":"endurance","value": ".5"},
     {"id":"lightweight","value": "1"}

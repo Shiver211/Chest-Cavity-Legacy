@@ -15,6 +15,7 @@ final class AbilityWheelConstants {
             CCOrganScores.SILK,
             CCOrganScores.CREEPY,
             CCOrganScores.DRAGON_BOMBS,
+            CCOrganScores.DRAGON_BREATH,
             CCOrganScores.FORCEFUL_SPIT,
             CCOrganScores.PYROMANCY,
             CCOrganScores.GHASTLY,

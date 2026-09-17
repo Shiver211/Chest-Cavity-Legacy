@@ -25,6 +25,7 @@ public final class BuiltinOrganAbilities {
         ActiveOrganAbilities.register(CCOrganScores.CREEPY, CreepyAbility.INSTANCE);
         ActiveOrganAbilities.register(CCOrganScores.PYROMANCY, PyromancyAbility.INSTANCE);
         ActiveOrganAbilities.register(CCOrganScores.DRAGON_BOMBS, DragonBombsAbility.INSTANCE);
+        ActiveOrganAbilities.register(CCOrganScores.DRAGON_BREATH, DragonBreathAbility.INSTANCE);
         ActiveOrganAbilities.register(CCOrganScores.FORCEFUL_SPIT, ForcefulSpitAbility.INSTANCE);
         ActiveOrganAbilities.register(CCOrganScores.GHASTLY, GhastlyAbility.INSTANCE);
         ActiveOrganAbilities.register(CCOrganScores.SHULKER_BULLETS, ShulkerBulletsAbility.INSTANCE);

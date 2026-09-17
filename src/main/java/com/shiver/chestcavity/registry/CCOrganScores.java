@@ -30,6 +30,7 @@ public final class CCOrganScores {
     public static final String GRAZING = "grazing";
     public static final String IRON_REPAIR = "iron_repair";
     public static final String BREATH_CAPACITY = "breath_capacity";
+    public static final String BREATH_RECOVERY = "breath_recovery";
     public static final String WATER_BREATH = "water_breath";
     public static final String BUOYANT = "buoyant";
     public static final String CREEPY = "creepy";
@@ -50,6 +51,7 @@ public final class CCOrganScores {
     public static final String BUFF_PURGING = "buff_purging";
     public static final String WITHERED = "withered";
     public static final String DRAGON_BOMBS = "dragon_bombs";
+    public static final String DRAGON_BREATH = "dragon_breath";
     public static final String FORCEFUL_SPIT = "forceful_spit";
     public static final String GHASTLY = "ghastly";
     public static final String SHULKER_BULLETS = "shulker_bullets";

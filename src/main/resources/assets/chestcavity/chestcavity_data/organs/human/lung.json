@@ -1,6 +1,7 @@
 {
   "itemID": "chestcavity:lung",
   "organScores": [
+    {"id": "breath_recovery", "value": "1"},
     {"id": "breath_capacity", "value": "1"},
     {"id": "endurance", "value": "1"}
   ]

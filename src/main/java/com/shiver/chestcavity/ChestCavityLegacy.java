@@ -13,16 +13,13 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-
 /**
  * 模组主入口，负责初始化核心系统、配置和运行期数据。
  */
-@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, dependencies = "required-after:modularui;required-after:crafttweaker")
+@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, dependencies = "required-after:modularui;required-after:crafttweaker;required-after:mixinbooter")
 public class ChestCavityLegacy {
 
     public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
-    private File gameDir;
 
     /**
      * 处理模组预初始化阶段，完成配置、能力、网络和界面工厂的注册。
@@ -31,7 +28,6 @@ public class ChestCavityLegacy {
      */
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        gameDir = event.getModConfigurationDirectory().getParentFile();
         CCConfig.load(event.getSuggestedConfigurationFile());
         ChestCavityCapability.ensureRegistered();
         ChestCavityNetwork.register();
@@ -45,13 +41,13 @@ public class ChestCavityLegacy {
     }
 
     /**
-     * 处理模组初始化阶段，按当前游戏目录重新加载胸腔相关数据。
+     * Loads builtin chest-cavity data after items are registered.
      *
      * @param event Forge 初始化事件。
      */
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        DataLoaders.reload(gameDir);
+        DataLoaders.reload();
         LOGGER.info("{} data loaded.", Tags.MOD_NAME);
     }
 
