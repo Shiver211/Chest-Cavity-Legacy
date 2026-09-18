@@ -11,6 +11,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityDragonFireball;
+import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.entity.projectile.EntityLargeFireball;
 import net.minecraft.entity.projectile.EntityShulkerBullet;
 import net.minecraft.entity.projectile.EntitySmallFireball;
@@ -85,7 +86,8 @@ final class QueuedProjectileAbilities {
             return false;
         }
         EntitySmallFireball fireball = new EntitySmallFireball(player.world, player, look.x, look.y, look.z);
-        setProjectileStart(player, fireball, look);
+        configureFireball(fireball, player, look);
+        setProjectileStart(player, fireball, look, 1.0D);
         return player.world.spawnEntity(fireball);
     }
 
@@ -145,7 +147,8 @@ final class QueuedProjectileAbilities {
             return false;
         }
         EntityDragonFireball fireball = new EntityDragonFireball(player.world, player, look.x, look.y, look.z);
-        setProjectileStart(player, fireball, look);
+        configureFireball(fireball, player, look);
+        setProjectileStart(player, fireball, look, 1.4D);
         return player.world.spawnEntity(fireball);
     }
 
@@ -161,7 +164,7 @@ final class QueuedProjectileAbilities {
             return false;
         }
         EntityForcefulSpit spit = new EntityForcefulSpit(player.world, player);
-        spit.setPosition(player.posX + look.x, player.posY + player.getEyeHeight() - 0.1D, player.posZ + look.z);
+        setProjectileStart(player, spit, look, 1.0D);
         spit.shoot(look.x, look.y, look.z, FORCEFUL_SPIT_VELOCITY, 0.0F);
         return player.world.spawnEntity(spit);
     }
@@ -179,7 +182,8 @@ final class QueuedProjectileAbilities {
         }
         EntityLargeFireball fireball = new EntityLargeFireball(player.world, player, look.x, look.y, look.z);
         fireball.explosionPower = 1;
-        setProjectileStart(player, fireball, look);
+        configureFireball(fireball, player, look);
+        setProjectileStart(player, fireball, look, 1.4D);
         return player.world.spawnEntity(fireball);
     }
 
@@ -213,16 +217,39 @@ final class QueuedProjectileAbilities {
     }
 
     /**
-     * 将投射物起点设置到玩家眼前。
+     * 重置火球的发射者、加速度与初速度，消除原版构造函数的随机散布并防止生成时滞留。
+     *
+     * @param fireball 要初始化的火球。
+     * @param player 发射火球的玩家。
+     * @param look 归一化后的视线方向。
+     */
+    private static void configureFireball(EntityFireball fireball, EntityPlayerMP player, Vec3d look) {
+        fireball.shootingEntity = player;
+        fireball.accelerationX = look.x * 0.1D;
+        fireball.accelerationY = look.y * 0.1D;
+        fireball.accelerationZ = look.z * 0.1D;
+        fireball.motionX = look.x * 0.1D;
+        fireball.motionY = look.y * 0.1D;
+        fireball.motionZ = look.z * 0.1D;
+    }
+
+    /**
+     * 将投射物起点设置到玩家眼前指定安全距离处，避免碰撞箱重叠并防止卡入方块。
      *
      * @param player 发动能力的玩家。
      * @param projectile 要放置的投射物实体。
      * @param look 玩家当前视线方向。
+     * @param offset 向视线前方延伸的安全距离。
      */
-    private static void setProjectileStart(EntityPlayerMP player, Entity projectile, Vec3d look) {
-        projectile.setPosition(player.posX + look.x,
-                player.posY + player.getEyeHeight() - 0.1D,
-                player.posZ + look.z);
+    private static void setProjectileStart(EntityPlayerMP player, Entity projectile, Vec3d look, double offset) {
+        Vec3d eye = new Vec3d(player.posX, player.posY + player.getEyeHeight() - 0.1D, player.posZ);
+        Vec3d target = eye.add(look.x * offset, look.y * offset, look.z * offset);
+        RayTraceResult hit = player.world.rayTraceBlocks(eye, target, false, true, false);
+        if (hit != null && hit.hitVec != null) {
+            double margin = 0.1D;
+            target = hit.hitVec.subtract(look.x * margin, look.y * margin, look.z * margin);
+        }
+        projectile.setPosition(target.x, target.y, target.z);
     }
 
     /**

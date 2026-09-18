@@ -58,6 +58,10 @@ public class EntityForcefulSpit extends EntityLlamaSpit {
      */
     @Override
     public void onHit(RayTraceResult result) {
+        if (result.entityHit == forcefulOwner) {
+            return;
+        }
+
         if (result.entityHit != null && forcefulOwner != null) {
             result.entityHit.attackEntityFrom(DamageSource.causeIndirectDamage(this, forcefulOwner).setProjectile(), 1.0F);
         }
