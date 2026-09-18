@@ -4,6 +4,7 @@ import com.shiver.chestcavity.ability.ActiveOrganAbilities;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.organs.OrganManager;
+import com.shiver.chestcavity.config.CCConfig;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -39,7 +40,8 @@ public final class ChestCavityNetwork {
             int id = 0;
             CHANNEL.registerMessage(MessageChestCavitySync.Handler.class, MessageChestCavitySync.class, id++, Side.CLIENT);
             CHANNEL.registerMessage(MessageHotkeyActivation.Handler.class, MessageHotkeyActivation.class, id++, Side.SERVER);
-            CHANNEL.registerMessage(MessageOrganDataSync.Handler.class, MessageOrganDataSync.class, id, Side.CLIENT);
+            CHANNEL.registerMessage(MessageOrganDataSync.Handler.class, MessageOrganDataSync.class, id++, Side.CLIENT);
+            CHANNEL.registerMessage(MessageMovementConfigSync.Handler.class, MessageMovementConfigSync.class, id, Side.CLIENT);
             registered = true;
         }
         return true;
@@ -96,6 +98,16 @@ public final class ChestCavityNetwork {
      */
     public static void sendOrganDataSync(EntityPlayerMP player) {
         sendOrganDataSync(player, OrganManager.writeRegistryToNbt());
+    }
+
+    /**
+     * 向指定玩家发送参与双端运动计算的服务端配置。
+     *
+     * @param player 接收同步数据的玩家。
+     */
+    public static void sendMovementConfig(EntityPlayerMP player) {
+        register();
+        CHANNEL.sendTo(new MessageMovementConfigSync(CCConfig.LIGHTWIEGHT_FACTOR, CCConfig.BUOYANCY_LIFT), player);
     }
 
     /**

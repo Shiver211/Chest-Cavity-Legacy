@@ -3,6 +3,7 @@ package com.shiver.chestcavity.network;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.organs.OrganManager;
+import com.shiver.chestcavity.config.CCConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
@@ -50,5 +51,17 @@ public final class ClientNetworkHooks {
         Minecraft minecraft = Minecraft.getMinecraft();
         NBTTagCompound organData = message.getOrganData().copy();
         minecraft.addScheduledTask(() -> OrganManager.readRegistryFromNbt(organData));
+    }
+
+    /**
+     * 在客户端主线程中套用服务端运动配置。
+     *
+     * @param message 服务端发来的运动配置同步消息。
+     */
+    public static void handleMovementConfigSync(MessageMovementConfigSync message) {
+        float lightweightFactor = message.getLightweightFactor();
+        float buoyancyLift = message.getBuoyancyLift();
+        Minecraft.getMinecraft().addScheduledTask(() ->
+                CCConfig.applyServerMovementConfig(lightweightFactor, buoyancyLift));
     }
 }

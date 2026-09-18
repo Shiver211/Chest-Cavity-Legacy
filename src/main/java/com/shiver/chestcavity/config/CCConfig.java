@@ -33,6 +33,7 @@ public final class CCConfig {
     public static int ARROW_DODGE_DISTANCE = 32;
     public static float BUFF_PURGING_DURATION_FACTOR = 0.5F;
     public static float BUOYANCY_LIFT = 0.015F;
+    private static float localBuoyancyLift = 0.015F;
     public static int CRYSTALSYNTHESIS_RANGE = 32;
     public static int CRYSTALSYNTHESIS_FREQUENCY = 10;
     public static float FIREPROOF_DEFENSE = 0.75F;
@@ -41,6 +42,7 @@ public final class CCConfig {
     public static float LAUNCHING_POWER = 0.1F;
     public static float LEAPING_POWER = 0.25F;
     public static float LIGHTWIEGHT_FACTOR = 0.25F;
+    private static float localLightweightFactor = 0.25F;
     public static int MAX_TELEPORT_ATTEMPTS = 5;
     public static int PHOTOSYNTHESIS_FREQUENCY = 50;
     public static int RUMINATION_TIME = 400;
@@ -124,6 +126,7 @@ public final class CCConfig {
                 "How strongly buff purging shortens beneficial effects.");
         BUOYANCY_LIFT = getFloat("more", "BUOYANCY_LIFT", BUOYANCY_LIFT,
                 "Upward velocity per extra buoyancy score while airborne.");
+        localBuoyancyLift = BUOYANCY_LIFT;
         CRYSTALSYNTHESIS_RANGE = getInt("more", "CRYSTALSYNTHESIS_RANGE", CRYSTALSYNTHESIS_RANGE,
                 "Range for linking to an end crystal.");
         CRYSTALSYNTHESIS_FREQUENCY = getInt("more", "CRYSTALSYNTHESIS_FREQUENCY", CRYSTALSYNTHESIS_FREQUENCY,
@@ -140,6 +143,7 @@ public final class CCConfig {
                 "Jump velocity multiplier per extra leaping score.");
         LIGHTWIEGHT_FACTOR = getFloat("more", "LIGHTWIEGHT_FACTOR", LIGHTWIEGHT_FACTOR,
                 "Fall-speed scaling per lightweight score.");
+        localLightweightFactor = LIGHTWIEGHT_FACTOR;
         MAX_TELEPORT_ATTEMPTS = getInt("more", "MAX_TELEPORT_ATTEMPTS", MAX_TELEPORT_ATTEMPTS,
                 "Random teleport attempts for dodging or hydrophobia.");
         PHOTOSYNTHESIS_FREQUENCY = getInt("more", "PHOTOSYNTHESIS_FREQUENCY", PHOTOSYNTHESIS_FREQUENCY,
@@ -187,6 +191,25 @@ public final class CCConfig {
 
     public static String getDefaultChestCavityId() {
         return DEFAULT_CHEST_CAVITY;
+    }
+
+    /**
+     * Applies server movement coefficients on the client so gravity and buoyancy match.
+     *
+     * @param lightweightFactor server {@code LIGHTWIEGHT_FACTOR}
+     * @param buoyancyLift server {@code BUOYANCY_LIFT}
+     */
+    public static void applyServerMovementConfig(float lightweightFactor, float buoyancyLift) {
+        LIGHTWIEGHT_FACTOR = lightweightFactor;
+        BUOYANCY_LIFT = buoyancyLift;
+    }
+
+    /**
+     * Restores file-loaded movement coefficients after leaving a remote server.
+     */
+    public static void restoreLocalMovementConfig() {
+        LIGHTWIEGHT_FACTOR = localLightweightFactor;
+        BUOYANCY_LIFT = localBuoyancyLift;
     }
 
     private static int getInt(String category, String name, int defaultValue, String comment) {

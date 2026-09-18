@@ -38,7 +38,10 @@ public abstract class MixinEntityLivingBase {
                 ChestCavityHelper.getOrNull((EntityLivingBase) (Object) this), source, cir.getReturnValueF()));
     }
 
-    @ModifyConstant(method = "travel", constant = @Constant(doubleValue = 0.08D))
+    @ModifyConstant(method = "travel", constant = {
+            @Constant(doubleValue = 0.08D),
+            @Constant(doubleValue = -0.08D)
+    }, expect = 2)
     private double chestcavity$applyLightweightGravity(double gravity) {
         return OrganMovementController.applyLightweightToGravity((EntityLivingBase) (Object) this, gravity);
     }

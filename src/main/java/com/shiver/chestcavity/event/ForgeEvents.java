@@ -6,6 +6,7 @@ import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.item.ChestOpener;
 import com.shiver.chestcavity.mixin.EntityCreeperAccessor;
+import com.shiver.chestcavity.config.CCConfig;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.potion.FurnacePower;
 import com.shiver.chestcavity.registry.CCItems;
@@ -263,7 +264,18 @@ public final class ForgeEvents {
             EntityPlayerMP player = (EntityPlayerMP) event.player;
             ChestCavityNetwork.sendChestCavitySyncTo(player, player);
             ChestCavityNetwork.sendOrganDataSync(player);
+            ChestCavityNetwork.sendMovementConfig(player);
         }
+    }
+
+    /**
+     * 离开服务器后恢复本地运动配置，避免把上一服务器的系数带到单人世界。
+     *
+     * @param event 客户端断开连接事件。
+     */
+    @SubscribeEvent
+    public static void clientDisconnected(net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        CCConfig.restoreLocalMovementConfig();
     }
 
     /**

@@ -53,6 +53,12 @@ class OrganFormulasTest {
     }
 
     @Test
+    void lightweightScalesElytraGravityConstant() {
+        assertEquals(-0.064D, OrganFormulas.applyLightweightToGravity(-0.08D, 1.0F, 0.25F), 0.0001D);
+        assertEquals(-0.1D, OrganFormulas.applyLightweightToGravity(-0.08D, -1.0F, 0.25F), 0.0001D);
+    }
+
+    @Test
     void spleenMetabolismSpeedsUpPositiveScore() {
         OrganFormulas.MetabolismTick first = OrganFormulas.applySpleenMetabolism(0, 1.5F, 0.0F);
         assertEquals(1, first.foodTimer);
