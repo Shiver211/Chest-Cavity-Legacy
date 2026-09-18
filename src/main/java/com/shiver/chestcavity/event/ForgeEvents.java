@@ -48,7 +48,6 @@ import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.PotionEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -109,19 +108,6 @@ public final class ForgeEvents {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityLiving());
         if (chestCavity != null && ChestCavityHelper.attemptProjectileDodge(event.getEntityLiving(), chestCavity, event.getSource())) {
             event.setCanceled(true);
-        }
-    }
-
-    /**
-     * 在伤害进入前按器官防御属性修正伤害值。
-     *
-     * @param event 受伤事件。
-     */
-    @SubscribeEvent
-    public static void livingHurt(LivingHurtEvent event) {
-        IChestCavity chestCavity = ChestCavityHelper.getOrNull(event.getEntityLiving());
-        if (chestCavity != null) {
-            event.setAmount(ChestCavityHelper.applyDefense(chestCavity, event.getSource(), event.getAmount()));
         }
     }
 

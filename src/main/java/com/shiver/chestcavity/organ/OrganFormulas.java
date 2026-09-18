@@ -36,11 +36,54 @@ public final class OrganFormulas {
         return saturation * nutrition / 4.0F;
     }
 
+    /**
+     * Saturation modifier for {@code FoodStats.addStats(int, float)} that keeps saturation
+     * gain independent of digestion, matching the original Chest Cavity formula.
+     */
+    public static float saturationModifierForAddStats(float nutrition, float vanillaSaturationModifier,
+                                                     int vanillaFood, int hungerGain) {
+        if (hungerGain <= 0) {
+            return 0.0F;
+        }
+        return digestedSaturation(nutrition, vanillaSaturationModifier) * vanillaFood / hungerGain;
+    }
+
     public static int hungerTicks(float nutrition, float saturation) {
         if (nutrition >= 0.0F) {
             return 0;
         }
         return (int) (-saturation * nutrition * 800.0F);
+    }
+
+    public static float applyEnduranceExhaustion(float exhaustion, float enduranceDiff) {
+        if (exhaustion != exhaustion) {
+            return 0.0F;
+        }
+        if (enduranceDiff == 0.0F) {
+            return exhaustion;
+        }
+        if (enduranceDiff > 0.0F) {
+            return exhaustion / (1.0F + enduranceDiff / 2.0F);
+        }
+        return exhaustion * (1.0F - enduranceDiff / 2.0F);
+    }
+
+    public static double applyLightweightToGravity(double gravity, float lightweightDiff, float factor) {
+        if (lightweightDiff > 0.0F) {
+            return gravity / (1.0D + lightweightDiff * factor);
+        }
+        return gravity * (1.0D - lightweightDiff * factor);
+    }
+
+    public static double buoyancyLift(float buoyancyDiff, float airRatio, float liftFactor) {
+        return buoyancyDiff * Math.max(0.0F, airRatio) * liftFactor;
+    }
+
+    public static double applyOrgansToFallDistance(double heightDifference, float lightweightDiff,
+                                                   float lightweightFactor, double buoyancyLift) {
+        double approxEffectiveGravity = applyLightweightToGravity(1.0D, lightweightDiff, lightweightFactor)
+                - (buoyancyLift / 0.08D);
+        return heightDifference * (((approxEffectiveGravity - 1.0D) * 4.0D / 3.0D) + 1.0D);
     }
 
     public static MetabolismTick applySpleenMetabolism(int foodTimer, float metabolismDiff, float remainder) {

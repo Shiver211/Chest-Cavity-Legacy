@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(FoodStats.class)
@@ -17,6 +18,9 @@ public abstract class MixinFoodStats {
 
     @Shadow
     private int foodTimer;
+
+    @Shadow
+    private float foodExhaustionLevel;
 
     @Unique
     private EntityPlayer chestcavity$player;
@@ -33,5 +37,13 @@ public abstract class MixinFoodStats {
                 && OrganFoodController.handleEatenFood((FoodStats) (Object) this, this.chestcavity$player, foodItem, stack)) {
             ci.cancel();
         }
+    }
+
+    @ModifyVariable(method = "addExhaustion", at = @At("HEAD"), argsOnly = true)
+    private float chestcavity$applyEndurance(float exhaustion) {
+        if (this.foodExhaustionLevel != this.foodExhaustionLevel) {
+            this.foodExhaustionLevel = 0.0F;
+        }
+        return OrganFoodController.applyEnduranceExhaustion(this.chestcavity$player, exhaustion);
     }
 }

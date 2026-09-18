@@ -5,7 +5,6 @@ import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.config.CCConfig;
-import com.shiver.chestcavity.mixin.FoodStatsAccessor;
 import com.shiver.chestcavity.registry.CCItems;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import com.shiver.chestcavity.registry.CCPotions;
@@ -15,11 +14,9 @@ import net.minecraft.init.MobEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.FoodStats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.util.Constants;
 
 import java.util.Random;
 
@@ -28,8 +25,6 @@ import java.util.Random;
  */
 public final class OrganFoodController {
 
-    private static final String ENDURANCE_LAST_EXHAUSTION_KEY = Tags.MOD_ID + ":last_exhaustion";
-    private static final String FOOD_EXHAUSTION_KEY = "foodExhaustionLevel";
     private static final int PRION_DURATION_TICKS = 24000;
 
     private OrganFoodController() {
@@ -90,8 +85,9 @@ public final class OrganFoodController {
             player.addPotionEffect(new PotionEffect(MobEffects.HUNGER, hunger));
         }
 
-        stats.addStats(OrganFormulas.digestedHunger(digestion, vanillaFood),
-                OrganFormulas.digestedSaturation(nutrition, vanillaSaturation));
+        int hungerGain = OrganFormulas.digestedHunger(digestion, vanillaFood);
+        stats.addStats(hungerGain,
+                OrganFormulas.saturationModifierForAddStats(nutrition, vanillaSaturation, vanillaFood, hungerGain));
         return true;
     }
 
@@ -136,58 +132,27 @@ public final class OrganFoodController {
         return tick.foodTimer;
     }
 
-    static void tickMetabolism(EntityPlayer player, IChestCavity chestCavity) {
-        if (!chestCavity.isOpened()) {
-            rememberFoodExhaustion(player);
-            return;
+    /**
+     * Scales exhaustion as it is added, matching the original {@code addExhaustion} mixin.
+     *
+     * @param player 目标玩家；尚未绑定 {@code FoodStats} 时可为 {@code null}。
+     * @param exhaustion 即将加入的消耗值。
+     * @return 按耐力修正后的消耗值。
+     */
+    public static float applyEnduranceExhaustion(EntityPlayer player, float exhaustion) {
+        if (player == null) {
+            return exhaustion;
+        }
+
+        IChestCavity chestCavity = ChestCavityHelper.getOrNull(player);
+        if (chestCavity == null || !chestCavity.isOpened()) {
+            return exhaustion;
         }
 
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
-        applyEnduranceExhaustion(player, chestCavity, type);
-    }
-
-    private static void applyEnduranceExhaustion(EntityPlayer player, IChestCavity chestCavity, ChestCavityType type) {
         float enduranceDiff = chestCavity.getOrganScore(CCOrganScores.ENDURANCE)
                 - type.getDefaultOrganScore(CCOrganScores.ENDURANCE);
-        FoodStats stats = player.getFoodStats();
-        float current = getFoodExhaustion(stats);
-        NBTTagCompound entityData = player.getEntityData();
-
-        if (!entityData.hasKey(ENDURANCE_LAST_EXHAUSTION_KEY, Constants.NBT.TAG_FLOAT)) {
-            entityData.setFloat(ENDURANCE_LAST_EXHAUSTION_KEY, current);
-            return;
-        }
-
-        float previous = entityData.getFloat(ENDURANCE_LAST_EXHAUSTION_KEY);
-        float delta = current - previous;
-        if (delta <= 0.0F || enduranceDiff == 0.0F) {
-            entityData.setFloat(ENDURANCE_LAST_EXHAUSTION_KEY, current);
-            return;
-        }
-
-        float adjustedDelta = enduranceDiff > 0.0F
-                ? delta / (1.0F + enduranceDiff / 2.0F)
-                : delta * (1.0F - enduranceDiff / 2.0F);
-        float adjusted = Math.max(0.0F, Math.min(40.0F, previous + adjustedDelta));
-        setFoodExhaustion(stats, adjusted);
-        entityData.setFloat(ENDURANCE_LAST_EXHAUSTION_KEY, adjusted);
-    }
-
-    private static void rememberFoodExhaustion(EntityPlayer player) {
-        player.getEntityData().setFloat(ENDURANCE_LAST_EXHAUSTION_KEY, getFoodExhaustion(player.getFoodStats()));
-    }
-
-    private static float getFoodExhaustion(FoodStats stats) {
-        if (stats instanceof FoodStatsAccessor) {
-            return ((FoodStatsAccessor) stats).chestcavity$getFoodExhaustionLevel();
-        }
-        return 0.0F;
-    }
-
-    private static void setFoodExhaustion(FoodStats stats, float exhaustion) {
-        if (stats instanceof FoodStatsAccessor) {
-            ((FoodStatsAccessor) stats).chestcavity$setFoodExhaustionLevel(exhaustion);
-        }
+        return OrganFormulas.applyEnduranceExhaustion(exhaustion, enduranceDiff);
     }
 
     private static boolean isMeatFood(ItemFood food, ItemStack stack) {

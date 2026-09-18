@@ -52,15 +52,14 @@ public final class OrganCombatController {
         if (chestCavity == null || !chestCavity.isOpened() || damage <= 0.0F) {
             return damage;
         }
-        if (source != null && source.isUnblockable()) {
-            return damage;
-        }
 
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
-        float defenseDelta = chestCavity.getOrganScore(CCOrganScores.DEFENSE)
-                - type.getDefaultOrganScore(CCOrganScores.DEFENSE);
-        if (defenseDelta != 0.0F) {
-            damage = (float) (damage * Math.pow(1.0F - CCConfig.BONE_DEFENSE, defenseDelta / DEFENSE_HALF_DAMAGE_STEP));
+        if (source == null || !source.isUnblockable()) {
+            float defenseDelta = chestCavity.getOrganScore(CCOrganScores.DEFENSE)
+                    - type.getDefaultOrganScore(CCOrganScores.DEFENSE);
+            if (defenseDelta != 0.0F) {
+                damage = (float) (damage * Math.pow(1.0F - CCConfig.BONE_DEFENSE, defenseDelta / DEFENSE_HALF_DAMAGE_STEP));
+            }
         }
 
         if (source != null && source.isFireDamage()) {

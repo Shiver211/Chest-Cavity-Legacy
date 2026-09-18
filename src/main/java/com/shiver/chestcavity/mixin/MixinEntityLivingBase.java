@@ -1,9 +1,13 @@
 package com.shiver.chestcavity.mixin;
 
+import com.shiver.chestcavity.capability.ChestCavityHelper;
+import com.shiver.chestcavity.organ.OrganCombatController;
 import com.shiver.chestcavity.organ.OrganFormulas;
+import com.shiver.chestcavity.organ.OrganMovementController;
 import com.shiver.chestcavity.organ.OrganTickController;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.DamageSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
@@ -26,5 +30,16 @@ public abstract class MixinEntityLivingBase {
     @Inject(method = "decreaseAirSupply", at = @At("RETURN"), cancellable = true)
     private void chestcavity$applyWaterBreath(int air, CallbackInfoReturnable<Integer> cir) {
         cir.setReturnValue(OrganTickController.applyBreathInWater((EntityLivingBase) (Object) this, air, cir.getReturnValueI()));
+    }
+
+    @Inject(method = "applyArmorCalculations", at = @At("RETURN"), cancellable = true)
+    private void chestcavity$applyDefense(DamageSource source, float damage, CallbackInfoReturnable<Float> cir) {
+        cir.setReturnValue(OrganCombatController.applyDefense(
+                ChestCavityHelper.getOrNull((EntityLivingBase) (Object) this), source, cir.getReturnValueF()));
+    }
+
+    @ModifyConstant(method = "travel", constant = @Constant(doubleValue = 0.08D))
+    private double chestcavity$applyLightweightGravity(double gravity) {
+        return OrganMovementController.applyLightweightToGravity((EntityLivingBase) (Object) this, gravity);
     }
 }

@@ -24,6 +24,7 @@ final class OrganAttributeController {
     private static final UUID ATTACK_SPEED_MODIFIER_ID = UUID.fromString("709e3e77-0586-4304-80b5-d28bc477e947");
     private static final UUID LUCK_MODIFIER_ID = UUID.fromString("1dd5473d-d43b-4cf1-8600-f11372c4959a");
     private static final UUID KNOCKBACK_RESISTANCE_MODIFIER_ID = UUID.fromString("b54ff8c5-fb1d-40eb-9d41-c02580505470");
+    private static final UUID NERVES_MOVEMENT_MODIFIER_ID = UUID.fromString("8f56feed-589f-416f-86c5-315765d41f57");
     private static final UUID SWIM_SPEED_MODIFIER_ID = UUID.fromString("32d5f52b-796a-4194-a8e3-1acb45f5a365");
     private static final int REFRESH_INTERVAL_TICKS = 20;
 
@@ -74,10 +75,16 @@ final class OrganAttributeController {
                 "Chest Cavity speed",
                 (chestCavity.getOrganScore(CCOrganScores.SPEED) - type.getDefaultOrganScore(CCOrganScores.SPEED)) * CCConfig.MUSCLE_SPEED / 8.0F,
                 1);
+        float defaultNerves = type.getDefaultOrganScore(CCOrganScores.NERVES);
+        applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED),
+                NERVES_MOVEMENT_MODIFIER_ID,
+                "Chest Cavity spine movement",
+                defaultNerves != 0.0F && chestCavity.getOrganScore(CCOrganScores.NERVES) <= 0.0F ? -1.0F : 0.0F,
+                2);
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_SPEED),
                 ATTACK_SPEED_MODIFIER_ID,
                 "Chest Cavity attack speed",
-                (chestCavity.getOrganScore(CCOrganScores.NERVES) - type.getDefaultOrganScore(CCOrganScores.NERVES)) * CCConfig.NERVES_HASTE,
+                (chestCavity.getOrganScore(CCOrganScores.NERVES) - defaultNerves) * CCConfig.NERVES_HASTE,
                 1);
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.LUCK),
                 LUCK_MODIFIER_ID,
@@ -86,7 +93,8 @@ final class OrganAttributeController {
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE),
                 KNOCKBACK_RESISTANCE_MODIFIER_ID,
                 "Chest Cavity knockback resistance",
-                Math.max(0.0F, chestCavity.getOrganScore(CCOrganScores.KNOCKBACK_RESISTANT) - type.getDefaultOrganScore(CCOrganScores.KNOCKBACK_RESISTANT)) * 0.1F);
+                (chestCavity.getOrganScore(CCOrganScores.KNOCKBACK_RESISTANT)
+                        - type.getDefaultOrganScore(CCOrganScores.KNOCKBACK_RESISTANT)) * 0.1F);
         applyScoreModifier(entity.getEntityAttribute(EntityLivingBase.SWIM_SPEED),
                 SWIM_SPEED_MODIFIER_ID,
                 "Chest Cavity swim speed",

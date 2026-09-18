@@ -7,8 +7,9 @@
 	"compatibilityLevel": "JAVA_8",
 	"mixins": [
 		"MixinFoodStats",
+		"MixinEntity",
 		"MixinEntityLivingBase",
-		"FoodStatsAccessor",
+		"MixinEntityPlayer",
 		"PotionEffectAccessor",
 		"EntityCreeperAccessor"
 	],

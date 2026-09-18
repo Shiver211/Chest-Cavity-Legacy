@@ -28,6 +28,31 @@ class OrganFormulasTest {
     }
 
     @Test
+    void saturationGainDoesNotScaleWithDigestion() {
+        float vanillaSaturation = 0.8F;
+        int vanillaFood = 8;
+        int reducedHunger = OrganFormulas.digestedHunger(0.5F, vanillaFood);
+        float modifier = OrganFormulas.saturationModifierForAddStats(4.0F, vanillaSaturation, vanillaFood, reducedHunger);
+        float satGain = reducedHunger * modifier * 2.0F;
+        float expected = OrganFormulas.digestedSaturation(4.0F, vanillaSaturation) * vanillaFood * 2.0F;
+        assertEquals(expected, satGain, 0.0001F);
+        assertEquals(12.8F, satGain, 0.0001F);
+    }
+
+    @Test
+    void enduranceReducesPositiveExhaustionAndIncreasesNegativeDiff() {
+        assertEquals(0.5F, OrganFormulas.applyEnduranceExhaustion(1.0F, 2.0F), 0.0001F);
+        assertEquals(1.5F, OrganFormulas.applyEnduranceExhaustion(1.0F, -1.0F), 0.0001F);
+        assertEquals(0.2F, OrganFormulas.applyEnduranceExhaustion(0.2F, 0.0F), 0.0001F);
+    }
+
+    @Test
+    void lightweightReducesGravityWhenPositive() {
+        assertEquals(0.064D, OrganFormulas.applyLightweightToGravity(0.08D, 1.0F, 0.25F), 0.0001D);
+        assertEquals(0.1D, OrganFormulas.applyLightweightToGravity(0.08D, -1.0F, 0.25F), 0.0001D);
+    }
+
+    @Test
     void spleenMetabolismSpeedsUpPositiveScore() {
         OrganFormulas.MetabolismTick first = OrganFormulas.applySpleenMetabolism(0, 1.5F, 0.0F);
         assertEquals(1, first.foodTimer);

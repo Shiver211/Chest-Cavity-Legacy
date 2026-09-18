@@ -58,11 +58,12 @@ public final class OrganTickController {
             }
             tickBasicSurvival(entity, chestCavity);
             tickFiltration(entity, chestCavity);
-            tickMetabolism(entity, chestCavity);
             tickProjectileQueue(entity, chestCavity);
             tickPassiveEffects(entity, chestCavity);
             tickOrganRejection(entity, chestCavity);
         }
+
+        OrganMovementController.applyBuoyancy(entity, chestCavity);
 
         if (scoreChanges) {
             onScoreChanged(chestCavity);
@@ -222,38 +223,25 @@ public final class OrganTickController {
     }
 
     /**
-     * 处理玩家代谢逻辑。
-     *
-     * @param entity 目标实体。
-     * @param chestCavity 实体胸腔数据。
-     */
-    private static void tickMetabolism(EntityLivingBase entity, IChestCavity chestCavity) {
-        if (entity instanceof EntityPlayer) {
-            OrganFoodController.tickMetabolism((EntityPlayer) entity, chestCavity);
-        }
-    }
-
-    /**
-     * 处理发光、浮力、轻量化、亲水恐水等被动效果。
+     * 处理发光、亲水恐水、光合作用等被动效果。
      *
      * @param entity 目标实体。
      * @param chestCavity 实体胸腔数据。
      */
     private static void tickPassiveEffects(EntityLivingBase entity, IChestCavity chestCavity) {
+        if (!chestCavity.isOpened()) {
+            if (entity.isPotionActive(CCPotions.WATER_VULNERABILITY)) {
+                entity.removePotionEffect(CCPotions.WATER_VULNERABILITY);
+            }
+            return;
+        }
+
         float glowing = chestCavity.getOrganScore(CCOrganScores.GLOWING);
         if (glowing > 0.0F && !entity.isPotionActive(MobEffects.GLOWING)) {
             entity.addPotionEffect(new PotionEffect(MobEffects.GLOWING, 200, 0, false, true));
         }
 
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
-        applyLightweight(entity, chestCavity, type);
-
-        float buoyant = chestCavity.getOrganScore(CCOrganScores.BUOYANT)
-                - type.getDefaultOrganScore(CCOrganScores.BUOYANT);
-        if (buoyant > 0.0F && !entity.onGround && !entity.hasNoGravity()) {
-            entity.motionY += buoyant * CCConfig.BUOYANCY_LIFT * Math.max(0.0F, entity.getAir() / 300.0F);
-            entity.velocityChanged = true;
-        }
 
         float hydroallergenic = chestCavity.getOrganScore(CCOrganScores.HYDROALLERGENIC);
         if (hydroallergenic > 0.0F && entity.isWet()) {
@@ -336,33 +324,6 @@ public final class OrganTickController {
         chestCavity.setHeartBleedTimer(bleedLevel);
         int cap = ChestCavityHelper.getChestCavityType(chestCavity).getHeartBleedCap();
         entity.attackEntityFrom(HEART_BLEED_DAMAGE, cap == Integer.MAX_VALUE ? bleedLevel : Math.min(bleedLevel, cap));
-    }
-
-    /**
-     * 按轻量化分数调整实体下落速度和摔落距离。
-     *
-     * @param entity 目标实体。
-     * @param chestCavity 实体胸腔数据。
-     * @param type 当前胸腔类型。
-     */
-    private static void applyLightweight(EntityLivingBase entity, IChestCavity chestCavity, ChestCavityType type) {
-        if (entity.onGround || entity.hasNoGravity() || entity.isInWater() || entity.isInLava() || entity.motionY >= 0.0D) {
-            return;
-        }
-
-        float diff = chestCavity.getOrganScore(CCOrganScores.LIGHTWEIGHT)
-                - type.getDefaultOrganScore(CCOrganScores.LIGHTWEIGHT);
-        if (diff == 0.0F) {
-            return;
-        }
-
-        double factor = diff > 0.0F
-                ? 1.0D / (1.0D + diff * CCConfig.LIGHTWIEGHT_FACTOR)
-                : 1.0D - diff * CCConfig.LIGHTWIEGHT_FACTOR;
-        factor = Math.max(0.1D, Math.min(2.5D, factor));
-        entity.motionY *= factor;
-        entity.fallDistance *= factor;
-        entity.velocityChanged = true;
     }
 
     /**
