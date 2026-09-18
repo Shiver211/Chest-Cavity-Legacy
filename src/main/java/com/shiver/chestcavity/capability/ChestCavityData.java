@@ -25,9 +25,12 @@ public class ChestCavityData implements IChestCavity {
     private EntityLivingBase owner;
     private boolean opened;
     private UUID compatibilityId = UUID.randomUUID();
-    private NonNullList<ItemStack> organs = NonNullList.withSize(DEFAULT_SLOT_COUNT, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> organs = NonNullList.withSize(DEFAULT_SLOT_COUNT, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> unmodifiableOrgans = new UnmodifiableNonNullList<>(organs, ItemStack.EMPTY);
     private final Map<String, Float> organScores = new HashMap<>();
+    private final Map<String, Float> unmodifiableOrganScores = java.util.Collections.unmodifiableMap(organScores);
     private final Map<String, Float> oldOrganScores = new HashMap<>();
+    private final Map<String, Float> unmodifiableOldOrganScores = java.util.Collections.unmodifiableMap(oldOrganScores);
     private final IItemHandlerModifiable organInventory = new OrganItemHandler();
 
     private int heartBleedTimer;
@@ -40,6 +43,7 @@ public class ChestCavityData implements IChestCavity {
     private int connectedCrystalId = -1;
     private final Queue<String> projectileQueue = new LinkedList<>();
     private boolean scoresDirty = true;
+    private boolean scoreChanges = true;
     private int cleanDataVersion = -1;
     private boolean attributeModifiersDirty = true;
     private int lastAttributeRefreshTick = Integer.MIN_VALUE;
@@ -121,13 +125,13 @@ public class ChestCavityData implements IChestCavity {
     }
 
     /**
-     * 返回当前保存的全部器官列表。
+     * 返回当前保存的全部器官列表的只读视图。
      *
-     * @return 器官列表。
+     * @return 只读器官列表。
      */
     @Override
     public NonNullList<ItemStack> getOrgans() {
-        return organs;
+        return unmodifiableOrgans;
     }
 
     /**
@@ -148,6 +152,9 @@ public class ChestCavityData implements IChestCavity {
      */
     @Override
     public ItemStack getOrgan(int slot) {
+        if (slot < 0 || slot >= organs.size()) {
+            return ItemStack.EMPTY;
+        }
         return organs.get(slot);
     }
 
@@ -163,23 +170,43 @@ public class ChestCavityData implements IChestCavity {
     }
 
     /**
-     * 返回当前生效的全部器官分数字典。
+     * 返回当前生效的全部器官分数的只读视图。
      *
-     * @return 器官分数字典。
+     * @return 只读器官分数字典。
      */
     @Override
     public Map<String, Float> getOrganScores() {
-        return organScores;
+        return unmodifiableOrganScores;
     }
 
     /**
-     * 返回上一次同步或结算时保存的器官分数字典。
+     * 返回当前生效的全部器官分数的只读视图。
      *
-     * @return 旧器官分数字典。
+     * @return 只读器官分数字典。
+     */
+    @Override
+    public Map<String, Float> getOrganScoresView() {
+        return unmodifiableOrganScores;
+    }
+
+    /**
+     * 返回上一次同步或结算时保存的器官分数的只读视图。
+     *
+     * @return 旧器官分数字典只读视图。
      */
     @Override
     public Map<String, Float> getOldOrganScores() {
-        return oldOrganScores;
+        return unmodifiableOldOrganScores;
+    }
+
+    /**
+     * 返回上一次同步或结算时保存的器官分数的只读视图。
+     *
+     * @return 旧器官分数字典只读视图。
+     */
+    @Override
+    public Map<String, Float> getOldOrganScoresView() {
+        return unmodifiableOldOrganScores;
     }
 
     /**
@@ -190,6 +217,9 @@ public class ChestCavityData implements IChestCavity {
      */
     @Override
     public float getOrganScore(String id) {
+        if (id == null) {
+            return 0.0F;
+        }
         Float value = organScores.get(id);
         return value == null ? 0.0F : value;
     }
@@ -202,6 +232,9 @@ public class ChestCavityData implements IChestCavity {
      */
     @Override
     public float getOldOrganScore(String id) {
+        if (id == null) {
+            return 0.0F;
+        }
         Float value = oldOrganScores.get(id);
         return value == null ? 0.0F : value;
     }
@@ -215,6 +248,7 @@ public class ChestCavityData implements IChestCavity {
     @Override
     public void setOrganScore(String id, float value) {
         organScores.put(id, value);
+        scoreChanges = true;
         markScoresDirty();
     }
 
@@ -235,6 +269,7 @@ public class ChestCavityData implements IChestCavity {
     @Override
     public void clearOrganScores() {
         organScores.clear();
+        scoreChanges = !oldOrganScores.isEmpty();
         markScoresDirty();
     }
 
@@ -246,7 +281,10 @@ public class ChestCavityData implements IChestCavity {
     @Override
     public void replaceOrganScores(Map<String, Float> scores) {
         organScores.clear();
-        organScores.putAll(scores);
+        if (scores != null && !scores.isEmpty()) {
+            organScores.putAll(scores);
+        }
+        scoreChanges = !oldOrganScores.equals(organScores);
         attributeModifiersDirty = true;
     }
 
@@ -257,6 +295,17 @@ public class ChestCavityData implements IChestCavity {
     public void copyCurrentScoresToOld() {
         oldOrganScores.clear();
         oldOrganScores.putAll(organScores);
+        scoreChanges = false;
+    }
+
+    /**
+     * 判断当前器官分数是否相对于旧快照发生了变化。
+     *
+     * @return `true` 表示分数已变化。
+     */
+    @Override
+    public boolean hasScoreChanges() {
+        return scoreChanges;
     }
 
     /**
@@ -509,6 +558,8 @@ public class ChestCavityData implements IChestCavity {
 
         if (tag.hasKey("Inventory", Constants.NBT.TAG_LIST)) {
             readInventory(tag.getTagList("Inventory", Constants.NBT.TAG_COMPOUND));
+        } else {
+            organs.clear();
         }
 
         organScores.clear();
@@ -535,6 +586,7 @@ public class ChestCavityData implements IChestCavity {
     public void markScoresDirty() {
         scoresDirty = true;
         attributeModifiersDirty = true;
+        scoreChanges = true;
     }
 
     /**
@@ -622,7 +674,7 @@ public class ChestCavityData implements IChestCavity {
      * @param list 序列化后的器官物品列表。
      */
     private void readInventory(NBTTagList list) {
-        organs = NonNullList.withSize(DEFAULT_SLOT_COUNT, ItemStack.EMPTY);
+        organs.clear();
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound stackTag = list.getCompoundTagAt(i);
             int slot = stackTag.getByte("Slot") & 255;

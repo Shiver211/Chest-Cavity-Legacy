@@ -43,8 +43,8 @@ final class CreepyAbility implements ActiveOrganAbility {
         }
 
         float strength = MathHelper.sqrt(explosive);
-        player.world.createExplosion(player, player.posX, player.posY, player.posZ, strength, false);
         ChestCavityHelper.destroyOrgansWithScore(chestCavity, CCOrganScores.EXPLOSIVE);
+        player.world.createExplosion(player, player.posX, player.posY, player.posZ, strength, false);
         if (player.isEntityAlive()) {
             player.addPotionEffect(new PotionEffect(CCPotions.EXPLOSION_COOLDOWN,
                     CCConfig.EXPLOSION_COOLDOWN, 0, false, false));

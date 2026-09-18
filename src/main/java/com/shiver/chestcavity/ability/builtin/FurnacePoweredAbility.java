@@ -88,11 +88,21 @@ final class FurnacePoweredAbility implements ActiveOrganAbility {
      */
     private static void consumeFuel(EntityPlayerMP player, FuelStack fuel) {
         ItemStack stack = fuel.stack;
-        if (stack.getCount() == 1 && stack.getItem().hasContainerItem(stack)) {
-            player.setHeldItem(fuel.hand, stack.getItem().getContainerItem(stack));
+        if (stack.getItem().hasContainerItem(stack)) {
+            ItemStack container = stack.getItem().getContainerItem(stack);
+            stack.shrink(1);
+            if (stack.isEmpty()) {
+                player.setHeldItem(fuel.hand, container);
+            } else if (!container.isEmpty()) {
+                if (!player.inventory.addItemStackToInventory(container)) {
+                    player.dropItem(container, false);
+                }
+            }
+            player.openContainer.detectAndSendChanges();
             return;
         }
         stack.shrink(1);
+        player.openContainer.detectAndSendChanges();
     }
 
     /**

@@ -55,11 +55,10 @@ public final class ActiveOrganAbilities {
             ChestCavityLegacy.LOGGER.debug("Ignoring inactive organ ability {} for {}.", abilityId, player.getName());
             return false;
         }
-        boolean activated = ability.activate(player, chestCavity);
-        if (activated) {
-            CrTChestCavityEvents.publishAbilityActivated(player, abilityId, chestCavity.getOrganScore(abilityId));
+        if (CrTChestCavityEvents.publishAbilityActivated(player, abilityId, chestCavity.getOrganScore(abilityId))) {
+            return false;
         }
-        return activated;
+        return ability.activate(player, chestCavity);
     }
 
     /**

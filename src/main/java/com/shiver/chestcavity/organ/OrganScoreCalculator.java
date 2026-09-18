@@ -38,10 +38,7 @@ public final class OrganScoreCalculator {
             type.loadBaseOrganScores(scores);
             for (ItemStack stack : chestCavity.getOrgans()) {
                 if (!stack.isEmpty()) {
-                    OrganData data = type.catchExceptionalOrgan(stack);
-                    if (data == null) {
-                        data = OrganData.fromStack(stack);
-                    }
+                    OrganData data = OrganDataResolver.resolve(type, stack);
                     if (data != null) {
                         addOrganScores(scores, data, stack);
                         if (!data.isPseudoOrgan() && ChestCavityHelper.getCompatibilityLevel(chestCavity, stack) < 1) {

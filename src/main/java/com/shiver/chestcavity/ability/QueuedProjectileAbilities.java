@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.ability;
 
+import com.shiver.chestcavity.ability.builtin.AbilityActivationHelper;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
 import com.shiver.chestcavity.config.CCConfig;
@@ -19,13 +20,10 @@ import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
-
-import java.util.List;
 
 /**
  * 负责把排队中的投射物能力转换成实际实体。
@@ -81,7 +79,7 @@ final class QueuedProjectileAbilities {
      * @return `true` 表示火球成功生成。
      */
     private static boolean spawnPyromancyFireball(EntityPlayerMP player) {
-        Vec3d look = getNormalizedLook(player);
+        Vec3d look = AbilityActivationHelper.getNormalizedLook(player);
         if (look == null) {
             return false;
         }
@@ -142,7 +140,7 @@ final class QueuedProjectileAbilities {
      * @return `true` 表示火球成功生成。
      */
     private static boolean spawnDragonBomb(EntityPlayerMP player) {
-        Vec3d look = getNormalizedLook(player);
+        Vec3d look = AbilityActivationHelper.getNormalizedLook(player);
         if (look == null) {
             return false;
         }
@@ -159,7 +157,7 @@ final class QueuedProjectileAbilities {
      * @return `true` 表示投射物成功生成。
      */
     private static boolean spawnForcefulSpit(EntityPlayerMP player) {
-        Vec3d look = getNormalizedLook(player);
+        Vec3d look = AbilityActivationHelper.getNormalizedLook(player);
         if (look == null) {
             return false;
         }
@@ -176,7 +174,7 @@ final class QueuedProjectileAbilities {
      * @return `true` 表示火球成功生成。
      */
     private static boolean spawnGhastlyFireball(EntityPlayerMP player) {
-        Vec3d look = getNormalizedLook(player);
+        Vec3d look = AbilityActivationHelper.getNormalizedLook(player);
         if (look == null) {
             return false;
         }
@@ -194,7 +192,7 @@ final class QueuedProjectileAbilities {
      * @return `true` 表示子弹成功生成。
      */
     private static boolean spawnShulkerBullet(EntityPlayerMP player) {
-        EntityLivingBase target = findNearestTarget(player, CCConfig.SHULKER_BULLET_TARGETING_RANGE);
+        EntityLivingBase target = AbilityActivationHelper.findNearestTarget(player, CCConfig.SHULKER_BULLET_TARGETING_RANGE);
         if (target == null) {
             return false;
         }
@@ -202,19 +200,6 @@ final class QueuedProjectileAbilities {
         return player.world.spawnEntity(bullet);
     }
 
-    /**
-     * 获取玩家视线方向的单位向量。
-     *
-     * @param player 发动能力的玩家。
-     * @return 归一化后的朝向向量；如果朝向无效则返回 `null`。
-     */
-    private static Vec3d getNormalizedLook(EntityPlayerMP player) {
-        Vec3d look = player.getLookVec();
-        if (look == null || look.lengthSquared() < 1.0E-4D) {
-            return null;
-        }
-        return look.normalize();
-    }
 
     /**
      * 重置火球的发射者、加速度与初速度，消除原版构造函数的随机散布并防止生成时滞留。
@@ -252,33 +237,4 @@ final class QueuedProjectileAbilities {
         projectile.setPosition(target.x, target.y, target.z);
     }
 
-    /**
-     * 在给定范围内寻找距离玩家最近的有效目标。
-     *
-     * @param player 发动能力的玩家。
-     * @param range 搜索半径。
-     * @return 最近的有效目标；如果不存在则返回 `null`。
-     */
-    private static EntityLivingBase findNearestTarget(EntityPlayerMP player, double range) {
-        AxisAlignedBB box = player.getEntityBoundingBox().grow(range);
-        List<EntityLivingBase> targets = player.world.getEntitiesWithinAABB(EntityLivingBase.class, box);
-        EntityLivingBase nearest = null;
-        double nearestDistance = Double.MAX_VALUE;
-
-        for (EntityLivingBase target : targets) {
-            if (target == player || !target.isEntityAlive()) {
-                continue;
-            }
-            if (target instanceof EntityPlayer && ((EntityPlayer) target).isSpectator()) {
-                continue;
-            }
-
-            double distance = player.getDistanceSq(target);
-            if (distance < nearestDistance) {
-                nearest = target;
-                nearestDistance = distance;
-            }
-        }
-        return nearest;
-    }
 }

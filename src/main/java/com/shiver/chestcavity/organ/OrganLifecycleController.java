@@ -214,7 +214,9 @@ public final class OrganLifecycleController {
      * @param newCavity 新玩家实体上的胸腔数据。
      */
     private static void resetPlayerChestCavityAfterDeath(IChestCavity oldCavity, IChestCavity newCavity) {
-        if (com.shiver.chestcavity.config.CCConfig.KEEP_CHEST_CAVITY) {
+        EntityLivingBase owner = newCavity.getOwner() != null ? newCavity.getOwner() : oldCavity.getOwner();
+        boolean keepInventory = owner != null && owner.world != null && owner.world.getGameRules().getBoolean("keepInventory");
+        if (com.shiver.chestcavity.config.CCConfig.KEEP_CHEST_CAVITY || keepInventory) {
             ChestCavityHelper.recalculateOrganScores(newCavity);
             applyAndSyncScoreChanges(newCavity);
             return;
@@ -230,7 +232,10 @@ public final class OrganLifecycleController {
             }
         }
 
-        newCavity.setCompatibilityId(UUID.randomUUID());
+        UUID compatId = owner != null ? owner.getUniqueID() : oldCavity.getCompatibilityId();
+        if (compatId != null) {
+            newCavity.setCompatibilityId(compatId);
+        }
         if (newCavity.isOpened()) {
             ChestCavityType type = ChestCavityHelper.getChestCavityType(newCavity);
             for (int slot = 0; slot < newCavity.getSlotCount(); slot++) {

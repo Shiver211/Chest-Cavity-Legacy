@@ -12,7 +12,7 @@ public final class ChestCavityCapability {
     @CapabilityInject(IChestCavity.class)
     public static Capability<IChestCavity> CAPABILITY = null;
 
-    private static boolean registered;
+    private static volatile boolean registered;
 
     /**
      * 工具类，不允许外部实例化。
@@ -25,10 +25,14 @@ public final class ChestCavityCapability {
      *
      * @return 始终返回 `true`，便于直接放入初始化流程中调用。
      */
-    public static synchronized boolean ensureRegistered() {
+    public static boolean ensureRegistered() {
         if (!registered) {
-            CapabilityManager.INSTANCE.register(IChestCavity.class, new ChestCavityStorage(), ChestCavityData::new);
-            registered = true;
+            synchronized (ChestCavityCapability.class) {
+                if (!registered) {
+                    CapabilityManager.INSTANCE.register(IChestCavity.class, new ChestCavityStorage(), ChestCavityData::new);
+                    registered = true;
+                }
+            }
         }
         return true;
     }

@@ -62,9 +62,9 @@ public final class ForgeClientEvents {
         ItemStack stack = event.getItemStack();
         addSpecialItemTooltip(event, stack);
 
-        OrganData organData = OrganData.fromRegistry(stack);
+        OrganData organData = OrganData.fromStack(stack);
         if (organData == null) {
-            organData = OrganData.fromStack(stack);
+            organData = OrganData.fromRegistry(stack);
         }
         if (organData == null || organData.getOrganScoresView().isEmpty()) {
             return;

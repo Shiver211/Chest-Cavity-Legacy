@@ -121,18 +121,30 @@ public final class ChestCavityNetwork {
     }
 
     /**
-     * 将客户端消息分发给仅客户端存在的网络钩子实现。
+     * 将胸腔同步消息分发给客户端代理。
      *
-     * @param methodName 目标钩子方法名。
-     * @param message 收到的网络消息。
+     * @param message 收到的胸腔同步消息。
      */
-    static void handleClientMessage(String methodName, IMessage message) {
-        try {
-            Class<?> hooks = Class.forName("com.shiver.chestcavity.network.ClientNetworkHooks");
-            hooks.getMethod(methodName, message.getClass()).invoke(null, message);
-        } catch (ReflectiveOperationException ignored) {
-            // Dedicated server never loads client hooks. Client failures should not crash the network thread.
-        }
+    static void handleClientChestCavitySync(MessageChestCavitySync message) {
+        com.shiver.chestcavity.ChestCavityLegacy.PROXY.handleChestCavitySync(message);
+    }
+
+    /**
+     * 将器官数据同步消息分发给客户端代理。
+     *
+     * @param message 收到的器官数据同步消息。
+     */
+    static void handleClientOrganDataSync(MessageOrganDataSync message) {
+        com.shiver.chestcavity.ChestCavityLegacy.PROXY.handleOrganDataSync(message);
+    }
+
+    /**
+     * 将运动配置同步消息分发给客户端代理。
+     *
+     * @param message 收到的运动配置同步消息。
+     */
+    static void handleClientMovementConfigSync(MessageMovementConfigSync message) {
+        com.shiver.chestcavity.ChestCavityLegacy.PROXY.handleMovementConfigSync(message);
     }
 
     /**

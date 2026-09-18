@@ -116,8 +116,10 @@ public class FurnacePower extends CCPotion {
 
         EntityPlayer player = (EntityPlayer) entity;
         if (!player.isPotionActive(CCPotions.FURNACE_POWER)) {
-            clearFuelLayers(player);
-            resetFurnaceProgress(player);
+            if (player.getEntityData().hasKey(FUEL_LAYERS_KEY)) {
+                clearFuelLayers(player);
+                resetFurnaceProgress(player);
+            }
             return;
         }
 
@@ -246,7 +248,7 @@ public class FurnacePower extends CCPotion {
      */
     private static void resetFurnaceProgress(EntityPlayer player) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(player);
-        if (chestCavity != null) {
+        if (chestCavity != null && chestCavity.getFurnaceProgress() != 0) {
             chestCavity.setFurnaceProgress(0);
         }
     }

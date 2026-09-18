@@ -64,9 +64,10 @@ public interface IChestCavity {
     int getSlotCount();
 
     /**
-     * 返回胸腔当前保存的全部器官列表。
+     * 返回胸腔当前保存的全部器官列表的只读视图。
+     * 如需修改槽位器官，请使用 {@link #setOrgan(int, ItemStack)} 或 {@link #getOrganInventory()}。
      *
-     * @return 器官列表。
+     * @return 器官列表只读视图。
      */
     NonNullList<ItemStack> getOrgans();
 
@@ -94,18 +95,37 @@ public interface IChestCavity {
     void setOrgan(int slot, ItemStack stack);
 
     /**
-     * 返回当前生效的全部器官分数字典。
+     * 返回当前生效的全部器官分数的只读视图。
+     * 如需修改分数，请使用 {@link #setOrganScore(String, float)} 或 {@link #replaceOrganScores(Map)}。
      *
-     * @return 器官分数字典。
+     * @return 器官分数字典只读视图。
      */
     Map<String, Float> getOrganScores();
 
     /**
-     * 返回上一次同步或结算时保存的器官分数字典。
+     * 返回当前生效的全部器官分数的只读视图。
      *
-     * @return 旧器官分数字典。
+     * @return 器官分数字典只读视图。
+     */
+    default Map<String, Float> getOrganScoresView() {
+        return getOrganScores();
+    }
+
+    /**
+     * 返回上一次同步或结算时保存的器官分数字典只读视图。
+     *
+     * @return 旧器官分数字典只读视图。
      */
     Map<String, Float> getOldOrganScores();
+
+    /**
+     * 返回上一次同步或结算时保存的器官分数字典只读视图。
+     *
+     * @return 旧器官分数字典只读视图。
+     */
+    default Map<String, Float> getOldOrganScoresView() {
+        return getOldOrganScores();
+    }
 
     /**
      * 返回指定分数项当前的器官分值。
@@ -155,6 +175,15 @@ public interface IChestCavity {
      * 将当前器官分数复制到旧分数快照中。
      */
     void copyCurrentScoresToOld();
+
+    /**
+     * 判断当前器官分数是否相对于旧快照发生了变化。
+     *
+     * @return `true` 表示分数已变化。
+     */
+    default boolean hasScoreChanges() {
+        return !getOldOrganScores().equals(getOrganScores());
+    }
 
     /**
      * 返回无心脏出血效果使用的累计计时器。

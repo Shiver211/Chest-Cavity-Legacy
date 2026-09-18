@@ -3,6 +3,7 @@ package com.shiver.chestcavity.chest.types;
 import com.shiver.chestcavity.chest.ChestCavityInventory;
 import com.shiver.chestcavity.chest.organs.OrganData;
 import com.shiver.chestcavity.chest.organs.OrganManager;
+import com.shiver.chestcavity.organ.OrganDataResolver;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockTrapDoor;
@@ -256,7 +257,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
             data.setOrganScores(scores);
             return data;
         }
-        return OrganManager.get(stack);
+        return null;
     }
 
     /**
@@ -389,7 +390,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
                 continue;
             }
 
-            OrganData data = catchExceptionalOrgan(stack);
+            OrganData data = OrganDataResolver.resolve(this, stack);
             if (data == null) {
                 continue;
             }

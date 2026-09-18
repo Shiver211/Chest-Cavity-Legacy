@@ -81,7 +81,7 @@ public class MessageMovementConfigSync implements IMessage {
         @Override
         public IMessage onMessage(MessageMovementConfigSync message, MessageContext ctx) {
             if (ChestCavityNetwork.isClient(ctx)) {
-                ChestCavityNetwork.handleClientMessage("handleMovementConfigSync", message);
+                ChestCavityNetwork.handleClientMovementConfigSync(message);
             }
             return null;
         }

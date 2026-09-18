@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * 提供主动能力触发时共用的朝向、后坐力和索敌辅助逻辑。
  */
-final class AbilityActivationHelper {
+public final class AbilityActivationHelper {
 
     /**
      * 工具类，不允许外部实例化。
@@ -25,7 +25,10 @@ final class AbilityActivationHelper {
      * @param player 发动能力的玩家。
      * @return 归一化后的朝向向量；如果朝向无效则返回 `null`。
      */
-    static Vec3d getNormalizedLook(EntityPlayerMP player) {
+    public static Vec3d getNormalizedLook(EntityPlayerMP player) {
+        if (player == null) {
+            return null;
+        }
         Vec3d look = player.getLookVec();
         if (look == null || look.lengthSquared() < 1.0E-4D) {
             return null;
@@ -40,7 +43,10 @@ final class AbilityActivationHelper {
      * @param look 玩家当前视线方向。
      * @param recoil 后坐力强度。
      */
-    static void applyRecoil(EntityPlayerMP player, Vec3d look, double recoil) {
+    public static void applyRecoil(EntityPlayerMP player, Vec3d look, double recoil) {
+        if (player == null || look == null || recoil == 0.0D) {
+            return;
+        }
         player.motionX -= look.x * recoil;
         player.motionY -= look.y * recoil;
         player.motionZ -= look.z * recoil;
@@ -54,14 +60,17 @@ final class AbilityActivationHelper {
      * @param range 搜索半径。
      * @return 最近的有效目标；如果不存在则返回 `null`。
      */
-    static EntityLivingBase findNearestTarget(EntityPlayerMP player, double range) {
+    public static EntityLivingBase findNearestTarget(EntityPlayerMP player, double range) {
+        if (player == null || player.world == null || range <= 0.0D || player.getEntityBoundingBox() == null) {
+            return null;
+        }
         AxisAlignedBB box = player.getEntityBoundingBox().grow(range);
         List<EntityLivingBase> targets = player.world.getEntitiesWithinAABB(EntityLivingBase.class, box);
         EntityLivingBase nearest = null;
         double nearestDistance = Double.MAX_VALUE;
 
         for (EntityLivingBase target : targets) {
-            if (target == player || !target.isEntityAlive()) {
+            if (target == player || target == null || !target.isEntityAlive()) {
                 continue;
             }
             if (target instanceof EntityPlayer && ((EntityPlayer) target).isSpectator()) {

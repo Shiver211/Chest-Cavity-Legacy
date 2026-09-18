@@ -25,11 +25,15 @@ public final class CrTChestCavityEvents {
      * @param entity 触发能力的实体。
      * @param abilityId 能力标识。
      * @param score 当前能力分数。
+     * @return `true` 表示事件已被脚本取消。
      */
-    public static void publishAbilityActivated(EntityLivingBase entity, String abilityId, float score) {
+    public static boolean publishAbilityActivated(EntityLivingBase entity, String abilityId, float score) {
         if (ABILITY_ACTIVATED.hasHandlers()) {
-            ABILITY_ACTIVATED.publish(new CrTAbilityActivatedEvent(entity, abilityId, score));
+            CrTAbilityActivatedEvent event = new CrTAbilityActivatedEvent(entity, abilityId, score);
+            ABILITY_ACTIVATED.publish(event);
+            return event.isCanceled();
         }
+        return false;
     }
 
     /**

@@ -16,12 +16,17 @@ import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.MobEffects;
+import net.minecraft.item.ItemFishFood;
+import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
 
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +34,28 @@ import java.util.List;
  * 负责处理由器官分数衍生出的战斗相关逻辑。
  */
 public final class OrganCombatController {
+
+    private static final Field FOOD_POTION_EFFECT_FIELD = findFoodPotionEffectField();
+
+    private static Field findFoodPotionEffectField() {
+        try {
+            return ReflectionHelper.findField(ItemFood.class, "potionId", "field_77851_h");
+        } catch (Throwable ignored) {
+            try {
+                Field field = ItemFood.class.getDeclaredField("potionId");
+                field.setAccessible(true);
+                return field;
+            } catch (Throwable t) {
+                try {
+                    Field field = ItemFood.class.getDeclaredField("field_77851_h");
+                    field.setAccessible(true);
+                    return field;
+                } catch (Throwable ignored2) {
+                    return null;
+                }
+            }
+        }
+    }
 
     private static final float DEFENSE_HALF_DAMAGE_STEP = 4.0F;
     private static final int DESTRUCTIVE_COLLISION_MAX_BLOCKS = 16;
@@ -300,15 +327,40 @@ public final class OrganCombatController {
      */
     private static List<PotionEffect> getVenomEffects(IChestCavity chestCavity) {
         List<PotionEffect> effects = new ArrayList<PotionEffect>();
+        ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
         for (ItemStack stack : chestCavity.getOrgans()) {
             if (!stack.isEmpty()) {
-                OrganData data = OrganData.fromStack(stack);
-                if (data != null && data.getOrganScores().containsKey(CCOrganScores.VENOMOUS)) {
+                OrganData data = OrganDataResolver.resolve(type, stack);
+                Float venom = data == null ? null : data.getOrganScores().get(CCOrganScores.VENOMOUS);
+                if (venom != null && venom > 0.0F) {
                     effects.addAll(PotionUtils.getFullEffectsFromItem(stack));
+                    if (stack.getItem() instanceof ItemFood) {
+                        PotionEffect foodEffect = getFoodPotionEffect((ItemFood) stack.getItem());
+                        if (foodEffect != null) {
+                            effects.add(new PotionEffect(foodEffect));
+                        }
+                        if (stack.getItem() instanceof ItemFishFood) {
+                            if (ItemFishFood.FishType.byItemStack(stack) == ItemFishFood.FishType.PUFFERFISH) {
+                                effects.add(new PotionEffect(MobEffects.POISON, 1200, 3));
+                                effects.add(new PotionEffect(MobEffects.HUNGER, 300, 2));
+                                effects.add(new PotionEffect(MobEffects.NAUSEA, 300, 1));
+                            }
+                        }
+                    }
                 }
             }
         }
         return effects;
+    }
+
+    private static PotionEffect getFoodPotionEffect(ItemFood food) {
+        if (FOOD_POTION_EFFECT_FIELD != null) {
+            try {
+                return (PotionEffect) FOOD_POTION_EFFECT_FIELD.get(food);
+            } catch (IllegalAccessException ignored) {
+            }
+        }
+        return null;
     }
 
     /**

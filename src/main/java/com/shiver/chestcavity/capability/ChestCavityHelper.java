@@ -46,17 +46,7 @@ public final class ChestCavityHelper {
      * @return 胸腔能力实例；如果实体不支持则返回空。
      */
     public static Optional<IChestCavity> get(Entity entity) {
-        ChestCavityCapability.ensureRegistered();
-        if (!(entity instanceof EntityLivingBase) || ChestCavityCapability.CAPABILITY == null) {
-            return Optional.empty();
-        }
-
-        IChestCavity chestCavity = entity.getCapability(ChestCavityCapability.CAPABILITY, null);
-        if (chestCavity != null) {
-            chestCavity.setOwner((EntityLivingBase) entity);
-            return Optional.of(chestCavity);
-        }
-        return Optional.empty();
+        return Optional.ofNullable(getOrNull(entity));
     }
 
     /**
@@ -66,8 +56,16 @@ public final class ChestCavityHelper {
      * @return 胸腔能力实例，或 `null`。
      */
     public static IChestCavity getOrNull(Entity entity) {
-        Optional<IChestCavity> chestCavity = get(entity);
-        return chestCavity.isPresent() ? chestCavity.get() : null;
+        if (!(entity instanceof EntityLivingBase) || ChestCavityCapability.CAPABILITY == null) {
+            return null;
+        }
+
+        IChestCavity chestCavity = entity.getCapability(ChestCavityCapability.CAPABILITY, null);
+        if (chestCavity != null) {
+            chestCavity.setOwner((EntityLivingBase) entity);
+            return chestCavity;
+        }
+        return null;
     }
 
     /**
@@ -87,7 +85,7 @@ public final class ChestCavityHelper {
      * @return `true` 表示分数已变化。
      */
     public static boolean hasScoreChanges(IChestCavity chestCavity) {
-        return !chestCavity.getOldOrganScores().equals(chestCavity.getOrganScores());
+        return chestCavity != null && chestCavity.hasScoreChanges();
     }
 
     /**

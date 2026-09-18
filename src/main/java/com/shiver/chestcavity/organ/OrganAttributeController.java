@@ -61,10 +61,21 @@ final class OrganAttributeController {
      */
     static void apply(EntityLivingBase entity, IChestCavity chestCavity) {
         ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
-        applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH),
-                HEALTH_MODIFIER_ID,
-                "Chest Cavity health",
-                (chestCavity.getOrganScore(CCOrganScores.HEALTH) - type.getDefaultOrganScore(CCOrganScores.HEALTH)) * CCConfig.HEART_HP);
+        IAttributeInstance maxHealthAttr = entity.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
+        if (maxHealthAttr != null) {
+            float healthModifier = (chestCavity.getOrganScore(CCOrganScores.HEALTH) - type.getDefaultOrganScore(CCOrganScores.HEALTH)) * CCConfig.HEART_HP;
+            double otherModifiersValue = 0.0D;
+            for (AttributeModifier mod : maxHealthAttr.getModifiers()) {
+                if (!mod.getID().equals(HEALTH_MODIFIER_ID) && mod.getOperation() == 0) {
+                    otherModifiersValue += mod.getAmount();
+                }
+            }
+            float minModifier = 1.0F - (float) (maxHealthAttr.getBaseValue() + otherModifiersValue);
+            applyScoreModifier(maxHealthAttr,
+                    HEALTH_MODIFIER_ID,
+                    "Chest Cavity health",
+                    Math.max(minModifier, healthModifier));
+        }
         applyScoreModifier(entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE),
                 STRENGTH_MODIFIER_ID,
                 "Chest Cavity strength",
@@ -101,8 +112,8 @@ final class OrganAttributeController {
                 Math.max(-0.95F, (chestCavity.getOrganScore(CCOrganScores.SWIM_SPEED)
                         - type.getDefaultOrganScore(CCOrganScores.SWIM_SPEED)) * CCConfig.SWIMSPEED_FACTOR / 8.0F));
 
-        if (entity.getHealth() > entity.getMaxHealth()) {
-            entity.setHealth(entity.getMaxHealth());
+        if (entity.isEntityAlive() && entity.getHealth() > entity.getMaxHealth()) {
+            entity.setHealth(Math.max(1.0F, entity.getMaxHealth()));
         }
     }
 
