@@ -89,13 +89,12 @@ public final class OrganInteractionController {
      */
     public static boolean shearSilk(EntityLivingBase entity) {
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(entity);
-        if (chestCavity == null || !chestCavity.isOpened()) {
+        if (chestCavity == null || !chestCavity.isOpened()
+                || chestCavity.getOrganScore(CCOrganScores.SILK) <= 0.0F
+                || entity.isPotionActive(CCPotions.SILK_COOLDOWN)) {
             return false;
         }
         float silk = chestCavity.getOrganScore(CCOrganScores.SILK);
-        if (silk <= 0.0F) {
-            return false;
-        }
 
         boolean dropped = false;
         int webs = (int) silk / 2;
@@ -108,6 +107,10 @@ public final class OrganInteractionController {
             entity.world.spawnEntity(new EntityItem(entity.world, entity.posX, entity.posY, entity.posZ,
                     new ItemStack(Items.STRING)));
             dropped = true;
+        }
+        if (dropped) {
+            entity.addPotionEffect(new PotionEffect(CCPotions.SILK_COOLDOWN,
+                    CCConfig.SILK_COOLDOWN, 0, false, false));
         }
         return dropped;
     }

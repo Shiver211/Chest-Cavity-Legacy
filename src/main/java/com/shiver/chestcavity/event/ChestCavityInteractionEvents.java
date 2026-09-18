@@ -164,6 +164,9 @@ public final class ChestCavityInteractionEvents {
                 && !living.isChild()
                 && (!(living instanceof EntitySheep) || !((EntitySheep) living).getSheared())) {
             if (ChestCavityHelper.shearSilk(living)) {
+                if (living instanceof EntitySheep) {
+                    ((EntitySheep) living).setSheared(true);
+                }
                 if (!event.getEntityPlayer().capabilities.isCreativeMode) {
                     held.damageItem(1, event.getEntityPlayer());
                 }
