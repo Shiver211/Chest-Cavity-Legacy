@@ -627,10 +627,10 @@ class ChestCavityFixesTest {
     }
 
     @Test
-    void testTypeShrinkPreservesOverflowOrgansOnLoad() {
+    void testShrinkDiscardsOverflowOrgansOnLoad() {
         ChestCavityData original = new ChestCavityData();
         original.ensureSlotCount(27);
-        // Put an item into slot 20
+        original.setOrgan(0, new ItemStack(Items.BONE));
         ItemStack savedApple = new ItemStack(Items.APPLE, 2);
         original.setOrgan(20, savedApple);
         assertEquals(savedApple.getItem(), original.getOrgan(20).getItem());
@@ -639,7 +639,7 @@ class ChestCavityFixesTest {
         NBTTagCompound tag = original.serializeNBT();
         assertEquals(27, tag.getInteger("SlotCount"));
 
-        // Simulate target size shrinking to 18 (e.g. type shrank from 27 to 18)
+        // 模拟读档时容量缩至 18 格。
         tag.setInteger("CustomColumns", 9);
         tag.setInteger("CustomRows", 2);
 
@@ -647,10 +647,11 @@ class ChestCavityFixesTest {
         loaded.deserializeNBT(tag);
         assertEquals(18, loaded.getSlotCount());
 
-        // Slot 20 was outside the 18 slots. It should NOT be discarded; it must be in pendingDrops!
-        assertEquals(1, loaded.getPendingDrops().size(), "Overflow item should be saved in pending drops");
-        assertEquals(Items.APPLE, loaded.getPendingDrops().get(0).getItem());
-        assertEquals(2, loaded.getPendingDrops().get(0).getCount());
+        assertEquals(Items.BONE, loaded.getOrgan(0).getItem());
+        assertEquals(1, loaded.serializeNBT().getTagList("Inventory", 10).tagCount());
+        assertFalse(loaded.serializeNBT().hasKey("PendingDrops"));
+        loaded.setSlotCount(27);
+        assertTrue(loaded.getOrgan(20).isEmpty(), "超出容量的存档器官不再保留");
     }
 
     @Test

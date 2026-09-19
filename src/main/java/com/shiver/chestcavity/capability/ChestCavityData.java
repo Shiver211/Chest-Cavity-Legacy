@@ -12,10 +12,8 @@ import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
@@ -32,7 +30,6 @@ public class ChestCavityData implements IChestCavity {
     private UUID compatibilityId = UUID.randomUUID();
     private NonNullList<ItemStack> organs = NonNullList.withSize(DEFAULT_SLOT_COUNT, ItemStack.EMPTY);
     private NonNullList<ItemStack> unmodifiableOrgans = new UnmodifiableNonNullList<>(organs, ItemStack.EMPTY);
-    private final List<ItemStack> pendingDrops = new ArrayList<>();
     private final Map<String, Float> organScores = new HashMap<>();
     private final Map<String, Float> unmodifiableOrganScores = java.util.Collections.unmodifiableMap(organScores);
     private final Map<String, Float> oldOrganScores = new HashMap<>();
@@ -74,36 +71,11 @@ public class ChestCavityData implements IChestCavity {
                     ensureSlotCount(type.getSlotCount());
                 }
             }
-            flushPendingDrops();
         }
     }
 
     /**
-     * 将暂存的溢出器官在实体脚下安全掉落。
-     */
-    public void flushPendingDrops() {
-        if (pendingDrops.isEmpty() || owner == null || owner.world == null || owner.world.isRemote) {
-            return;
-        }
-        for (ItemStack drop : pendingDrops) {
-            if (!drop.isEmpty()) {
-                owner.entityDropItem(drop.copy(), 0.0F);
-            }
-        }
-        pendingDrops.clear();
-    }
-
-    /**
-     * 获取当前等待安全掉落的溢出器官列表（只读视图）。
-     *
-     * @return 待掉落物品列表。
-     */
-    public List<ItemStack> getPendingDrops() {
-        return java.util.Collections.unmodifiableList(pendingDrops);
-    }
-
-    /**
-     * 调整胸腔槽位容量。扩容时填充空物品，缩容时保留前序物品（已打开胸腔或持有者为玩家时，超出物品安全掉落；世界未就绪时暂存）。
+     * 调整胸腔槽位容量。扩容时填充空物品，缩容时保留前序物品（已打开胸腔时或持有者为玩家时，若存在多余物品且处于服务端则安全掉落）。
      *
      * @param newSize 目标槽位数量。
      */
@@ -116,23 +88,19 @@ public class ChestCavityData implements IChestCavity {
             return;
         }
         if (newSize < organs.size()) {
-            if (owner != null) {
-                ChestCavityUiBridge.closeViewers(owner);
-            }
-            for (int i = newSize; i < organs.size(); i++) {
-                ItemStack overflow = organs.get(i);
-                if (!overflow.isEmpty()) {
-                    if (owner != null && owner.world != null && !owner.world.isRemote) {
-                        owner.entityDropItem(overflow.copy(), 0.0F);
-                    } else {
-                        pendingDrops.add(overflow.copy());
-                    }
-                }
-            }
+            ChestCavityUiBridge.closeViewers(owner);
         }
         NonNullList<ItemStack> newOrgans = NonNullList.withSize(newSize, ItemStack.EMPTY);
         for (int i = 0; i < Math.min(organs.size(), newSize); i++) {
             newOrgans.set(i, organs.get(i));
+        }
+        if (newSize < organs.size() && (opened || owner instanceof net.minecraft.entity.player.EntityPlayer) && owner != null && owner.world != null && !owner.world.isRemote) {
+            for (int i = newSize; i < organs.size(); i++) {
+                ItemStack overflow = organs.get(i);
+                if (!overflow.isEmpty()) {
+                    owner.entityDropItem(overflow.copy(), 0.0F);
+                }
+            }
         }
         this.organs = newOrgans;
         this.unmodifiableOrgans = new UnmodifiableNonNullList<>(this.organs, ItemStack.EMPTY);
@@ -171,11 +139,7 @@ public class ChestCavityData implements IChestCavity {
         boolean dimensionsChanged = this.customColumns != columns || this.customRows != rows;
         this.customColumns = columns;
         this.customRows = rows;
-        int newSize = columns * rows;
-        if (newSize < organs.size() && owner != null) {
-            ChestCavityUiBridge.closeViewers(owner);
-        }
-        setSlotCount(newSize);
+        setSlotCount(columns * rows);
         if (dimensionsChanged) {
             markScoresDirty();
             if (owner != null && owner.world != null && !owner.world.isRemote) {
@@ -191,9 +155,6 @@ public class ChestCavityData implements IChestCavity {
         this.customRows = -1;
         ChestCavityType type = ChestCavityHelper.getChestCavityType(this);
         int targetSize = type != null ? type.getSlotCount() : DEFAULT_SLOT_COUNT;
-        if (targetSize < organs.size() && owner != null) {
-            ChestCavityUiBridge.closeViewers(owner);
-        }
         setSlotCount(targetSize);
         if (hadCustom) {
             markScoresDirty();
@@ -616,15 +577,6 @@ public class ChestCavityData implements IChestCavity {
             tag.setInteger("CustomColumns", customColumns);
             tag.setInteger("CustomRows", customRows);
         }
-        if (!pendingDrops.isEmpty()) {
-            NBTTagList pendingList = new NBTTagList();
-            for (ItemStack stack : pendingDrops) {
-                if (!stack.isEmpty()) {
-                    pendingList.appendTag(stack.writeToNBT(new NBTTagCompound()));
-                }
-            }
-            tag.setTag("PendingDrops", pendingList);
-        }
         tag.setTag("Inventory", writeInventory());
         tag.setTag("OrganScores", writeScores(organScores));
         return tag;
@@ -656,39 +608,6 @@ public class ChestCavityData implements IChestCavity {
         furnaceProgress = readInt(tag, "FurnaceProgress", 0);
         photosynthesisProgress = readInt(tag, "PhotosynthesisProgress", 0);
 
-        pendingDrops.clear();
-        if (tag.hasKey("PendingDrops", Constants.NBT.TAG_LIST)) {
-            NBTTagList pendingList = tag.getTagList("PendingDrops", Constants.NBT.TAG_COMPOUND);
-            for (int i = 0; i < pendingList.tagCount(); i++) {
-                ItemStack stack = new ItemStack(pendingList.getCompoundTagAt(i));
-                if (!stack.isEmpty()) {
-                    pendingDrops.add(stack);
-                }
-            }
-        }
-
-        int savedCapacity = 0;
-        if (tag.hasKey("SlotCount", Constants.NBT.TAG_INT)) {
-            savedCapacity = tag.getInteger("SlotCount");
-        }
-        if (tag.hasKey("Inventory", Constants.NBT.TAG_LIST)) {
-            NBTTagList invList = tag.getTagList("Inventory", Constants.NBT.TAG_COMPOUND);
-            for (int i = 0; i < invList.tagCount(); i++) {
-                NBTTagCompound stackTag = invList.getCompoundTagAt(i);
-                int slot = stackTag.hasKey("Slot", 99) ? stackTag.getInteger("Slot") : (stackTag.getByte("Slot") & 255);
-                if (slot + 1 > savedCapacity) {
-                    savedCapacity = slot + 1;
-                }
-            }
-            if (savedCapacity <= 0) {
-                savedCapacity = DEFAULT_SLOT_COUNT;
-            }
-            ensureSlotCount(savedCapacity);
-            readInventory(invList);
-        } else {
-            organs.clear();
-        }
-
         int targetSlots = -1;
         if (tag.hasKey("CustomColumns", Constants.NBT.TAG_INT) && tag.hasKey("CustomRows", Constants.NBT.TAG_INT)) {
             customColumns = tag.getInteger("CustomColumns");
@@ -697,18 +616,24 @@ public class ChestCavityData implements IChestCavity {
         } else {
             customColumns = -1;
             customRows = -1;
+            if (tag.hasKey("SlotCount", Constants.NBT.TAG_INT)) {
+                targetSlots = tag.getInteger("SlotCount");
+            }
             ChestCavityType type = owner != null ? ChestCavityHelper.getChestCavityType(this) : null;
             if (type != null) {
                 targetSlots = type.getSlotCount();
-            } else if (tag.hasKey("SlotCount", Constants.NBT.TAG_INT)) {
-                targetSlots = tag.getInteger("SlotCount");
             }
         }
-        if (targetSlots > 0 && targetSlots != organs.size()) {
-            setSlotCount(targetSlots);
+        if (targetSlots > 0) {
+            ensureSlotCount(targetSlots);
         }
 
-        flushPendingDrops();
+        // 按当前容量恢复，超出容量的存档器官直接丢弃。
+        if (tag.hasKey("Inventory", Constants.NBT.TAG_LIST)) {
+            readInventory(tag.getTagList("Inventory", Constants.NBT.TAG_COMPOUND));
+        } else {
+            organs.clear();
+        }
 
         organScores.clear();
         if (tag.hasKey("OrganScores", Constants.NBT.TAG_LIST)) {
