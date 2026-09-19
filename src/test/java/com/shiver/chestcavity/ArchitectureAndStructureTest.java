@@ -9,7 +9,6 @@ import com.shiver.chestcavity.event.ChestCavityDropEvents;
 import com.shiver.chestcavity.event.ChestCavityInteractionEvents;
 import com.shiver.chestcavity.event.ChestCavityLifecycleEvents;
 import com.shiver.chestcavity.event.ChestCavityNetworkEvents;
-import com.shiver.chestcavity.event.ForgeEvents;
 import com.shiver.chestcavity.network.MessageChestCavitySync;
 import com.shiver.chestcavity.network.MessageMovementConfigSync;
 import com.shiver.chestcavity.network.MessageOrganDataSync;
@@ -24,6 +23,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.junit.jupiter.api.BeforeAll;
@@ -72,31 +72,57 @@ class ArchitectureAndStructureTest {
 
     @Test
     void testModularEventSubscribers() throws Exception {
-        assertTrue(ChestCavityCombatEvents.class.isAnnotationPresent(Mod.EventBusSubscriber.class),
-                "ChestCavityCombatEvents must be an @EventBusSubscriber");
-        assertTrue(ChestCavityInteractionEvents.class.isAnnotationPresent(Mod.EventBusSubscriber.class),
-                "ChestCavityInteractionEvents must be an @EventBusSubscriber");
-        assertTrue(ChestCavityLifecycleEvents.class.isAnnotationPresent(Mod.EventBusSubscriber.class),
-                "ChestCavityLifecycleEvents must be an @EventBusSubscriber");
-        assertTrue(ChestCavityDropEvents.class.isAnnotationPresent(Mod.EventBusSubscriber.class),
-                "ChestCavityDropEvents must be an @EventBusSubscriber");
-        assertTrue(ChestCavityNetworkEvents.class.isAnnotationPresent(Mod.EventBusSubscriber.class),
-                "ChestCavityNetworkEvents must be an @EventBusSubscriber");
+        Class<?>[] modularSubscribers = new Class<?>[] {
+                ChestCavityCombatEvents.class,
+                ChestCavityInteractionEvents.class,
+                ChestCavityLifecycleEvents.class,
+                ChestCavityDropEvents.class,
+                ChestCavityNetworkEvents.class
+        };
 
-        assertTrue(ForgeEvents.class.isAnnotationPresent(Deprecated.class),
-                "ForgeEvents must be annotated with @Deprecated");
-        assertFalse(ForgeEvents.class.isAnnotationPresent(Mod.EventBusSubscriber.class),
-                "ForgeEvents must NOT be an @EventBusSubscriber to avoid duplicate execution");
+        for (Class<?> subscriberClass : modularSubscribers) {
+            assertTrue(subscriberClass.isAnnotationPresent(Mod.EventBusSubscriber.class),
+                    subscriberClass.getSimpleName() + " must be annotated with @EventBusSubscriber");
+            assertEquals(Tags.MOD_ID, subscriberClass.getAnnotation(Mod.EventBusSubscriber.class).modid(),
+                    subscriberClass.getSimpleName() + " modid must match " + Tags.MOD_ID);
+        }
+
+        assertThrows(ClassNotFoundException.class, () -> Class.forName("com.shiver.chestcavity.event.ForgeEvents"),
+                "Deprecated ForgeEvents class should be completely removed");
+
+        Method[] subscriberMethods = new Method[] {
+                ChestCavityCombatEvents.class.getMethod("livingAttack", net.minecraftforge.event.entity.living.LivingAttackEvent.class),
+                ChestCavityCombatEvents.class.getMethod("livingDamage", net.minecraftforge.event.entity.living.LivingDamageEvent.class),
+                ChestCavityInteractionEvents.class.getMethod("entityInteract", net.minecraftforge.event.entity.player.PlayerInteractEvent.EntityInteract.class),
+                ChestCavityInteractionEvents.class.getMethod("entityInteractSpecific", net.minecraftforge.event.entity.player.PlayerInteractEvent.EntityInteractSpecific.class),
+                ChestCavityInteractionEvents.class.getMethod("finishUsingItem", net.minecraftforge.event.entity.living.LivingEntityUseItemEvent.Finish.class),
+                ChestCavityInteractionEvents.class.getMethod("breakSpeed", net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed.class),
+                ChestCavityInteractionEvents.class.getMethod("projectileImpact", net.minecraftforge.event.entity.ProjectileImpactEvent.Throwable.class),
+                ChestCavityLifecycleEvents.class.getMethod("attachCapabilities", net.minecraftforge.event.AttachCapabilitiesEvent.class),
+                ChestCavityLifecycleEvents.class.getMethod("livingUpdate", net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent.class),
+                ChestCavityLifecycleEvents.class.getMethod("livingJump", net.minecraftforge.event.entity.living.LivingEvent.LivingJumpEvent.class),
+                ChestCavityLifecycleEvents.class.getMethod("potionApplicable", net.minecraftforge.event.entity.living.PotionEvent.PotionApplicableEvent.class),
+                ChestCavityLifecycleEvents.class.getMethod("playerClone", net.minecraftforge.event.entity.player.PlayerEvent.Clone.class),
+                ChestCavityDropEvents.class.getMethod("livingDrops", net.minecraftforge.event.entity.living.LivingDropsEvent.class),
+                ChestCavityDropEvents.class.getMethod("lootTableLoad", net.minecraftforge.event.LootTableLoadEvent.class),
+                ChestCavityNetworkEvents.class.getMethod("playerLoggedIn", net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent.class),
+                ChestCavityNetworkEvents.class.getMethod("clientDisconnected", net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent.class),
+                ChestCavityNetworkEvents.class.getMethod("startTracking", net.minecraftforge.event.entity.player.PlayerEvent.StartTracking.class)
+        };
+
+        for (Method method : subscriberMethods) {
+            assertTrue(java.lang.reflect.Modifier.isPublic(method.getModifiers()),
+                    method.getDeclaringClass().getSimpleName() + "." + method.getName() + " must be public");
+            assertTrue(java.lang.reflect.Modifier.isStatic(method.getModifiers()),
+                    method.getDeclaringClass().getSimpleName() + "." + method.getName() + " must be static");
+            assertTrue(method.isAnnotationPresent(SubscribeEvent.class),
+                    method.getDeclaringClass().getSimpleName() + "." + method.getName() + " must be annotated with @SubscribeEvent");
+        }
 
         Method networkClientDisc = ChestCavityNetworkEvents.class.getMethod("clientDisconnected",
                 net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent.class);
         assertTrue(networkClientDisc.isAnnotationPresent(SideOnly.class));
         assertEquals(Side.CLIENT, networkClientDisc.getAnnotation(SideOnly.class).value());
-
-        Method forgeClientDisc = ForgeEvents.class.getMethod("clientDisconnected",
-                net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent.class);
-        assertTrue(forgeClientDisc.isAnnotationPresent(SideOnly.class));
-        assertEquals(Side.CLIENT, forgeClientDisc.getAnnotation(SideOnly.class).value());
     }
 
     @Test
