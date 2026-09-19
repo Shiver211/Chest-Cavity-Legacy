@@ -331,5 +331,35 @@ class ChestCavityFixesTest {
         assertNotNull(creeperType);
         assertEquals(1.0F, creeperType.getDefaultOrganScores().getOrDefault(CCOrganScores.CREEPY, 0.0F), 0.0001F,
                 "Creeper default creepy score must be exactly 1.0F, not drifting to 1.046875F");
+
+        // 7. P2 - coals tag mapping covers both coal (meta 0) and charcoal (meta 1)
+        assertTrue(OreDictionary.doesOreNameExist("coal"), "coal ore dictionary entry should exist after CCItems registration");
+        assertTrue(OreDictionary.doesOreNameExist("charcoal"), "charcoal ore dictionary entry should exist after CCItems registration");
+
+        String jsonCoalsTypeContent = "{\n"
+                + "  \"exceptionalOrgans\": [\n"
+                + "    {\n"
+                + "      \"ingredient\": {\"tag\": \"minecraft:coals\"},\n"
+                + "      \"value\": [{\"id\": \"furnace_powered\", \"value\": \"1\"}]\n"
+                + "    }\n"
+                + "  ]\n"
+                + "}";
+        DataLoaders.loadJsonDirect("types/test_coals_type.json", new StringReader(jsonCoalsTypeContent));
+        com.shiver.chestcavity.chest.types.ChestCavityType coalsType = DataLoaders.getType("test_coals_type");
+        assertNotNull(coalsType, "Dynamically loaded coalsType should exist");
+
+        ItemStack testCoalStack = new ItemStack(Items.COAL, 1, 0);
+        ItemStack testCharcoalStack = new ItemStack(Items.COAL, 1, 1);
+        ItemStack testIronStack = new ItemStack(Items.IRON_INGOT, 1, 0);
+
+        OrganData coalOrgan = coalsType.catchExceptionalOrgan(testCoalStack);
+        assertNotNull(coalOrgan, "minecraft:coals tag MUST match coal (Items.COAL meta 0)");
+        assertEquals(1.0F, coalOrgan.getOrganScores().getOrDefault(CCOrganScores.FURNACE_POWERED, 0.0F), 0.0001F);
+
+        OrganData charcoalOrgan = coalsType.catchExceptionalOrgan(testCharcoalStack);
+        assertNotNull(charcoalOrgan, "minecraft:coals tag MUST match charcoal (Items.COAL meta 1)");
+        assertEquals(1.0F, charcoalOrgan.getOrganScores().getOrDefault(CCOrganScores.FURNACE_POWERED, 0.0F), 0.0001F);
+
+        assertNull(coalsType.catchExceptionalOrgan(testIronStack), "minecraft:coals tag MUST NOT match iron ingot");
     }
 }

@@ -601,7 +601,14 @@ public final class DataLoaders {
                 if (ingredient.has("ore")) {
                     oreName = ingredient.get("ore").getAsString();
                 } else if (ingredient.has("tag")) {
-                    oreName = mapTagToOreName(ingredient.get("tag").getAsString());
+                    String tag = ingredient.get("tag").getAsString();
+                    if ("minecraft:coals".equals(tag) || "coals".equals(tag)) {
+                        Map<String, Float> scores = readOrganScores(id, object.get("value"));
+                        organs.add(new GeneratedChestCavityType.ExceptionalOrgan(Items.COAL, OreDictionary.WILDCARD_VALUE, "coal", scores));
+                        organs.add(new GeneratedChestCavityType.ExceptionalOrgan(null, OreDictionary.WILDCARD_VALUE, "charcoal", scores));
+                        continue;
+                    }
+                    oreName = mapTagToOreName(tag);
                 }
                 if (item == null && (oreName == null || oreName.isEmpty())) {
                     ChestCavityLegacy.LOGGER.warn("Skipping exceptional organ entry {} in {} because ingredient has no supported item, ore, or tag.", index, id);
@@ -627,9 +634,6 @@ public final class DataLoaders {
         }
         if ("minecraft:leaves".equals(tag)) {
             return "treeLeaves";
-        }
-        if ("minecraft:coals".equals(tag) || "coals".equals(tag)) {
-            return "coal";
         }
         if ("c:charcoal".equals(tag) || "minecraft:charcoals".equals(tag)) {
             return "charcoal";

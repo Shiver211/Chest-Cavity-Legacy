@@ -212,6 +212,7 @@ public final class CCItems {
                 "gold_cleaver",
                 "iron_cleaver",
                 "diamond_cleaver");
+        OreDictionary.registerOre("coal", new ItemStack(Items.COAL, 1, 0));
         OreDictionary.registerOre("charcoal", new ItemStack(Items.COAL, 1, 1));
     }
 
