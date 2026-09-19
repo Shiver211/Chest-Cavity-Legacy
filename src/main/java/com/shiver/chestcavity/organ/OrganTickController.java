@@ -47,6 +47,9 @@ public final class OrganTickController {
         boolean scoreChanges = ChestCavityHelper.hasScoreChanges(chestCavity);
 
         if (!entity.world.isRemote) {
+            if (chestCavity instanceof ChestCavityData) {
+                ((ChestCavityData) chestCavity).flushPendingDrops();
+            }
             if (OrganAttributeController.shouldRefresh(entity, chestCavity, scoreChanges)) {
                 OrganAttributeController.apply(entity, chestCavity);
             }

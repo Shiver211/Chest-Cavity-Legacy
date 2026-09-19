@@ -603,4 +603,78 @@ class ChestCavityFixesTest {
         assertEquals(3, crt.getRows());
         assertEquals(27, crt.getSlotCount());
     }
+
+    @Test
+    void testOrganItemHandlerDefensiveAgainstOutOfBounds() {
+        ChestCavityData data = new ChestCavityData();
+        data.setDimensions(9, 2); // 18 slots
+        assertEquals(18, data.getSlotCount());
+
+        net.minecraftforge.items.IItemHandlerModifiable handler = data.getOrganInventory();
+        assertEquals(18, handler.getSlots());
+
+        // Slot 18 is out of bounds (0-17 valid). Should safely return EMPTY without throwing exception!
+        assertEquals(ItemStack.EMPTY, handler.getStackInSlot(18));
+        handler.setStackInSlot(18, new ItemStack(Items.APPLE));
+        assertEquals(ItemStack.EMPTY, handler.getStackInSlot(18));
+
+        ItemStack insertResult = handler.insertItem(18, new ItemStack(Items.APPLE), false);
+        assertEquals(Items.APPLE, insertResult.getItem());
+
+        assertEquals(ItemStack.EMPTY, handler.extractItem(18, 1, false));
+        assertEquals(0, handler.getSlotLimit(18));
+        assertFalse(handler.isItemValid(18, new ItemStack(Items.APPLE)));
+    }
+
+    @Test
+    void testTypeShrinkPreservesOverflowOrgansOnLoad() {
+        ChestCavityData original = new ChestCavityData();
+        original.ensureSlotCount(27);
+        // Put an item into slot 20
+        ItemStack savedApple = new ItemStack(Items.APPLE, 2);
+        original.setOrgan(20, savedApple);
+        assertEquals(savedApple.getItem(), original.getOrgan(20).getItem());
+        assertEquals(savedApple.getCount(), original.getOrgan(20).getCount());
+
+        NBTTagCompound tag = original.serializeNBT();
+        assertEquals(27, tag.getInteger("SlotCount"));
+
+        // Simulate target size shrinking to 18 (e.g. type shrank from 27 to 18)
+        tag.setInteger("CustomColumns", 9);
+        tag.setInteger("CustomRows", 2);
+
+        ChestCavityData loaded = new ChestCavityData();
+        loaded.deserializeNBT(tag);
+        assertEquals(18, loaded.getSlotCount());
+
+        // Slot 20 was outside the 18 slots. It should NOT be discarded; it must be in pendingDrops!
+        assertEquals(1, loaded.getPendingDrops().size(), "Overflow item should be saved in pending drops");
+        assertEquals(Items.APPLE, loaded.getPendingDrops().get(0).getItem());
+        assertEquals(2, loaded.getPendingDrops().get(0).getCount());
+    }
+
+    @Test
+    void testSameCapacityDimensionChangeSyncs() {
+        ChestCavityData data = new ChestCavityData();
+        data.copyCurrentScoresToOld();
+        assertFalse(data.hasScoreChanges(), "Initially scoreChanges should be false");
+
+        // Change from default 9x3 (27) to 3x9 (27) - capacity unchanged!
+        data.setDimensions(3, 9);
+        assertEquals(3, data.getColumns());
+        assertEquals(9, data.getRows());
+        assertEquals(27, data.getSlotCount());
+        assertTrue(data.hasScoreChanges(), "Dimension change must mark dirty/changes even when capacity is identical");
+
+        // Clear changes
+        data.copyCurrentScoresToOld();
+        assertFalse(data.hasScoreChanges());
+
+        // Reset dimensions from 3x9 to default 9x3 - capacity unchanged!
+        data.resetDimensions();
+        assertEquals(9, data.getColumns());
+        assertEquals(3, data.getRows());
+        assertEquals(27, data.getSlotCount());
+        assertTrue(data.hasScoreChanges(), "resetDimensions must mark dirty/changes even when capacity is identical");
+    }
 }
