@@ -367,10 +367,17 @@ public final class DataLoaders {
      */
     private static void loadType(String typeId, ResourceLocation id, JsonObject json) {
         GeneratedChestCavityType type = new GeneratedChestCavityType();
+        if (json.has("columns") && json.has("rows")) {
+            type.setDimensions(json.get("columns").getAsInt(), json.get("rows").getAsInt());
+        } else if (json.has("size")) {
+            type.setSize(json.get("size").getAsInt());
+        } else if (json.has("slotCount")) {
+            type.setSize(json.get("slotCount").getAsInt());
+        }
         List<Integer> forbiddenSlots = readForbiddenSlots(id, json.get("forbiddenSlots"));
         type.setForbiddenSlots(forbiddenSlots);
         if (json.has("defaultChestCavity")) {
-            type.setDefaultChestCavity(readDefaultChestCavity(id, json.get("defaultChestCavity"), forbiddenSlots));
+            type.setDefaultChestCavity(readDefaultChestCavity(id, json.get("defaultChestCavity"), forbiddenSlots, type.getSlotCount()));
         }
         if (json.has("baseOrganScores")) {
             type.setBaseOrganScores(readOrganScores(id, json.get("baseOrganScores")));
@@ -429,10 +436,11 @@ public final class DataLoaders {
      * @param id 数据文件资源标识。
      * @param element 默认布局对应的 JSON 元素。
      * @param forbiddenSlots 禁用槽位列表。
+     * @param slotCount 目标槽位总数。
      * @return 解析出的默认胸腔布局。
      */
-    private static ChestCavityInventory readDefaultChestCavity(ResourceLocation id, JsonElement element, List<Integer> forbiddenSlots) {
-        ChestCavityInventory inventory = new ChestCavityInventory();
+    private static ChestCavityInventory readDefaultChestCavity(ResourceLocation id, JsonElement element, List<Integer> forbiddenSlots, int slotCount) {
+        ChestCavityInventory inventory = new ChestCavityInventory(slotCount > 0 ? slotCount : ChestCavityInventory.DEFAULT_SIZE);
         if (element == null || !element.isJsonArray()) {
             ChestCavityLegacy.LOGGER.warn("Skipping defaultChestCavity in {} because it is not an array.", id);
             return inventory;

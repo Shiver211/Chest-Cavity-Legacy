@@ -66,7 +66,7 @@ public class ChestCavityInventory extends InventoryBasic {
         clear();
         for (int i = 0; i < tags.tagCount(); i++) {
             NBTTagCompound itemTag = tags.getCompoundTagAt(i);
-            int slot = itemTag.getByte("Slot") & 255;
+            int slot = itemTag.hasKey("Slot", 99) ? itemTag.getInteger("Slot") : (itemTag.getByte("Slot") & 255);
             if (slot >= 0 && slot < size()) {
                 setStack(slot, new ItemStack(itemTag));
             }
@@ -84,7 +84,7 @@ public class ChestCavityInventory extends InventoryBasic {
             ItemStack stack = getStack(i);
             if (!stack.isEmpty()) {
                 NBTTagCompound itemTag = new NBTTagCompound();
-                itemTag.setByte("Slot", (byte) i);
+                itemTag.setInteger("Slot", i);
                 stack.writeToNBT(itemTag);
                 list.appendTag(itemTag);
             }

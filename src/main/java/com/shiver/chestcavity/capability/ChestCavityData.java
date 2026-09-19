@@ -1,5 +1,6 @@
 package com.shiver.chestcavity.capability;
 
+import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.data.DataLoaders;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
@@ -25,8 +26,8 @@ public class ChestCavityData implements IChestCavity {
     private EntityLivingBase owner;
     private boolean opened;
     private UUID compatibilityId = UUID.randomUUID();
-    private final NonNullList<ItemStack> organs = NonNullList.withSize(DEFAULT_SLOT_COUNT, ItemStack.EMPTY);
-    private final NonNullList<ItemStack> unmodifiableOrgans = new UnmodifiableNonNullList<>(organs, ItemStack.EMPTY);
+    private NonNullList<ItemStack> organs = NonNullList.withSize(DEFAULT_SLOT_COUNT, ItemStack.EMPTY);
+    private NonNullList<ItemStack> unmodifiableOrgans = new UnmodifiableNonNullList<>(organs, ItemStack.EMPTY);
     private final Map<String, Float> organScores = new HashMap<>();
     private final Map<String, Float> unmodifiableOrganScores = java.util.Collections.unmodifiableMap(organScores);
     private final Map<String, Float> oldOrganScores = new HashMap<>();
@@ -56,8 +57,55 @@ public class ChestCavityData implements IChestCavity {
     @Override
     public void setOwner(EntityLivingBase owner) {
         this.owner = owner;
-        if (owner != null && compatibilityId == null) {
-            compatibilityId = owner.getUniqueID();
+        if (owner != null) {
+            if (compatibilityId == null) {
+                compatibilityId = owner.getUniqueID();
+            }
+            ChestCavityType type = ChestCavityHelper.getChestCavityType(this);
+            if (type != null) {
+                ensureSlotCount(type.getSlotCount());
+            }
+        }
+    }
+
+    /**
+     * 调整胸腔槽位容量。扩容时填充空物品，缩容时保留前序物品（已打开胸腔时若存在多余物品且处于服务端则安全掉落）。
+     *
+     * @param newSize 目标槽位数量。
+     */
+    @Override
+    public void setSlotCount(int newSize) {
+        if (newSize <= 0) {
+            newSize = DEFAULT_SLOT_COUNT;
+        }
+        if (organs.size() == newSize) {
+            return;
+        }
+        NonNullList<ItemStack> newOrgans = NonNullList.withSize(newSize, ItemStack.EMPTY);
+        for (int i = 0; i < Math.min(organs.size(), newSize); i++) {
+            newOrgans.set(i, organs.get(i));
+        }
+        if (newSize < organs.size() && opened && owner != null && owner.world != null && !owner.world.isRemote) {
+            for (int i = newSize; i < organs.size(); i++) {
+                ItemStack overflow = organs.get(i);
+                if (!overflow.isEmpty()) {
+                    owner.entityDropItem(overflow.copy(), 0.0F);
+                }
+            }
+        }
+        this.organs = newOrgans;
+        this.unmodifiableOrgans = new UnmodifiableNonNullList<>(this.organs, ItemStack.EMPTY);
+        markScoresDirty();
+    }
+
+    /**
+     * 确保当前槽位容量至少为目标大小，或与指定胸腔类型大小一致。
+     *
+     * @param targetSize 目标槽位数量。
+     */
+    public void ensureSlotCount(int targetSize) {
+        if (targetSize > 0 && targetSize != organs.size()) {
+            setSlotCount(targetSize);
         }
     }
 
@@ -458,6 +506,7 @@ public class ChestCavityData implements IChestCavity {
         tag.setFloat("LungRemainder", lungRemainder);
         tag.setInteger("FurnaceProgress", furnaceProgress);
         tag.setInteger("PhotosynthesisProgress", photosynthesisProgress);
+        tag.setInteger("SlotCount", getSlotCount());
         tag.setTag("Inventory", writeInventory());
         tag.setTag("OrganScores", writeScores(organScores));
         return tag;
@@ -488,6 +537,18 @@ public class ChestCavityData implements IChestCavity {
         lungRemainder = readFloat(tag, "LungRemainder", 0.0F);
         furnaceProgress = readInt(tag, "FurnaceProgress", 0);
         photosynthesisProgress = readInt(tag, "PhotosynthesisProgress", 0);
+
+        int targetSlots = -1;
+        if (tag.hasKey("SlotCount", Constants.NBT.TAG_INT)) {
+            targetSlots = tag.getInteger("SlotCount");
+        }
+        ChestCavityType type = owner != null ? ChestCavityHelper.getChestCavityType(this) : null;
+        if (type != null) {
+            targetSlots = type.getSlotCount();
+        }
+        if (targetSlots > 0) {
+            ensureSlotCount(targetSlots);
+        }
 
         if (tag.hasKey("Inventory", Constants.NBT.TAG_LIST)) {
             readInventory(tag.getTagList("Inventory", Constants.NBT.TAG_COMPOUND));
@@ -593,7 +654,7 @@ public class ChestCavityData implements IChestCavity {
             ItemStack stack = organs.get(i);
             if (!stack.isEmpty()) {
                 NBTTagCompound stackTag = new NBTTagCompound();
-                stackTag.setByte("Slot", (byte) i);
+                stackTag.setInteger("Slot", i);
                 stack.writeToNBT(stackTag);
                 list.appendTag(stackTag);
             }
@@ -610,7 +671,7 @@ public class ChestCavityData implements IChestCavity {
         organs.clear();
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound stackTag = list.getCompoundTagAt(i);
-            int slot = stackTag.getByte("Slot") & 255;
+            int slot = stackTag.hasKey("Slot", 99) ? stackTag.getInteger("Slot") : (stackTag.getByte("Slot") & 255);
             if (slot >= 0 && slot < organs.size()) {
                 organs.set(slot, new ItemStack(stackTag));
             }
@@ -702,7 +763,7 @@ public class ChestCavityData implements IChestCavity {
          */
         @Override
         public int getSlots() {
-            return DEFAULT_SLOT_COUNT;
+            return getSlotCount();
         }
 
         /**

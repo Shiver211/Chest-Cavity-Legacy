@@ -2,6 +2,7 @@ package com.shiver.chestcavity.ui;
 
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.chest.types.ChestCavityType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -13,8 +14,11 @@ public final class ChestCavityUiBridge {
 
     public static final String FACTORY_ID = com.shiver.chestcavity.Tags.MOD_ID + ":chest_cavity";
     public static final String PANEL_ID = "chest_cavity";
-    public static final int CHEST_CAVITY_SLOTS = 27;
-    public static final int SLOTS_PER_ROW = 9;
+    public static final int DEFAULT_CHEST_CAVITY_SLOTS = 27;
+    public static final int DEFAULT_SLOTS_PER_ROW = 9;
+    public static final int DEFAULT_ROWS = 3;
+    public static final int CHEST_CAVITY_SLOTS = DEFAULT_CHEST_CAVITY_SLOTS;
+    public static final int SLOTS_PER_ROW = DEFAULT_SLOTS_PER_ROW;
     public static final double MAX_INTERACT_DISTANCE_SQ = 64.0D;
 
     private ChestCavityUiBridge() {
@@ -49,7 +53,12 @@ public final class ChestCavityUiBridge {
             return false;
         }
 
-        ChestCavityGuiData data = new ChestCavityGuiData(player, target.getEntityId());
+        IChestCavity chestCavity = ChestCavityHelper.getOrNull(target);
+        ChestCavityType type = chestCavity != null ? ChestCavityHelper.getChestCavityType(chestCavity) : null;
+        int columns = type != null ? type.getColumns() : DEFAULT_SLOTS_PER_ROW;
+        int rows = type != null ? type.getRows() : DEFAULT_ROWS;
+
+        ChestCavityGuiData data = new ChestCavityGuiData(player, target.getEntityId(), columns, rows);
         if (!canKeepOpen(player, data)) {
             return false;
         }

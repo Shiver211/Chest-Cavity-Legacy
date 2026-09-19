@@ -2,6 +2,7 @@ package com.shiver.chestcavity.api;
 
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.chest.types.ChestCavityType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -53,6 +54,26 @@ public final class ChestCavityView {
      */
     public int getSlotCount() {
         return chestCavity.getSlotCount();
+    }
+
+    /**
+     * 返回胸腔界面网格列数。
+     *
+     * @return 列数。
+     */
+    public int getColumns() {
+        ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
+        return type != null ? type.getColumns() : 9;
+    }
+
+    /**
+     * 返回胸腔界面网格行数。
+     *
+     * @return 行数。
+     */
+    public int getRows() {
+        ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
+        return type != null ? type.getRows() : 3;
     }
 
     /**

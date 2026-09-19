@@ -64,6 +64,14 @@ public interface IChestCavity {
     int getSlotCount();
 
     /**
+     * 调整胸腔内部拥有的槽位数量。
+     *
+     * @param newSize 目标槽位数量。
+     */
+    default void setSlotCount(int newSize) {
+    }
+
+    /**
      * 返回胸腔当前保存的全部器官列表的只读视图。
      * 如需修改槽位器官，请使用 {@link #setOrgan(int, ItemStack)} 或 {@link #getOrganInventory()}。
      *

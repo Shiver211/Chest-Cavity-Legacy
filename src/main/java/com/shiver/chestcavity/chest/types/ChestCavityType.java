@@ -35,6 +35,33 @@ public interface ChestCavityType {
     ChestCavityInventory getDefaultChestCavity();
 
     /**
+     * 返回该胸腔类型界面网格的列数（宽度）。
+     *
+     * @return 列数。
+     */
+    default int getColumns() {
+        return 9;
+    }
+
+    /**
+     * 返回该胸腔类型界面网格的行数（高度）。
+     *
+     * @return 行数。
+     */
+    default int getRows() {
+        return 3;
+    }
+
+    /**
+     * 返回该胸腔类型的总槽位数。
+     *
+     * @return 槽位总数。
+     */
+    default int getSlotCount() {
+        return getColumns() * getRows();
+    }
+
+    /**
      * 判断指定槽位是否被该胸腔类型禁用。
      *
      * @param index 槽位索引。

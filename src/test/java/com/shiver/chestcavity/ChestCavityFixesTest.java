@@ -393,4 +393,141 @@ class ChestCavityFixesTest {
         assertEquals(0.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(4.0F, 0.0F, false));
         assertEquals(0.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(4.0F, 0.0F, true));
     }
+
+    @Test
+    void testChestCavityTypeCustomSizeViaCrT() {
+        String testTypeId = "test_custom_size_crt";
+        CrTChestCavityType.register(testTypeId);
+
+        // Default dimensions should be 9x3 = 27
+        assertEquals(9, CrTChestCavityType.getColumns(testTypeId));
+        assertEquals(3, CrTChestCavityType.getRows(testTypeId));
+        assertEquals(27, CrTChestCavityType.getSlotCount(testTypeId));
+
+        // Customize to 9x4 = 36 slots
+        CrTChestCavityType.setSize(testTypeId, 9, 4);
+        assertEquals(9, CrTChestCavityType.getColumns(testTypeId));
+        assertEquals(4, CrTChestCavityType.getRows(testTypeId));
+        assertEquals(36, CrTChestCavityType.getSlotCount(testTypeId));
+
+        // Customize to 5x2 = 10 slots
+        CrTChestCavityType.setSize(testTypeId, 5, 2);
+        assertEquals(5, CrTChestCavityType.getColumns(testTypeId));
+        assertEquals(2, CrTChestCavityType.getRows(testTypeId));
+        assertEquals(10, CrTChestCavityType.getSlotCount(testTypeId));
+
+        // Customize by slot count (18 slots -> 9x2)
+        CrTChestCavityType.setSize(testTypeId, 18);
+        assertEquals(9, CrTChestCavityType.getColumns(testTypeId));
+        assertEquals(2, CrTChestCavityType.getRows(testTypeId));
+        assertEquals(18, CrTChestCavityType.getSlotCount(testTypeId));
+
+        // Customize by slot count (< 9 slots, e.g. 5 -> 5x1)
+        CrTChestCavityType.setSize(testTypeId, 5);
+        assertEquals(5, CrTChestCavityType.getColumns(testTypeId));
+        assertEquals(1, CrTChestCavityType.getRows(testTypeId));
+        assertEquals(5, CrTChestCavityType.getSlotCount(testTypeId));
+    }
+
+    @Test
+    void testChestCavityDataDynamicResizeAndItemPreservation() {
+        ChestCavityData data = new ChestCavityData();
+        assertEquals(27, data.getSlotCount());
+        assertEquals(27, data.getOrganInventory().getSlots());
+
+        ItemStack apple = new ItemStack(Items.APPLE);
+        ItemStack bone = new ItemStack(Items.BONE);
+        data.setOrgan(0, apple);
+        data.setOrgan(10, bone);
+
+        // Expand to 36 slots
+        data.setSlotCount(36);
+        assertEquals(36, data.getSlotCount());
+        assertEquals(36, data.getOrganInventory().getSlots());
+        assertEquals(Items.APPLE, data.getOrgan(0).getItem());
+        assertEquals(Items.BONE, data.getOrgan(10).getItem());
+        assertTrue(data.getOrgan(35).isEmpty());
+
+        // Shrink to 5 slots
+        data.setSlotCount(5);
+        assertEquals(5, data.getSlotCount());
+        assertEquals(5, data.getOrganInventory().getSlots());
+        assertEquals(Items.APPLE, data.getOrgan(0).getItem());
+    }
+
+    @Test
+    void testChestCavityDataNbtSerializationWithVariableSizes() {
+        ChestCavityData data = new ChestCavityData();
+        data.setSlotCount(36);
+        ItemStack blazeRod = new ItemStack(Items.BLAZE_ROD);
+        data.setOrgan(35, blazeRod);
+
+        NBTTagCompound nbt = data.serializeNBT();
+        assertEquals(36, nbt.getInteger("SlotCount"));
+
+        ChestCavityData restored = new ChestCavityData();
+        restored.deserializeNBT(nbt);
+        assertEquals(36, restored.getSlotCount());
+        assertEquals(Items.BLAZE_ROD, restored.getOrgan(35).getItem());
+        assertEquals(36, restored.getOrganInventory().getSlots());
+    }
+
+    @Test
+    void testChestCavityGuiDataAndPacketBuffer() {
+        int targetEntityId = 4321;
+        int columns = 5;
+        int rows = 2;
+
+        net.minecraft.network.PacketBuffer buffer =
+                new net.minecraft.network.PacketBuffer(io.netty.buffer.Unpooled.buffer());
+        buffer.writeInt(targetEntityId);
+        buffer.writeInt(columns);
+        buffer.writeInt(rows);
+
+        int readTarget = buffer.readInt();
+        int readCols = buffer.readInt();
+        int readRows = buffer.readInt();
+
+        assertEquals(targetEntityId, readTarget);
+        assertEquals(columns, readCols);
+        assertEquals(rows, readRows);
+        assertEquals(10, readCols * readRows);
+    }
+
+    @Test
+    void testModularUiPanelDimensionsCalculation() {
+        // Standard 9x3
+        int cols1 = 9, rows1 = 3;
+        int width1 = Math.max(176, 14 + cols1 * 18);
+        int height1 = 114 + rows1 * 18;
+        int startX1 = Math.max(8, (width1 - cols1 * 18) / 2);
+        assertEquals(176, width1);
+        assertEquals(168, height1);
+        assertEquals(8, startX1);
+
+        // Extended 9x4
+        int cols2 = 9, rows2 = 4;
+        int width2 = Math.max(176, 14 + cols2 * 18);
+        int height2 = 114 + rows2 * 18;
+        assertEquals(176, width2);
+        assertEquals(186, height2);
+
+        // Small animal 3x3
+        int cols3 = 3, rows3 = 3;
+        int width3 = Math.max(176, 14 + cols3 * 18);
+        int height3 = 114 + rows3 * 18;
+        int startX3 = Math.max(8, (width3 - cols3 * 18) / 2);
+        assertEquals(176, width3);
+        assertEquals(168, height3);
+        assertEquals((176 - 54) / 2, startX3); // (176 - 54)/2 = 61, perfectly centered
+
+        // Wide boss 12x4
+        int cols4 = 12, rows4 = 4;
+        int width4 = Math.max(176, 14 + cols4 * 18);
+        int height4 = 114 + rows4 * 18;
+        int startX4 = Math.max(8, (width4 - cols4 * 18) / 2);
+        assertEquals(230, width4);
+        assertEquals(186, height4);
+        assertEquals(8, startX4); // (230 - 216)/2 = 7 -> Math.max(8, 7) = 8
+    }
 }

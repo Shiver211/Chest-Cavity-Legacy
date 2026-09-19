@@ -199,4 +199,60 @@ public final class CrTChestCavityType {
     public static float getDropRateMultiplier(String typeId) {
         return ChestCavityApis.TYPES.getDropRateMultiplier(typeId);
     }
+
+    /**
+     * 设置胸腔类型的网格尺寸（列数与行数）。
+     *
+     * @param typeId 类型标识。
+     * @param columns 列数。
+     * @param rows 行数。
+     */
+    @ZenMethod
+    public static void setSize(String typeId, int columns, int rows) {
+        ChestCavityApis.TYPES.setSize(typeId, columns, rows);
+    }
+
+    /**
+     * 设置胸腔类型的总槽位数（默认以 9 列排列）。
+     *
+     * @param typeId 类型标识。
+     * @param slots 槽位总数。
+     */
+    @ZenMethod
+    public static void setSize(String typeId, int slots) {
+        ChestCavityApis.TYPES.setSize(typeId, slots);
+    }
+
+    /**
+     * 返回胸腔类型的网格列数。
+     *
+     * @param typeId 类型标识。
+     * @return 列数。
+     */
+    @ZenMethod
+    public static int getColumns(String typeId) {
+        return ChestCavityApis.TYPES.getColumns(typeId);
+    }
+
+    /**
+     * 返回胸腔类型的网格行数。
+     *
+     * @param typeId 类型标识。
+     * @return 行数。
+     */
+    @ZenMethod
+    public static int getRows(String typeId) {
+        return ChestCavityApis.TYPES.getRows(typeId);
+    }
+
+    /**
+     * 返回胸腔类型的槽位总数。
+     *
+     * @param typeId 类型标识。
+     * @return 槽位总数。
+     */
+    @ZenMethod
+    public static int getSlotCount(String typeId) {
+        return ChestCavityApis.TYPES.getSlotCount(typeId);
+    }
 }

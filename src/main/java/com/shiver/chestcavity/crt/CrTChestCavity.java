@@ -49,6 +49,28 @@ public final class CrTChestCavity {
     }
 
     /**
+     * 返回胸腔界面网格列数。
+     *
+     * @return 列数。
+     */
+    @ZenGetter("columns")
+    @ZenMethod
+    public int getColumns() {
+        return view.getColumns();
+    }
+
+    /**
+     * 返回胸腔界面网格行数。
+     *
+     * @return 行数。
+     */
+    @ZenGetter("rows")
+    @ZenMethod
+    public int getRows() {
+        return view.getRows();
+    }
+
+    /**
      * 返回指定器官分数的当前值。
      *
      * @param scoreId 分数标识。

@@ -64,6 +64,8 @@ public final class ChestCavityGuiFactory extends AbstractUIFactory<ChestCavityGu
     @Override
     public void writeGuiData(ChestCavityGuiData data, PacketBuffer buffer) {
         buffer.writeInt(data.getTargetEntityId());
+        buffer.writeInt(data.getColumns());
+        buffer.writeInt(data.getRows());
     }
 
     /**
@@ -75,7 +77,10 @@ public final class ChestCavityGuiFactory extends AbstractUIFactory<ChestCavityGu
      */
     @Override
     public ChestCavityGuiData readGuiData(EntityPlayer player, PacketBuffer buffer) {
-        return new ChestCavityGuiData(player, buffer.readInt());
+        int targetEntityId = buffer.readInt();
+        int columns = buffer.readInt();
+        int rows = buffer.readInt();
+        return new ChestCavityGuiData(player, targetEntityId, columns, rows);
     }
 
     /**

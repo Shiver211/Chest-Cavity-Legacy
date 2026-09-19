@@ -24,6 +24,8 @@ import java.util.Map;
  */
 public class GeneratedChestCavityType implements ChestCavityType {
 
+    private int columns = 9;
+    private int rows = 3;
     private ChestCavityInventory defaultChestCavity = new ChestCavityInventory();
     private final Map<String, Float> baseOrganScores = new LinkedHashMap<>();
     private final List<ExceptionalOrgan> exceptionalOrgans = new ArrayList<>();
@@ -33,6 +35,74 @@ public class GeneratedChestCavityType implements ChestCavityType {
     private float dropRateMultiplier = 1.0F;
     private boolean bossChestCavity;
     private boolean playerChestCavity;
+
+    /**
+     * 返回该胸腔类型界面网格的列数（宽度）。
+     *
+     * @return 列数。
+     */
+    @Override
+    public int getColumns() {
+        return columns;
+    }
+
+    /**
+     * 返回该胸腔类型界面网格的行数（高度）。
+     *
+     * @return 行数。
+     */
+    @Override
+    public int getRows() {
+        return rows;
+    }
+
+    /**
+     * 返回该胸腔类型的总槽位数。
+     *
+     * @return 槽位总数。
+     */
+    @Override
+    public int getSlotCount() {
+        return columns * rows;
+    }
+
+    /**
+     * 设置该胸腔类型的尺寸（列数与行数）。
+     *
+     * @param columns 网格列数（必须大于 0）。
+     * @param rows 网格行数（必须大于 0）。
+     */
+    public void setDimensions(int columns, int rows) {
+        if (columns <= 0 || rows <= 0) {
+            return;
+        }
+        this.columns = columns;
+        this.rows = rows;
+        int newSize = columns * rows;
+        ChestCavityInventory newInventory = new ChestCavityInventory(newSize);
+        if (defaultChestCavity != null) {
+            for (int i = 0; i < Math.min(defaultChestCavity.size(), newSize); i++) {
+                newInventory.setStack(i, defaultChestCavity.getStack(i));
+            }
+        }
+        this.defaultChestCavity = newInventory;
+        this.forbiddenSlots.removeIf(slot -> slot >= newSize);
+        clearDerivedCache();
+    }
+
+    /**
+     * 按总槽位数设置尺寸（默认以 9 列排列，若槽位数小于 9 则自适应为单行）。
+     *
+     * @param slots 槽位总数。
+     */
+    public void setSize(int slots) {
+        if (slots <= 0) {
+            return;
+        }
+        int cols = Math.min(slots, 9);
+        int r = (int) Math.ceil((double) slots / cols);
+        setDimensions(cols, r);
+    }
 
     /**
      * 返回该类型的默认器官分数字典，并在首次访问时构建缓存。
@@ -77,7 +147,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
      * @param defaultChestCavity 新的默认胸腔布局。
      */
     public void setDefaultChestCavity(ChestCavityInventory defaultChestCavity) {
-        this.defaultChestCavity = defaultChestCavity == null ? new ChestCavityInventory() : defaultChestCavity;
+        this.defaultChestCavity = defaultChestCavity == null ? new ChestCavityInventory(columns * rows) : defaultChestCavity;
         clearDerivedCache();
     }
 

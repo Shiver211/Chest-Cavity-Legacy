@@ -9,6 +9,7 @@ import com.cleanroommc.modularui.widgets.slot.ItemSlot;
 import com.cleanroommc.modularui.widgets.slot.ModularSlot;
 import com.shiver.chestcavity.capability.ChestCavityHelper;
 import com.shiver.chestcavity.capability.IChestCavity;
+import com.shiver.chestcavity.chest.types.ChestCavityType;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -35,16 +36,29 @@ public class ChestCavityUiHolder implements IGuiHolder<ChestCavityGuiData> {
         });
 
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(data.getTarget());
+        ChestCavityType type = chestCavity != null ? ChestCavityHelper.getChestCavityType(chestCavity) : null;
+        int columns = data.getColumns() > 0 ? data.getColumns() : (type != null ? type.getColumns() : ChestCavityUiBridge.DEFAULT_SLOTS_PER_ROW);
+        int rows = data.getRows() > 0 ? data.getRows() : (type != null ? type.getRows() : ChestCavityUiBridge.DEFAULT_ROWS);
+        int slotCount = columns * rows;
+
         IItemHandlerModifiable handler = chestCavity == null
-                ? new ItemStackHandler(ChestCavityUiBridge.CHEST_CAVITY_SLOTS)
+                ? new ItemStackHandler(slotCount)
                 : chestCavity.getOrganInventory();
 
-        ModularPanel panel = ModularPanel.defaultPanel(ChestCavityUiBridge.PANEL_ID, 176, 168)
+        int slotGridWidth = columns * 18;
+        int panelWidth = Math.max(176, 14 + slotGridWidth);
+        int panelHeight = 114 + rows * 18;
+        int startX = Math.max(8, (panelWidth - slotGridWidth) / 2);
+        int startY = 18;
+
+        ModularPanel panel = ModularPanel.defaultPanel(ChestCavityUiBridge.PANEL_ID, panelWidth, panelHeight)
                 .child(IKey.lang("container.chestcavity.chest_cavity").asWidget().pos(8, 6));
 
-        for (int slot = 0; slot < ChestCavityUiBridge.CHEST_CAVITY_SLOTS; slot++) {
-            int x = 8 + (slot % ChestCavityUiBridge.SLOTS_PER_ROW) * 18;
-            int y = 18 + (slot / ChestCavityUiBridge.SLOTS_PER_ROW) * 18;
+        for (int slot = 0; slot < slotCount; slot++) {
+            int col = slot % columns;
+            int row = slot / columns;
+            int x = startX + col * 18;
+            int y = startY + row * 18;
             boolean forbidden = chestCavity != null && ChestCavityHelper.isSlotForbidden(chestCavity, slot);
             ModularSlot modularSlot = new ModularSlot(handler, slot)
                     .canPut(!forbidden)
@@ -56,6 +70,6 @@ public class ChestCavityUiHolder implements IGuiHolder<ChestCavityGuiData> {
             panel.child(ItemSlot.create(false).slot(modularSlot).pos(x, y));
         }
 
-        return panel.bindPlayerInventory();
+        return panel.bindPlayerInventory(7);
     }
 }

@@ -89,6 +89,62 @@ public final class ChestCavityTypeApi {
     }
 
     /**
+     * 设置指定胸腔类型的网格尺寸（列数与行数）。
+     *
+     * @param typeId 类型标识。
+     * @param columns 网格列数。
+     * @param rows 网格行数。
+     */
+    public void setSize(String typeId, int columns, int rows) {
+        final String targetTypeId = typeId;
+        final int targetColumns = columns;
+        final int targetRows = rows;
+        DataLoaders.applyRuntimeOverride(() -> setSizeNow(targetTypeId, targetColumns, targetRows));
+    }
+
+    /**
+     * 设置指定胸腔类型的总槽位数（默认以 9 列排列）。
+     *
+     * @param typeId 类型标识。
+     * @param slots 槽位总数。
+     */
+    public void setSize(String typeId, int slots) {
+        final String targetTypeId = typeId;
+        final int targetSlots = slots;
+        DataLoaders.applyRuntimeOverride(() -> setSizeNow(targetTypeId, targetSlots));
+    }
+
+    /**
+     * 返回指定胸腔类型的界面列数。
+     *
+     * @param typeId 类型标识。
+     * @return 列数。
+     */
+    public int getColumns(String typeId) {
+        return DataLoaders.getType(typeId).getColumns();
+    }
+
+    /**
+     * 返回指定胸腔类型的界面行数。
+     *
+     * @param typeId 类型标识。
+     * @return 行数。
+     */
+    public int getRows(String typeId) {
+        return DataLoaders.getType(typeId).getRows();
+    }
+
+    /**
+     * 返回指定胸腔类型的槽位总数。
+     *
+     * @param typeId 类型标识。
+     * @return 槽位总数。
+     */
+    public int getSlotCount(String typeId) {
+        return DataLoaders.getType(typeId).getSlotCount();
+    }
+
+    /**
      * 为指定胸腔类型新增一个禁用槽位。
      *
      * @param typeId 类型标识。
@@ -314,6 +370,33 @@ public final class ChestCavityTypeApi {
         GeneratedChestCavityType type = getGeneratedType(typeId);
         if (type != null) {
             type.clearSlots();
+        }
+    }
+
+    /**
+     * 立即设置指定类型的网格尺寸。
+     *
+     * @param typeId 类型标识。
+     * @param columns 网格列数。
+     * @param rows 网格行数。
+     */
+    private void setSizeNow(String typeId, int columns, int rows) {
+        GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
+        if (type != null) {
+            type.setDimensions(columns, rows);
+        }
+    }
+
+    /**
+     * 立即设置指定类型的总槽位数。
+     *
+     * @param typeId 类型标识。
+     * @param slots 槽位总数。
+     */
+    private void setSizeNow(String typeId, int slots) {
+        GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
+        if (type != null) {
+            type.setSize(slots);
         }
     }
 
