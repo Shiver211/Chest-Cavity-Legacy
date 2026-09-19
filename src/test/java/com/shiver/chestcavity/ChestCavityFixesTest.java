@@ -362,4 +362,35 @@ class ChestCavityFixesTest {
 
         assertNull(coalsType.catchExceptionalOrgan(testIronStack), "minecraft:coals tag MUST NOT match iron ingot");
     }
+
+    @Test
+    void testChestOpenerDamageCalculation() {
+        assertEquals(4.0F, com.shiver.chestcavity.config.CCConfig.CHEST_OPENER_DAMAGE);
+        assertFalse(com.shiver.chestcavity.config.CCConfig.CHEST_OPENER_LETHAL);
+
+        // Non-lethal mode (default): always leaves at least 1.0F HP
+        // Chicken with 4.0F HP: taking 4.0F damage -> capped at 3.0F damage (leaving 1.0F HP)
+        assertEquals(3.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(4.0F, 4.0F, false));
+
+        // Rabbit with 3.0F HP: taking 4.0F damage -> capped at 2.0F damage (leaving 1.0F HP)
+        assertEquals(2.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(3.0F, 4.0F, false));
+
+        // Low health entity with 1.0F HP: should take 0.0F damage (no damage, stays alive)
+        assertEquals(0.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(1.0F, 4.0F, false));
+
+        // Critical health entity with 0.5F HP: should take 0.0F damage
+        assertEquals(0.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(0.5F, 4.0F, false));
+
+        // Healthy entity with 20.0F HP: taking 4.0F damage -> takes full 4.0F damage (leaving 16.0F HP)
+        assertEquals(4.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(20.0F, 4.0F, false));
+
+        // Lethal mode enabled: deals full damage regardless of target health
+        assertEquals(4.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(4.0F, 4.0F, true));
+        assertEquals(4.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(3.0F, 4.0F, true));
+        assertEquals(4.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(1.0F, 4.0F, true));
+
+        // Zero damage configuration: deals 0 damage in all modes
+        assertEquals(0.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(4.0F, 0.0F, false));
+        assertEquals(0.0F, com.shiver.chestcavity.item.ChestOpener.calculateOpenerDamage(4.0F, 0.0F, true));
+    }
 }

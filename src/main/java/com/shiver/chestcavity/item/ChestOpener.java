@@ -89,10 +89,16 @@ public class ChestOpener extends Item {
         }
 
         if (chestCavity.getOrganScore(com.shiver.chestcavity.registry.CCOrganScores.EASE_OF_ACCESS) <= 0.0F) {
-            DamageSource damageSource = shouldKnockback && target != player
-                    ? DamageSource.causePlayerDamage(player)
-                    : DamageSource.GENERIC;
-            target.attackEntityFrom(damageSource, 4.0F);
+            float openerDamage = calculateOpenerDamage(target.getHealth(), CCConfig.CHEST_OPENER_DAMAGE, CCConfig.CHEST_OPENER_LETHAL);
+            if (openerDamage > 0.0F) {
+                DamageSource damageSource = shouldKnockback && target != player
+                        ? DamageSource.causePlayerDamage(player)
+                        : DamageSource.GENERIC;
+                target.attackEntityFrom(damageSource, openerDamage);
+            } else {
+                target.world.playSound(null, target.posX, target.posY, target.posZ,
+                        SoundEvents.BLOCK_CHEST_OPEN, SoundCategory.PLAYERS, 0.75F, 1.0F);
+            }
         } else {
             target.world.playSound(null, target.posX, target.posY, target.posZ,
                     SoundEvents.BLOCK_CHEST_OPEN, SoundCategory.PLAYERS, 0.75F, 1.0F);
@@ -139,5 +145,23 @@ public class ChestOpener extends Item {
             return false;
         }
         return target == player || ChestCavityHelper.isOpenable(chestCavity);
+    }
+
+    /**
+     * 计算开胸时应对目标造成的伤害。
+     *
+     * @param targetHealth 目标当前生命值。
+     * @param configuredDamage 配置的开胸伤害。
+     * @param isLethal 是否允许开胸致死。
+     * @return 实际应造成的伤害值。
+     */
+    public static float calculateOpenerDamage(float targetHealth, float configuredDamage, boolean isLethal) {
+        if (configuredDamage <= 0.0F) {
+            return 0.0F;
+        }
+        if (isLethal) {
+            return configuredDamage;
+        }
+        return Math.min(configuredDamage, Math.max(0.0F, targetHealth - 1.0F));
     }
 }

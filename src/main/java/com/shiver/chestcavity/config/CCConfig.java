@@ -26,6 +26,8 @@ public final class CCConfig {
     public static float RISK_OF_PRIONS = 0.01F;
     public static int CHEST_OPENER_ABSOLUTE_HEALTH_THRESHOLD = 20;
     public static float CHEST_OPENER_FRACTIONAL_HEALTH_THRESHOLD = 0.5F;
+    public static float CHEST_OPENER_DAMAGE = 4.0F;
+    public static boolean CHEST_OPENER_LETHAL = false;
     public static boolean CAN_OPEN_OTHER_PLAYERS = false;
     public static boolean KEEP_CHEST_CAVITY = false;
     public static boolean DISABLE_ORGAN_REJECTION = false;
@@ -113,6 +115,10 @@ public final class CCConfig {
                 "Absolute health at or below which another entity can be opened.");
         CHEST_OPENER_FRACTIONAL_HEALTH_THRESHOLD = getFloat("core", "CHEST_OPENER_FRACTIONAL_HEALTH_THRESHOLD", CHEST_OPENER_FRACTIONAL_HEALTH_THRESHOLD,
                 "Health fraction at or below which another entity can be opened.");
+        CHEST_OPENER_DAMAGE = getFloat("core", "CHEST_OPENER_DAMAGE", CHEST_OPENER_DAMAGE,
+                "Damage dealt when opening a chest cavity without ease of access.");
+        CHEST_OPENER_LETHAL = configuration.getBoolean("CHEST_OPENER_LETHAL", "core", CHEST_OPENER_LETHAL,
+                "Whether opening a chest cavity is allowed to deal lethal damage.");
         CAN_OPEN_OTHER_PLAYERS = configuration.getBoolean("CAN_OPEN_OTHER_PLAYERS", "core", CAN_OPEN_OTHER_PLAYERS,
                 "Allow opening another player's chest cavity.");
         KEEP_CHEST_CAVITY = configuration.getBoolean("KEEP_CHEST_CAVITY", "core", KEEP_CHEST_CAVITY,
