@@ -7,10 +7,12 @@ import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.crt.CrTChestCavityEvents;
 import com.shiver.chestcavity.network.ChestCavityNetwork;
 import com.shiver.chestcavity.registry.CCEnchantments;
+import com.shiver.chestcavity.registry.CCItems;
 import com.shiver.chestcavity.registry.CCOrganScores;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 
 import java.util.LinkedHashMap;
@@ -215,6 +217,8 @@ public final class OrganLifecycleController {
         boolean keepInventory = owner != null && owner.world != null && owner.world.getGameRules().getBoolean("keepInventory");
         if (com.shiver.chestcavity.config.CCConfig.KEEP_CHEST_CAVITY || keepInventory) {
             ChestCavityHelper.recalculateOrganScores(newCavity);
+            insertWelfareOrgans(newCavity);
+            ChestCavityHelper.recalculateOrganScores(newCavity);
             applyAndSyncScoreChanges(newCavity);
             return;
         }
@@ -249,7 +253,96 @@ public final class OrganLifecycleController {
             }
         }
         ChestCavityHelper.recalculateOrganScores(newCavity);
+        insertWelfareOrgans(newCavity);
+        ChestCavityHelper.recalculateOrganScores(newCavity);
         applyAndSyncScoreChanges(newCavity);
+    }
+
+    /**
+     * 检查并为缺失核心生命维持器官的胸腔补充福利救济器官。
+     *
+     * @param chestCavity 要处理的胸腔数据。
+     */
+    public static void insertWelfareOrgans(IChestCavity chestCavity) {
+        if (chestCavity == null) {
+            return;
+        }
+        // urgently essential organs are: heart, spine, lung, and just a touch of strength
+        if (chestCavity.getOrganScore(CCOrganScores.HEALTH) <= 0.0F) {
+            forcefullyAddOrgan(chestCavity, new ItemStack(CCItems.ROTTEN_HEART), 4);
+        }
+        if (chestCavity.getOrganScore(CCOrganScores.BREATH_RECOVERY) <= 0.0F) {
+            forcefullyAddOrgan(chestCavity, new ItemStack(CCItems.ROTTEN_LUNG), 3);
+        }
+        if (chestCavity.getOrganScore(CCOrganScores.NERVES) <= 0.0F) {
+            forcefullyAddOrgan(chestCavity, new ItemStack(CCItems.ROTTEN_SPINE), 13);
+        }
+        if (chestCavity.getOrganScore(CCOrganScores.STRENGTH) <= 0.0F) {
+            forcefullyAddOrgan(chestCavity, new ItemStack(Items.ROTTEN_FLESH, 16), 0);
+        }
+    }
+
+    /**
+     * 强行将器官加入胸腔，若胸腔已满则替换推荐槽位中的物品并妥善处理被挤出的旧物品。
+     *
+     * @param chestCavity 目标胸腔数据。
+     * @param stack 要放入的器官物品。
+     * @param preferredSlot 优先放置或替换的推荐槽位。
+     */
+    public static void forcefullyAddOrgan(IChestCavity chestCavity, ItemStack stack, int preferredSlot) {
+        if (chestCavity == null || stack == null || stack.isEmpty()) {
+            return;
+        }
+
+        // 1. 若推荐槽位为空，直接放入推荐槽位
+        if (preferredSlot >= 0 && preferredSlot < chestCavity.getSlotCount()) {
+            ItemStack inPreferred = chestCavity.getOrgan(preferredSlot);
+            if (inPreferred.isEmpty()) {
+                chestCavity.setOrgan(preferredSlot, stack.copy());
+                return;
+            }
+        }
+
+        // 2. 若存在同类可堆叠物品，合并堆叠
+        for (int i = 0; i < chestCavity.getSlotCount(); i++) {
+            ItemStack existing = chestCavity.getOrgan(i);
+            if (!existing.isEmpty() && existing.isItemEqual(stack) && ItemStack.areItemStackTagsEqual(existing, stack)) {
+                int maxStack = Math.min(existing.getMaxStackSize(), 64);
+                if (existing.getCount() + stack.getCount() <= maxStack) {
+                    existing.grow(stack.getCount());
+                    chestCavity.setOrgan(i, existing);
+                    return;
+                }
+            }
+        }
+
+        // 3. 寻找第一个空槽位放入
+        for (int i = 0; i < chestCavity.getSlotCount(); i++) {
+            if (chestCavity.getOrgan(i).isEmpty()) {
+                chestCavity.setOrgan(i, stack.copy());
+                return;
+            }
+        }
+
+        // 4. 胸腔已满，替换推荐槽位，将被挤出物品返还玩家背包或掉落
+        int targetSlot = (preferredSlot >= 0 && preferredSlot < chestCavity.getSlotCount()) ? preferredSlot : 0;
+        ItemStack oldStack = chestCavity.getOrgan(targetSlot);
+        chestCavity.setOrgan(targetSlot, stack.copy());
+
+        if (!oldStack.isEmpty()) {
+            EntityLivingBase owner = chestCavity.getOwner();
+            if (owner != null && owner.world != null && !owner.world.isRemote) {
+                boolean keepInventory = owner.world.getGameRules().getBoolean("keepInventory");
+                if (keepInventory && owner instanceof EntityPlayer) {
+                    EntityPlayer player = (EntityPlayer) owner;
+                    if (!player.inventory.addItemStackToInventory(oldStack)) {
+                        owner.entityDropItem(oldStack, 0.0F);
+                    }
+                } else {
+                    owner.entityDropItem(oldStack, 0.0F);
+                }
+            }
+        }
     }
 
     /**

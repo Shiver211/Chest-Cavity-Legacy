@@ -136,6 +136,26 @@ public final class ChestCavityHelper {
     }
 
     /**
+     * 为缺失核心生命维持器官的胸腔插入低保应急器官。
+     *
+     * @param chestCavity 要处理的胸腔数据。
+     */
+    public static void insertWelfareOrgans(IChestCavity chestCavity) {
+        OrganLifecycleController.insertWelfareOrgans(chestCavity);
+    }
+
+    /**
+     * 强行将器官加入胸腔，若胸腔已满则替换推荐槽位中的物品。
+     *
+     * @param chestCavity 目标胸腔数据。
+     * @param stack 要放入的器官物品。
+     * @param preferredSlot 优先放置或替换的推荐槽位。
+     */
+    public static void forcefullyAddOrgan(IChestCavity chestCavity, ItemStack stack, int preferredSlot) {
+        OrganLifecycleController.forcefullyAddOrgan(chestCavity, stack, preferredSlot);
+    }
+
+    /**
      * 将指定玩家自身的胸腔数据同步到客户端。
      *
      * @param player 需要接收同步的玩家。
