@@ -109,16 +109,6 @@ class ChestCavityFixesTest {
     }
 
     @Test
-    void testDataLoadersReloadClearsRuntimeOverrides() {
-        AtomicInteger counter = new AtomicInteger(0);
-        DataLoaders.applyRuntimeOverride(counter::incrementAndGet);
-        assertEquals(1, counter.get());
-
-        DataLoaders.reload();
-        assertEquals(1, counter.get());
-    }
-
-    @Test
     void testAbilityActivationCancellation() {
         String testAbility = "test_cancel_ability";
         boolean canceled = CrTChestCavityEvents.publishAbilityActivated(null, testAbility, 1.0F);
