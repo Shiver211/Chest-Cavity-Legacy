@@ -4,5 +4,18 @@
   ],
   "baseOrganScores": [
     {"id": "health", "value": ".5"}
+  ],
+  "exceptionalOrgans": [
+    {
+      "ingredient": {"item": "minecraft:slime_ball"},
+      "value": [
+        {"id": "health", "value": "32"},
+        {"id": "strength", "value": "64"},
+        {"id": "speed", "value": "64"},
+        {"id": "defense", "value": "64"},
+        {"id": "buoyant", "value": "1"},
+        {"id": "leaping", "value": "1"}
+      ]
+    }
   ]
 }

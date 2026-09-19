@@ -2,7 +2,6 @@
   "itemID": "minecraft:gunpowder",
   "pseudoOrgan": true,
   "organScores": [
-    {"id": "creepy", "value": "1"},
     {"id": "explosive", "value": "192"}
   ]
 }

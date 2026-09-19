@@ -139,7 +139,10 @@ public final class CrTChestCavityType {
     @ZenMethod
     public static void addExceptionalOrgan(String typeId, IItemStack item, Map<String, Float> scores) {
         ItemStack stack = CrTUtil.stack(item);
-        ChestCavityApis.TYPES.addExceptionalOrgan(typeId, stack.isEmpty() ? null : stack.getItem(), CrTUtil.ensureFloatMap(scores));
+        if (stack.isEmpty()) {
+            return;
+        }
+        ChestCavityApis.TYPES.addExceptionalOrgan(typeId, stack.getItem(), stack.getMetadata(), CrTUtil.ensureFloatMap(scores));
     }
 
     /**

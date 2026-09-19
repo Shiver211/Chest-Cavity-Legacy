@@ -10,9 +10,11 @@ import com.shiver.chestcavity.Tags;
 import com.shiver.chestcavity.item.ChestOpener;
 
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.init.Items;
 import net.minecraft.init.MobEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.oredict.OreDictionary;
@@ -210,6 +212,7 @@ public final class CCItems {
                 "gold_cleaver",
                 "iron_cleaver",
                 "diamond_cleaver");
+        OreDictionary.registerOre("charcoal", new ItemStack(Items.COAL, 1, 1));
     }
 
     /**

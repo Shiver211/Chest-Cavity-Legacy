@@ -11,10 +11,13 @@ import com.shiver.chestcavity.chest.organs.OrganManager;
 import com.shiver.chestcavity.chest.types.ChestCavityType;
 import com.shiver.chestcavity.chest.types.FallbackChestCavityType;
 import com.shiver.chestcavity.chest.types.GeneratedChestCavityType;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.oredict.OreDictionary;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -255,13 +259,18 @@ public final class DataLoaders {
 
             JarFile jarFile = connection.getJarFile();
             Enumeration<JarEntry> entries = jarFile.entries();
+            List<JarEntry> matchingEntries = new ArrayList<>();
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
                 String name = entry.getName();
                 if (entry.isDirectory() || !name.startsWith(rootEntryName + "/") || !name.endsWith(".json")) {
                     continue;
                 }
-
+                matchingEntries.add(entry);
+            }
+            matchingEntries.sort(Comparator.comparing(JarEntry::getName));
+            for (JarEntry entry : matchingEntries) {
+                String name = entry.getName();
                 String relativePath = name.substring(rootEntryName.length() + 1);
                 try (Reader reader = new BufferedReader(new InputStreamReader(jarFile.getInputStream(entry), StandardCharsets.UTF_8))) {
                     loadJson(relativePath, reader);
@@ -317,6 +326,10 @@ public final class DataLoaders {
      * @param relativePath 相对数据路径。
      * @param reader JSON 读取器。
      */
+    public static void loadJsonDirect(String relativePath, Reader reader) {
+        loadJson(relativePath, reader);
+    }
+
     private static void loadJson(String relativePath, Reader reader) {
         ResourceLocation id = new ResourceLocation(Tags.MOD_ID, relativePath);
         JsonElement root = new JsonParser().parse(reader);
@@ -441,9 +454,19 @@ public final class DataLoaders {
 
                 ResourceLocation itemId = new ResourceLocation(object.get("item").getAsString());
                 Item item = ForgeRegistries.ITEMS.getValue(itemId);
+                int meta = 0;
+                boolean metaSpecified = false;
                 if (item == null) {
-                    ChestCavityLegacy.LOGGER.info("Skipping defaultChestCavity entry {} in {} because item {} is not registered in 1.12.2.", index, id, itemId);
-                    continue;
+                    if ("minecraft:charcoal".equals(itemId.toString())) {
+                        item = Items.COAL;
+                        meta = 1;
+                        metaSpecified = true;
+                    } else if ("minecraft:snow_block".equals(itemId.toString())) {
+                        item = Item.getItemFromBlock(Blocks.SNOW);
+                    } else {
+                        ChestCavityLegacy.LOGGER.info("Skipping defaultChestCavity entry {} in {} because item {} is not registered in 1.12.2.", index, id, itemId);
+                        continue;
+                    }
                 }
 
                 int position = object.get("position").getAsInt();
@@ -457,7 +480,22 @@ public final class DataLoaders {
                 }
 
                 int count = object.has("count") ? object.get("count").getAsInt() : item.getItemStackLimit();
-                inventory.setStack(position, new ItemStack(item, count));
+                if (!metaSpecified) {
+                    if (object.has("meta")) {
+                        try {
+                            meta = object.get("meta").getAsInt();
+                            metaSpecified = true;
+                        } catch (Exception ignored) {
+                        }
+                    }
+                    if (!metaSpecified && object.has("damage")) {
+                        try {
+                            meta = object.get("damage").getAsInt();
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+                inventory.setStack(position, new ItemStack(item, count, Math.max(0, meta)));
             } catch (Exception e) {
                 ChestCavityLegacy.LOGGER.warn("Unable to parse defaultChestCavity entry {} in {}.", index, id, e);
             }
@@ -526,15 +564,41 @@ public final class DataLoaders {
 
                 JsonObject ingredient = object.getAsJsonObject("ingredient");
                 Item item = null;
+                int metadata = OreDictionary.WILDCARD_VALUE;
                 String oreName = null;
                 if (ingredient.has("item")) {
                     ResourceLocation itemId = new ResourceLocation(ingredient.get("item").getAsString());
                     item = ForgeRegistries.ITEMS.getValue(itemId);
+                    boolean metaSpecified = false;
                     if (item == null) {
-                        ChestCavityLegacy.LOGGER.info("Skipping exceptional organ entry {} in {} because item {} is not registered in 1.12.2.", index, id, itemId);
-                        continue;
+                        if ("minecraft:charcoal".equals(itemId.toString())) {
+                            item = Items.COAL;
+                            metadata = 1;
+                            metaSpecified = true;
+                        } else if ("minecraft:snow_block".equals(itemId.toString())) {
+                            item = Item.getItemFromBlock(Blocks.SNOW);
+                        } else {
+                            ChestCavityLegacy.LOGGER.info("Skipping exceptional organ entry {} in {} because item {} is not registered in 1.12.2.", index, id, itemId);
+                            continue;
+                        }
                     }
-                } else if (ingredient.has("ore")) {
+                    if (!metaSpecified) {
+                        if (ingredient.has("meta")) {
+                            try {
+                                metadata = ingredient.get("meta").getAsInt();
+                                metaSpecified = true;
+                            } catch (Exception ignored) {
+                            }
+                        }
+                        if (!metaSpecified && ingredient.has("damage")) {
+                            try {
+                                metadata = ingredient.get("damage").getAsInt();
+                            } catch (Exception ignored) {
+                            }
+                        }
+                    }
+                }
+                if (ingredient.has("ore")) {
                     oreName = ingredient.get("ore").getAsString();
                 } else if (ingredient.has("tag")) {
                     oreName = mapTagToOreName(ingredient.get("tag").getAsString());
@@ -543,7 +607,7 @@ public final class DataLoaders {
                     ChestCavityLegacy.LOGGER.warn("Skipping exceptional organ entry {} in {} because ingredient has no supported item, ore, or tag.", index, id);
                     continue;
                 }
-                organs.add(new GeneratedChestCavityType.ExceptionalOrgan(item, oreName, readOrganScores(id, object.get("value"))));
+                organs.add(new GeneratedChestCavityType.ExceptionalOrgan(item, metadata, oreName, readOrganScores(id, object.get("value"))));
             } catch (Exception e) {
                 ChestCavityLegacy.LOGGER.warn("Unable to parse exceptional organ entry {} in {}.", index, id, e);
             }
@@ -563,6 +627,12 @@ public final class DataLoaders {
         }
         if ("minecraft:leaves".equals(tag)) {
             return "treeLeaves";
+        }
+        if ("minecraft:coals".equals(tag) || "coals".equals(tag)) {
+            return "coal";
+        }
+        if ("c:charcoal".equals(tag) || "minecraft:charcoals".equals(tag)) {
+            return "charcoal";
         }
         return null;
     }

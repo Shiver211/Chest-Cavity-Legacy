@@ -4,7 +4,7 @@
     {"item": "minecraft:snowball", "position": 1},
     {"item": "minecraft:snowball", "position": 2},
     {"item": "minecraft:snowball", "position": 3},
-    {"item": "minecraft:coal", "position": 4, "count": 1},
+    {"item": "minecraft:coal", "meta": 1, "position": 4, "count": 1},
     {"item": "minecraft:snowball", "position": 5},
     {"item": "minecraft:snowball", "position": 6},
     {"item": "minecraft:snowball", "position": 7},
@@ -13,7 +13,7 @@
     {"item": "minecraft:snowball", "position": 10},
     {"item": "minecraft:snowball", "position": 11},
     {"item": "minecraft:snowball", "position": 12},
-    {"item": "minecraft:coal", "position": 13, "count": 1},
+    {"item": "minecraft:coal", "meta": 1, "position": 13, "count": 1},
     {"item": "minecraft:snowball", "position": 14},
     {"item": "minecraft:snowball", "position": 15},
     {"item": "minecraft:snowball", "position": 16},
@@ -22,11 +22,35 @@
     {"item": "minecraft:snowball", "position": 19},
     {"item": "minecraft:snowball", "position": 20},
     {"item": "minecraft:snowball", "position": 21},
-    {"item": "minecraft:coal", "position": 22, "count": 1},
+    {"item": "minecraft:coal", "meta": 1, "position": 22, "count": 1},
     {"item": "minecraft:snowball", "position": 23},
     {"item": "minecraft:snowball", "position": 24},
     {"item": "minecraft:snowball", "position": 25},
     {"item": "minecraft:snowball", "position": 26}
   ],
-  "baseOrganScores": []
+  "baseOrganScores": [],
+  "exceptionalOrgans": [
+    {
+      "ingredient": {"item": "minecraft:snowball"},
+      "value": [
+        {"id": "strength", "value": ".3333"},
+        {"id": "speed", "value": ".3333"}
+      ]
+    },
+    {
+      "ingredient": {"item": "minecraft:snow"},
+      "value": [
+        {"id": "strength", "value": "1"},
+        {"id": "speed", "value": "1"}
+      ]
+    },
+    {
+      "ingredient": {"ore": "charcoal"},
+      "value": [
+        {"id": "health", "value": "1"},
+        {"id": "defense", "value": "1"},
+        {"id": "nerves", "value": "1"}
+      ]
+    }
+  ]
 }

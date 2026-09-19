@@ -335,7 +335,19 @@ public class GeneratedChestCavityType implements ChestCavityType {
      * @param scores 匹配成功后附加的器官分数。
      */
     public void addExceptionalOrgan(Item item, String oreName, Map<String, Float> scores) {
-        exceptionalOrgans.add(new ExceptionalOrgan(item, oreName, scores));
+        addExceptionalOrgan(item, OreDictionary.WILDCARD_VALUE, oreName, scores);
+    }
+
+    /**
+     * 添加一条支持元数据的特殊器官匹配规则。
+     *
+     * @param item 要匹配的具体物品，可为 `null`。
+     * @param metadata 匹配的元数据或通配符。
+     * @param oreName 要匹配的矿辞名称，可为 `null`。
+     * @param scores 匹配成功后附加的器官分数。
+     */
+    public void addExceptionalOrgan(Item item, int metadata, String oreName, Map<String, Float> scores) {
+        exceptionalOrgans.add(new ExceptionalOrgan(item, metadata, oreName, scores));
         clearDerivedCache();
     }
 
@@ -393,6 +405,7 @@ public class GeneratedChestCavityType implements ChestCavityType {
      */
     public static final class ExceptionalOrgan {
         private final Item item;
+        private final int metadata;
         private final String oreName;
         private final Map<String, Float> scores;
 
@@ -404,12 +417,41 @@ public class GeneratedChestCavityType implements ChestCavityType {
          * @param scores 匹配成功后使用的器官分数。
          */
         public ExceptionalOrgan(Item item, String oreName, Map<String, Float> scores) {
+            this(item, OreDictionary.WILDCARD_VALUE, oreName, scores);
+        }
+
+        /**
+         * 创建一条支持元数据的特殊器官匹配规则。
+         *
+         * @param item 要匹配的具体物品，可为 `null`。
+         * @param metadata 要匹配的元数据，使用 `OreDictionary.WILDCARD_VALUE` 表示任意元数据。
+         * @param oreName 要匹配的矿辞名称，可为 `null`。
+         * @param scores 匹配成功后使用的器官分数。
+         */
+        public ExceptionalOrgan(Item item, int metadata, String oreName, Map<String, Float> scores) {
             this.item = item;
+            this.metadata = metadata;
             this.oreName = oreName;
             this.scores = new LinkedHashMap<>();
             if (scores != null) {
                 this.scores.putAll(scores);
             }
+        }
+
+        public Item getItem() {
+            return item;
+        }
+
+        public int getMetadata() {
+            return metadata;
+        }
+
+        public String getOreName() {
+            return oreName;
+        }
+
+        public Map<String, Float> getScores() {
+            return Collections.unmodifiableMap(scores);
         }
 
         /**
@@ -422,8 +464,10 @@ public class GeneratedChestCavityType implements ChestCavityType {
             if (stack == null || stack.isEmpty()) {
                 return false;
             }
-            if (item != null && stack.getItem() == item) {
-                return true;
+            if (item != null) {
+                if (stack.getItem() == item) {
+                    return metadata == OreDictionary.WILDCARD_VALUE || stack.getMetadata() == metadata;
+                }
             }
             if (oreName == null || oreName.isEmpty()) {
                 return false;

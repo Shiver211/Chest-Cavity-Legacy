@@ -5,6 +5,7 @@ import com.shiver.chestcavity.chest.types.GeneratedChestCavityType;
 import com.shiver.chestcavity.data.DataLoaders;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -155,10 +156,37 @@ public final class ChestCavityTypeApi {
      * @param scores 命中后使用的器官分数。
      */
     public void addExceptionalOrgan(String typeId, Item item, Map<String, Float> scores) {
+        addExceptionalOrgan(typeId, item, OreDictionary.WILDCARD_VALUE, scores);
+    }
+
+    /**
+     * 为指定类型添加一条按具体物品及元数据匹配的特殊器官规则。
+     *
+     * @param typeId 类型标识。
+     * @param item 要匹配的物品。
+     * @param metadata 要匹配的物品元数据或通配符。
+     * @param scores 命中后使用的器官分数。
+     */
+    public void addExceptionalOrgan(String typeId, Item item, int metadata, Map<String, Float> scores) {
         final String targetTypeId = typeId;
         final Item targetItem = item;
+        final int targetMetadata = metadata;
         final Map<String, Float> targetScores = copyScores(scores);
-        DataLoaders.applyRuntimeOverride(() -> addExceptionalOrganNow(targetTypeId, targetItem, targetScores));
+        DataLoaders.applyRuntimeOverride(() -> addExceptionalOrganNow(targetTypeId, targetItem, targetMetadata, targetScores));
+    }
+
+    /**
+     * 为指定类型添加一条按物品堆（包含元数据）匹配的特殊器官规则。
+     *
+     * @param typeId 类型标识。
+     * @param stack 要匹配的物品堆。
+     * @param scores 命中后使用的器官分数。
+     */
+    public void addExceptionalOrgan(String typeId, ItemStack stack, Map<String, Float> scores) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+        addExceptionalOrgan(typeId, stack.getItem(), stack.getMetadata(), scores);
     }
 
     /**
@@ -362,9 +390,21 @@ public final class ChestCavityTypeApi {
      * @param scores 命中后使用的器官分数。
      */
     private void addExceptionalOrganNow(String typeId, Item item, Map<String, Float> scores) {
+        addExceptionalOrganNow(typeId, item, OreDictionary.WILDCARD_VALUE, scores);
+    }
+
+    /**
+     * 立即增加一条按具体物品及元数据匹配的特殊器官规则。
+     *
+     * @param typeId 类型标识。
+     * @param item 要匹配的物品。
+     * @param metadata 要匹配的物品元数据或通配符。
+     * @param scores 命中后使用的器官分数。
+     */
+    private void addExceptionalOrganNow(String typeId, Item item, int metadata, Map<String, Float> scores) {
         GeneratedChestCavityType type = getOrCreateGeneratedType(typeId);
         if (type != null) {
-            type.addExceptionalOrgan(item, null, copyScores(scores));
+            type.addExceptionalOrgan(item, metadata, null, copyScores(scores));
         }
     }
 
