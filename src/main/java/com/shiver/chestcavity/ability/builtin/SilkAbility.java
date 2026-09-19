@@ -24,9 +24,6 @@ final class SilkAbility implements ActiveOrganAbility {
 
     static final SilkAbility INSTANCE = new SilkAbility();
 
-    /**
-     * 单例能力实现，不允许外部实例化。
-     */
     private SilkAbility() {
     }
 

@@ -15,9 +15,6 @@ import net.minecraft.util.SoundCategory;
  */
 public final class OrganMovementController {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private OrganMovementController() {
     }
 

@@ -19,9 +19,6 @@ final class GhastlyAbility implements ActiveOrganAbility {
     private static final float EXHAUSTION = 0.3F;
     private static final double RECOIL = 0.8D;
 
-    /**
-     * 单例能力实现，不允许外部实例化。
-     */
     private GhastlyAbility() {
     }
 

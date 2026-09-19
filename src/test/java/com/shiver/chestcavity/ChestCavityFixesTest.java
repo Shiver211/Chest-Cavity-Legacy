@@ -92,7 +92,6 @@ class ChestCavityFixesTest {
         assertNotNull(resolved);
         assertEquals(1.0F, resolved.getOrganScores().get(CCOrganScores.DIGESTION));
 
-        // Add dynamic NBT organ scores
         NBTTagCompound root = new NBTTagCompound();
         NBTTagCompound organTag = new NBTTagCompound();
         NBTTagCompound scoresTag = new NBTTagCompound();
@@ -115,20 +114,16 @@ class ChestCavityFixesTest {
         DataLoaders.applyRuntimeOverride(counter::incrementAndGet);
         assertEquals(1, counter.get());
 
-        // Reload should clear previously registered overrides
         DataLoaders.reload();
-        // Since runtime overrides were cleared, counter should remain 1 (not re-executed)
         assertEquals(1, counter.get());
     }
 
     @Test
     void testAbilityActivationCancellation() {
         String testAbility = "test_cancel_ability";
-        // Default with no handlers
         boolean canceled = CrTChestCavityEvents.publishAbilityActivated(null, testAbility, 1.0F);
         assertFalse(canceled, "Default event with no handlers should not be canceled");
 
-        // Add a canceling handler
         crafttweaker.api.event.IEventHandle handle = com.shiver.chestcavity.crt.CrTChestCavityEventManager.onAbilityActivated(null, event -> {
             if (testAbility.equals(event.getAbilityId())) {
                 event.cancel();
@@ -153,8 +148,7 @@ class ChestCavityFixesTest {
         oldCavity.setCompatibilityId(playerUuid);
         ChestCavityData newCavity = new ChestCavityData();
 
-        // Simulate resetPlayerChestCavityAfterDeath logic
-        java.util.UUID compatId = playerUuid; // from owner.getUniqueID()
+        java.util.UUID compatId = playerUuid;
         newCavity.setCompatibilityId(compatId);
         assertEquals(playerUuid, newCavity.getCompatibilityId(), "Player's original UUID must be retained");
     }

@@ -14,9 +14,6 @@ import java.util.Map;
  */
 public final class ChestCavityTypeApi {
 
-    /**
-     * 仅允许通过统一 API 单例创建。
-     */
     ChestCavityTypeApi() {
     }
 

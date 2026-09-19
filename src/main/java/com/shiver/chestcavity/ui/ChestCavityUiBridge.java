@@ -17,9 +17,6 @@ public final class ChestCavityUiBridge {
     public static final int SLOTS_PER_ROW = 9;
     public static final double MAX_INTERACT_DISTANCE_SQ = 64.0D;
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private ChestCavityUiBridge() {
     }
 

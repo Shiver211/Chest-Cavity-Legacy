@@ -8,9 +8,6 @@ import net.minecraft.util.ResourceLocation;
  */
 public final class EntityAssignmentApi {
 
-    /**
-     * 仅允许通过统一 API 单例创建。
-     */
     EntityAssignmentApi() {
     }
 

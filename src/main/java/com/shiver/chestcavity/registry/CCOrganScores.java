@@ -60,9 +60,6 @@ public final class CCOrganScores {
     public static final String PHOTOSYNTHESIS = "photosynthesis";
     public static final String DESTRUCTIVE_COLLISIONS = "destructive_collisions";
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CCOrganScores() {
     }
 }

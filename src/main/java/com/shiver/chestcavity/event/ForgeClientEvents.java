@@ -33,9 +33,6 @@ import java.util.Map;
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID, value = Side.CLIENT)
 public final class ForgeClientEvents {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private ForgeClientEvents() {
     }
 

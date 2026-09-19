@@ -15,9 +15,6 @@ public class MessageHotkeyActivation implements IMessage {
 
     private String abilityId = "unknown";
 
-    /**
-     * 留给网络框架反序列化使用的空构造。
-     */
     public MessageHotkeyActivation() {
     }
 

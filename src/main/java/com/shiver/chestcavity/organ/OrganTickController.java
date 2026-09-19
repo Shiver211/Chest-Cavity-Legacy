@@ -33,9 +33,6 @@ public final class OrganTickController {
     private static final DamageSource HEART_BLEED_DAMAGE = new DamageSource("cc_heartbleed").setDamageBypassesArmor();
     private static final int HYDROPHOBIA_INTERVAL_TICKS = 20;
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private OrganTickController() {
     }
 

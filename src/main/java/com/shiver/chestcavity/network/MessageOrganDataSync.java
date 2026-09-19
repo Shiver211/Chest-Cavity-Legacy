@@ -14,9 +14,6 @@ public class MessageOrganDataSync implements IMessage {
 
     private NBTTagCompound organData = new NBTTagCompound();
 
-    /**
-     * 留给网络框架反序列化使用的空构造。
-     */
     public MessageOrganDataSync() {
     }
 

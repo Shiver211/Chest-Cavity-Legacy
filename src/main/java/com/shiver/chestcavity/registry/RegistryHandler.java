@@ -19,9 +19,6 @@ import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public final class RegistryHandler {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private RegistryHandler() {
     }
 

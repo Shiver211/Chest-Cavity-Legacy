@@ -18,9 +18,6 @@ final class ShulkerBulletsAbility implements ActiveOrganAbility {
 
     private static final float EXHAUSTION = 0.3F;
 
-    /**
-     * 单例能力实现，不允许外部实例化。
-     */
     private ShulkerBulletsAbility() {
     }
 

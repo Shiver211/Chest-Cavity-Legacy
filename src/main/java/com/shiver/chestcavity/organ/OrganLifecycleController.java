@@ -22,9 +22,6 @@ import java.util.UUID;
  */
 public final class OrganLifecycleController {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private OrganLifecycleController() {
     }
 

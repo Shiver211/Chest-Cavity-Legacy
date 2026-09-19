@@ -36,9 +36,6 @@ public final class CCPotions {
     public static final Potion VENOM_COOLDOWN = register("venom_cooldown", new CCPotion(false, 0x000000));
     public static final Potion WATER_VULNERABILITY = register("water_vulnerability", new WaterVulnerability());
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CCPotions() {
     }
 

@@ -16,9 +16,6 @@ final class FurnacePoweredAbility implements ActiveOrganAbility {
 
     static final FurnacePoweredAbility INSTANCE = new FurnacePoweredAbility();
 
-    /**
-     * 单例能力实现，不允许外部实例化。
-     */
     private FurnacePoweredAbility() {
     }
 

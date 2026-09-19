@@ -13,9 +13,6 @@ public final class CrTChestCavityEvents {
     static final EventList<CrTOrganEquippedEvent> ORGAN_EQUIPPED = new EventList<CrTOrganEquippedEvent>();
     static final EventList<CrTOrganUnequippedEvent> ORGAN_UNEQUIPPED = new EventList<CrTOrganUnequippedEvent>();
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CrTChestCavityEvents() {
     }
 

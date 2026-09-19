@@ -26,9 +26,6 @@ final class AbilityWheelConstants {
     static final int RADIUS = 82;
     static final int INNER_RADIUS = 24;
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private AbilityWheelConstants() {
     }
 }

@@ -16,9 +16,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public final class ClientNetworkHooks {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private ClientNetworkHooks() {
     }
 

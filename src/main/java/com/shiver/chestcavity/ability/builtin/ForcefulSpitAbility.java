@@ -19,9 +19,6 @@ final class ForcefulSpitAbility implements ActiveOrganAbility {
     private static final float EXHAUSTION = 0.1F;
     private static final double RECOIL = 0.1D;
 
-    /**
-     * 单例能力实现，不允许外部实例化。
-     */
     private ForcefulSpitAbility() {
     }
 

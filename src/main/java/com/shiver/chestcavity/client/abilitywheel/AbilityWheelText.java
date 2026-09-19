@@ -8,9 +8,6 @@ import net.minecraft.client.resources.I18n;
  */
 final class AbilityWheelText {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private AbilityWheelText() {
     }
 

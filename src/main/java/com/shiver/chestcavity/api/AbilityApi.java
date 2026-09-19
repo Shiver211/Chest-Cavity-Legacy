@@ -18,9 +18,6 @@ public final class AbilityApi {
 
     private final Map<String, AbilityWheelEntry> wheelEntries = new LinkedHashMap<String, AbilityWheelEntry>();
 
-    /**
-     * 仅允许通过统一 API 单例创建。
-     */
     AbilityApi() {
     }
 

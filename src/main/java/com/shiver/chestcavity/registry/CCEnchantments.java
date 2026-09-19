@@ -24,9 +24,6 @@ public final class CCEnchantments {
     public static final Enchantment MALPRACTICE = register("malpractice", new ChestCavityEnchantment(Enchantment.Rarity.VERY_RARE, EnumEnchantmentType.WEAPON, MAIN_HAND, 25, 50, 1, true, true));
     public static final Enchantment TOMOPHOBIA = register("tomophobia", new ChestCavityEnchantment(Enchantment.Rarity.VERY_RARE, EnumEnchantmentType.WEAPON, MAIN_HAND, 25, 50, 1, true, false));
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CCEnchantments() {
     }
 

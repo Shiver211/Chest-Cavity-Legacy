@@ -23,9 +23,6 @@ public final class OrganManager {
     private static final String ITEM_ID_TAG = "ItemId";
     private static final String DATA_TAG = "Data";
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private OrganManager() {
     }
 

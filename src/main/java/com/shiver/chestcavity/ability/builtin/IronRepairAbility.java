@@ -23,9 +23,6 @@ final class IronRepairAbility implements ActiveOrganAbility {
 
     static final IronRepairAbility INSTANCE = new IronRepairAbility();
 
-    /**
-     * 单例能力实现，不允许外部实例化。
-     */
     private IronRepairAbility() {
     }
 

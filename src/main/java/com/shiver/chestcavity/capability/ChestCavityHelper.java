@@ -33,9 +33,6 @@ public final class ChestCavityHelper {
 
     public static final ResourceLocation CAPABILITY_ID = new ResourceLocation(com.shiver.chestcavity.Tags.MOD_ID, "chest_cavity");
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private ChestCavityHelper() {
     }
 

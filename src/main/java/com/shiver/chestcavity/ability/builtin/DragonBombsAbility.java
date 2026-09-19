@@ -19,9 +19,6 @@ final class DragonBombsAbility implements ActiveOrganAbility {
     private static final float EXHAUSTION = 0.6F;
     private static final double RECOIL = 0.2D;
 
-    /**
-     * 单例能力实现，不允许外部实例化。
-     */
     private DragonBombsAbility() {
     }
 

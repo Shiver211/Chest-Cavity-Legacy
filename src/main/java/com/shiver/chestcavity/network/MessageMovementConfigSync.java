@@ -13,9 +13,6 @@ public class MessageMovementConfigSync implements IMessage {
     private float lightweightFactor;
     private float buoyancyLift;
 
-    /**
-     * 留给网络框架反序列化使用的空构造。
-     */
     public MessageMovementConfigSync() {
     }
 

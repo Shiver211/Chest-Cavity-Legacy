@@ -11,9 +11,6 @@ import java.util.List;
  */
 final class AbilityWheelLayout {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private AbilityWheelLayout() {
     }
 

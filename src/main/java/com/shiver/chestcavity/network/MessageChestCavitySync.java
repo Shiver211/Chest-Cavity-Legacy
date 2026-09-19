@@ -15,9 +15,6 @@ public class MessageChestCavitySync implements IMessage {
     private int entityId;
     private NBTTagCompound data = new NBTTagCompound();
 
-    /**
-     * 留给网络框架反序列化使用的空构造。
-     */
     public MessageChestCavitySync() {
     }
 

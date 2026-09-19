@@ -21,9 +21,6 @@ public final class ActiveOrganAbilities {
         BuiltinOrganAbilities.registerAll();
     }
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private ActiveOrganAbilities() {
     }
 

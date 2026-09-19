@@ -16,9 +16,6 @@ import java.util.Map;
 @ZenClass("mods.chestcavity.OrganData")
 public final class CrTOrganData {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CrTOrganData() {
     }
 

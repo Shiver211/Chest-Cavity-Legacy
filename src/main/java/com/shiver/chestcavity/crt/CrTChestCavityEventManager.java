@@ -14,9 +14,6 @@ import stanhebben.zenscript.annotations.ZenMethod;
 @ZenExpansion("crafttweaker.events.IEventManager")
 public final class CrTChestCavityEventManager {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CrTChestCavityEventManager() {
     }
 

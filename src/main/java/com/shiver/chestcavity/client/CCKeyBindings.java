@@ -30,9 +30,6 @@ public final class CCKeyBindings {
 
     private static boolean registered;
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CCKeyBindings() {
     }
 

@@ -17,9 +17,6 @@ final class CreepyAbility implements ActiveOrganAbility {
 
     static final CreepyAbility INSTANCE = new CreepyAbility();
 
-    /**
-     * 单例能力实现，不允许外部实例化。
-     */
     private CreepyAbility() {
     }
 

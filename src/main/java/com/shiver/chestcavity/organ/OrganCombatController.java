@@ -61,9 +61,6 @@ public final class OrganCombatController {
     private static final int DESTRUCTIVE_COLLISION_MAX_BLOCKS = 16;
     private static final float DESTRUCTIVE_COLLISION_BASE_HARDNESS = 0.75F;
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private OrganCombatController() {
     }
 

@@ -13,9 +13,6 @@ import stanhebben.zenscript.annotations.ZenMethod;
 @ZenClass("mods.chestcavity.AbilityManager")
 public final class CrTAbilityManager {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CrTAbilityManager() {
     }
 

@@ -48,21 +48,11 @@ public class ChestCavityData implements IChestCavity {
     private boolean attributeModifiersDirty = true;
     private int lastAttributeRefreshTick = Integer.MIN_VALUE;
 
-    /**
-     * 返回当前胸腔数据所属的实体。
-     *
-     * @return 胸腔数据的持有者。
-     */
     @Override
     public EntityLivingBase getOwner() {
         return owner;
     }
 
-    /**
-     * 设置当前胸腔数据所属的实体。
-     *
-     * @param owner 胸腔数据的持有者。
-     */
     @Override
     public void setOwner(EntityLivingBase owner) {
         this.owner = owner;
@@ -71,31 +61,16 @@ public class ChestCavityData implements IChestCavity {
         }
     }
 
-    /**
-     * 判断胸腔是否处于被打开状态。
-     *
-     * @return `true` 表示胸腔已打开。
-     */
     @Override
     public boolean isOpened() {
         return opened;
     }
 
-    /**
-     * 设置胸腔的打开状态。
-     *
-     * @param opened 是否已打开。
-     */
     @Override
     public void setOpened(boolean opened) {
         this.opened = opened;
     }
 
-    /**
-     * 返回当前胸腔兼容性快照对应的唯一标识。
-     *
-     * @return 兼容性标识。
-     */
     @Override
     public UUID getCompatibilityId() {
         if (compatibilityId == null) {
@@ -104,52 +79,26 @@ public class ChestCavityData implements IChestCavity {
         return compatibilityId;
     }
 
-    /**
-     * 设置当前胸腔兼容性快照对应的唯一标识。
-     *
-     * @param compatibilityId 兼容性标识。
-     */
     @Override
     public void setCompatibilityId(UUID compatibilityId) {
         this.compatibilityId = compatibilityId;
     }
 
-    /**
-     * 返回胸腔内部拥有的槽位数量。
-     *
-     * @return 槽位总数。
-     */
     @Override
     public int getSlotCount() {
         return organs.size();
     }
 
-    /**
-     * 返回当前保存的全部器官列表的只读视图。
-     *
-     * @return 只读器官列表。
-     */
     @Override
     public NonNullList<ItemStack> getOrgans() {
         return unmodifiableOrgans;
     }
 
-    /**
-     * 返回用于操作器官槽位的物品栏包装器。
-     *
-     * @return 器官物品栏接口。
-     */
     @Override
     public IItemHandlerModifiable getOrganInventory() {
         return organInventory;
     }
 
-    /**
-     * 返回指定槽位中的器官物品。
-     *
-     * @param slot 槽位索引。
-     * @return 槽位中的器官物品。
-     */
     @Override
     public ItemStack getOrgan(int slot) {
         if (slot < 0 || slot >= organs.size()) {
@@ -158,12 +107,6 @@ public class ChestCavityData implements IChestCavity {
         return organs.get(slot);
     }
 
-    /**
-     * 设置指定槽位中的器官物品，并触发必要的重算。
-     *
-     * @param slot 槽位索引。
-     * @param stack 要放入槽位的器官物品。
-     */
     @Override
     public void setOrgan(int slot, ItemStack stack) {
         setOrganInternal(slot, stack, true);
@@ -179,11 +122,6 @@ public class ChestCavityData implements IChestCavity {
         return unmodifiableOrganScores;
     }
 
-    /**
-     * 返回当前生效的全部器官分数的只读视图。
-     *
-     * @return 只读器官分数字典。
-     */
     @Override
     public Map<String, Float> getOrganScoresView() {
         return unmodifiableOrganScores;
@@ -199,11 +137,6 @@ public class ChestCavityData implements IChestCavity {
         return unmodifiableOldOrganScores;
     }
 
-    /**
-     * 返回上一次同步或结算时保存的器官分数的只读视图。
-     *
-     * @return 旧器官分数字典只读视图。
-     */
     @Override
     public Map<String, Float> getOldOrganScoresView() {
         return unmodifiableOldOrganScores;

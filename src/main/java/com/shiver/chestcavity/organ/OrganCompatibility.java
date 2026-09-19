@@ -16,9 +16,6 @@ public final class OrganCompatibility {
     private static final String OWNER_KEY = "owner";
     private static final String NAME_KEY = "name";
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private OrganCompatibility() {
     }
 

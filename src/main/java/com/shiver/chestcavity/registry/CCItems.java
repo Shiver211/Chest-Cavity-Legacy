@@ -179,9 +179,6 @@ public final class CCItems {
 
     public static final Item FURNACE_POWER = register("furnace_power", food(1, 0.6F, 64, false), CCTabs.MAIN);
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CCItems() {
     }
 

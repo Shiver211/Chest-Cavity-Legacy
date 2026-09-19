@@ -11,9 +11,6 @@ public final class ScoreApi {
 
     private final Map<String, String> displayNames = new LinkedHashMap<String, String>();
 
-    /**
-     * 仅允许通过统一 API 单例创建。
-     */
     ScoreApi() {
     }
 

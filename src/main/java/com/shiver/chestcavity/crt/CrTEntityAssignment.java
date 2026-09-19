@@ -12,9 +12,6 @@ import stanhebben.zenscript.annotations.ZenMethod;
 @ZenClass("mods.chestcavity.EntityAssignment")
 public final class CrTEntityAssignment {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CrTEntityAssignment() {
     }
 

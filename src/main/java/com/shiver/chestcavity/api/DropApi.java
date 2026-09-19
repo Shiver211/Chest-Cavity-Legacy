@@ -18,9 +18,6 @@ public final class DropApi {
 
     private final Map<ResourceLocation, DropTable> drops = new LinkedHashMap<ResourceLocation, DropTable>();
 
-    /**
-     * 仅允许通过统一 API 单例创建。
-     */
     DropApi() {
     }
 

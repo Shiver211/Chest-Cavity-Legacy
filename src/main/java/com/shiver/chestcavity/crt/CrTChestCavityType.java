@@ -16,9 +16,6 @@ import java.util.Map;
 @ZenClass("mods.chestcavity.ChestCavityType")
 public final class CrTChestCavityType {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CrTChestCavityType() {
     }
 

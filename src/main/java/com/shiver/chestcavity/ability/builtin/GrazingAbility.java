@@ -20,9 +20,6 @@ final class GrazingAbility implements ActiveOrganAbility {
 
     static final GrazingAbility INSTANCE = new GrazingAbility();
 
-    /**
-     * 单例能力实现，不允许外部实例化。
-     */
     private GrazingAbility() {
     }
 

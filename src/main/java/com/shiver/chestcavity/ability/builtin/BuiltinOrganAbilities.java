@@ -8,9 +8,6 @@ import com.shiver.chestcavity.registry.CCOrganScores;
  */
 public final class BuiltinOrganAbilities {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private BuiltinOrganAbilities() {
     }
 

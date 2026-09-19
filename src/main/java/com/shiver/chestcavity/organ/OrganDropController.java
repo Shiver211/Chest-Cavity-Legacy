@@ -25,9 +25,6 @@ public final class OrganDropController {
 
     private static final String BUTCHERING_TOOL_ORE = "chestcavity:butchering_tool";
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private OrganDropController() {
     }
 

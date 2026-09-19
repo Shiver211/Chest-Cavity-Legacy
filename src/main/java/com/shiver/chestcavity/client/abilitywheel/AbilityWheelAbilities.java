@@ -13,9 +13,6 @@ import java.util.List;
  */
 final class AbilityWheelAbilities {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private AbilityWheelAbilities() {
     }
 

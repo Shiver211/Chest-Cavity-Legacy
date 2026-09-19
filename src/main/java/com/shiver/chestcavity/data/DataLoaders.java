@@ -54,9 +54,6 @@ public final class DataLoaders {
     private static final ResourceLocation PLAYER_ENTITY_ID = new ResourceLocation("minecraft", "player");
     private static int dataVersion;
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private DataLoaders() {
     }
 

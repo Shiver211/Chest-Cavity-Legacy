@@ -14,9 +14,6 @@ import stanhebben.zenscript.annotations.ZenMethod;
 @ZenClass("mods.chestcavity.ChestCavityHelper")
 public final class CrTChestCavityHelper {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CrTChestCavityHelper() {
     }
 

@@ -32,9 +32,6 @@ final class QueuedProjectileAbilities {
 
     private static final float FORCEFUL_SPIT_VELOCITY = 2.0F;
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private QueuedProjectileAbilities() {
     }
 

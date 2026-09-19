@@ -13,9 +13,6 @@ public final class ChestCavityApis {
     public static final AbilityApi ABILITIES = new AbilityApi();
     public static final ChestCavityAccess CHEST_CAVITIES = new ChestCavityAccess();
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private ChestCavityApis() {
     }
 }

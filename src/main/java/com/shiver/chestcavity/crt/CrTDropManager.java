@@ -13,9 +13,6 @@ import stanhebben.zenscript.annotations.ZenMethod;
 @ZenClass("mods.chestcavity.DropManager")
 public final class CrTDropManager {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CrTDropManager() {
     }
 

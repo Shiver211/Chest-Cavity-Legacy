@@ -28,9 +28,6 @@ final class OrganAttributeController {
     private static final UUID SWIM_SPEED_MODIFIER_ID = UUID.fromString("32d5f52b-796a-4194-a8e3-1acb45f5a365");
     private static final int REFRESH_INTERVAL_TICKS = 20;
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private OrganAttributeController() {
     }
 

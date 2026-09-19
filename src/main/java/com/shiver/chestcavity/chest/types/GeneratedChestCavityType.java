@@ -279,59 +279,29 @@ public class GeneratedChestCavityType implements ChestCavityType {
         return Collections.unmodifiableList(droppableOrgans);
     }
 
-    /**
-     * 判断该胸腔类型是否属于 Boss。
-     *
-     * @return `true` 表示这是 Boss 胸腔。
-     */
     @Override
     public boolean isBossChestCavity() {
         return bossChestCavity;
     }
 
-    /**
-     * 设置该胸腔类型是否属于 Boss。
-     *
-     * @param bossChestCavity 是否属于 Boss。
-     */
     public void setBossChestCavity(boolean bossChestCavity) {
         this.bossChestCavity = bossChestCavity;
     }
 
-    /**
-     * 判断该胸腔类型是否属于玩家。
-     *
-     * @return `true` 表示这是玩家胸腔。
-     */
     @Override
     public boolean isPlayerChestCavity() {
         return playerChestCavity;
     }
 
-    /**
-     * 设置该胸腔类型是否属于玩家。
-     *
-     * @param playerChestCavity 是否属于玩家。
-     */
     public void setPlayerChestCavity(boolean playerChestCavity) {
         this.playerChestCavity = playerChestCavity;
     }
 
-    /**
-     * 返回该胸腔类型的器官掉率倍率。
-     *
-     * @return 器官掉率倍率。
-     */
     @Override
     public float getDropRateMultiplier() {
         return dropRateMultiplier;
     }
 
-    /**
-     * 设置该胸腔类型的器官掉率倍率。
-     *
-     * @param dropRateMultiplier 器官掉率倍率。
-     */
     public void setDropRateMultiplier(float dropRateMultiplier) {
         this.dropRateMultiplier = dropRateMultiplier;
     }

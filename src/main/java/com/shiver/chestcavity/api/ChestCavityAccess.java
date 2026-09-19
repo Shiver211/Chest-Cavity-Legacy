@@ -10,9 +10,6 @@ import net.minecraft.entity.EntityLivingBase;
  */
 public final class ChestCavityAccess {
 
-    /**
-     * 仅允许通过统一 API 单例创建。
-     */
     ChestCavityAccess() {
     }
 

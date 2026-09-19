@@ -21,9 +21,6 @@ import java.util.Map;
  */
 final class CrTUtil {
 
-    /**
-     * 工具类，不允许外部实例化。
-     */
     private CrTUtil() {
     }
 

@@ -46,30 +46,23 @@ class ArchitectureAndStructureTest {
         }
     }
 
-    // ==========================================
-    // 1. SidedProxy Pattern Verification
-    // ==========================================
-
     @Test
     void testSidedProxySetupAndFallback() throws Exception {
         assertNotNull(ChestCavityLegacy.PROXY, "ChestCavityLegacy.PROXY should be initialized with default CommonProxy");
         assertTrue(ChestCavityLegacy.PROXY instanceof CommonProxy, "PROXY must be an instance of CommonProxy");
 
-        // ClientProxy and ServerProxy should inherit CommonProxy
         ClientProxy clientProxy = new ClientProxy();
         assertTrue(clientProxy instanceof CommonProxy, "ClientProxy must extend CommonProxy");
 
         ServerProxy serverProxy = new ServerProxy();
         assertTrue(serverProxy instanceof CommonProxy, "ServerProxy must extend CommonProxy");
 
-        // Check @SidedProxy annotation configuration
         Field proxyField = ChestCavityLegacy.class.getField("PROXY");
         assertTrue(proxyField.isAnnotationPresent(SidedProxy.class), "PROXY field must be annotated with @SidedProxy");
         SidedProxy annotation = proxyField.getAnnotation(SidedProxy.class);
         assertEquals("com.shiver.chestcavity.proxy.ClientProxy", annotation.clientSide());
         assertEquals("com.shiver.chestcavity.proxy.ServerProxy", annotation.serverSide());
 
-        // CommonProxy no-op handlers should execute without throwing exceptions
         assertDoesNotThrow(() -> {
             ChestCavityLegacy.PROXY.handleChestCavitySync(new MessageChestCavitySync());
             ChestCavityLegacy.PROXY.handleOrganDataSync(new MessageOrganDataSync());
@@ -77,13 +70,8 @@ class ArchitectureAndStructureTest {
         });
     }
 
-    // ==========================================
-    // 2. Event Listener Modularization Verification
-    // ==========================================
-
     @Test
     void testModularEventSubscribers() throws Exception {
-        // Verify all 5 modular event classes are annotated with @Mod.EventBusSubscriber
         assertTrue(ChestCavityCombatEvents.class.isAnnotationPresent(Mod.EventBusSubscriber.class),
                 "ChestCavityCombatEvents must be an @EventBusSubscriber");
         assertTrue(ChestCavityInteractionEvents.class.isAnnotationPresent(Mod.EventBusSubscriber.class),
@@ -95,13 +83,11 @@ class ArchitectureAndStructureTest {
         assertTrue(ChestCavityNetworkEvents.class.isAnnotationPresent(Mod.EventBusSubscriber.class),
                 "ChestCavityNetworkEvents must be an @EventBusSubscriber");
 
-        // Verify ForgeEvents is deprecated and NOT annotated with @EventBusSubscriber (to prevent duplicate event invocation)
         assertTrue(ForgeEvents.class.isAnnotationPresent(Deprecated.class),
                 "ForgeEvents must be annotated with @Deprecated");
         assertFalse(ForgeEvents.class.isAnnotationPresent(Mod.EventBusSubscriber.class),
                 "ForgeEvents must NOT be an @EventBusSubscriber to avoid duplicate execution");
 
-        // Verify clientDisconnected is marked with @SideOnly(Side.CLIENT)
         Method networkClientDisc = ChestCavityNetworkEvents.class.getMethod("clientDisconnected",
                 net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent.class);
         assertTrue(networkClientDisc.isAnnotationPresent(SideOnly.class));
@@ -113,10 +99,6 @@ class ArchitectureAndStructureTest {
         assertEquals(Side.CLIENT, forgeClientDisc.getAnnotation(SideOnly.class).value());
     }
 
-    // ==========================================
-    // 3. Collection Encapsulation Verification
-    // ==========================================
-
     @Test
     void testOrgansListUnmodifiableDefensiveView() {
         IChestCavity cavity = new ChestCavityData();
@@ -126,7 +108,6 @@ class ArchitectureAndStructureTest {
 
         ItemStack apple = new ItemStack(Items.APPLE);
 
-        // Attempting to mutate organs directly through getOrgans() must throw UnsupportedOperationException
         assertThrows(UnsupportedOperationException.class, () -> organs.set(0, apple),
                 "Directly setting on cavity.getOrgans() must be forbidden");
         assertThrows(UnsupportedOperationException.class, () -> organs.add(apple),
@@ -142,7 +123,6 @@ class ArchitectureAndStructureTest {
         assertThrows(UnsupportedOperationException.class, () -> organs.retainAll(Collections.emptyList()),
                 "Directly retainAll from cavity.getOrgans() must be forbidden");
 
-        // Mutation via Java 8 methods must throw even when predicate does not match any element
         assertThrows(UnsupportedOperationException.class, () -> organs.removeIf(stack -> false),
                 "removeIf must throw UnsupportedOperationException on unmodifiable list even with false predicate");
         assertThrows(UnsupportedOperationException.class, () -> organs.replaceAll(stack -> stack),
@@ -150,7 +130,6 @@ class ArchitectureAndStructureTest {
         assertThrows(UnsupportedOperationException.class, () -> organs.sort(null),
                 "sort must throw UnsupportedOperationException on unmodifiable list");
 
-        // Iteration remove must also fail
         assertThrows(UnsupportedOperationException.class, () -> {
             for (java.util.Iterator<ItemStack> it = organs.iterator(); it.hasNext(); ) {
                 it.next();
@@ -158,20 +137,16 @@ class ArchitectureAndStructureTest {
             }
         });
 
-        // ListIterator mutations must fail
         assertThrows(UnsupportedOperationException.class, () -> organs.listIterator().add(apple));
 
-        // Sublist mutations must fail
         assertThrows(UnsupportedOperationException.class, () -> organs.subList(0, 1).set(0, apple));
 
-        // Safe mutator setOrgan(slot, stack) must work and reflect in getOrgans()
         cavity.setOrgan(2, apple);
         assertEquals(Items.APPLE, cavity.getOrgans().get(2).getItem(),
                 "getOrgans() defensive view must reflect updates made via safe accessor setOrgan()");
         assertEquals(Items.APPLE, cavity.getOrgan(2).getItem(),
                 "getOrgan(slot) must return the updated organ");
 
-        // Query methods (ItemStack uses reference equality in 1.12.2)
         ItemStack stored = cavity.getOrgan(2);
         assertTrue(ItemStack.areItemStacksEqual(apple, stored));
         assertEquals(2, organs.indexOf(stored));
@@ -179,7 +154,6 @@ class ArchitectureAndStructureTest {
         assertEquals(organs, cavity.getOrgans());
         assertEquals(organs.hashCode(), cavity.getOrgans().hashCode());
 
-        // Safe bounds handling on getOrgan
         assertEquals(ItemStack.EMPTY, cavity.getOrgan(-1), "Negative slot must return ItemStack.EMPTY safely");
         assertEquals(ItemStack.EMPTY, cavity.getOrgan(100), "Out of bounds slot must return ItemStack.EMPTY safely");
     }
@@ -192,7 +166,6 @@ class ArchitectureAndStructureTest {
         Map<String, Float> oldScores = cavity.getOldOrganScores();
         Map<String, Float> oldScoresView = cavity.getOldOrganScoresView();
 
-        // Mutating getOrganScores() must fail
         assertThrows(UnsupportedOperationException.class, () -> scores.put(CCOrganScores.HEALTH, 5.0F),
                 "Directly mutating getOrganScores() must throw UnsupportedOperationException");
         assertThrows(UnsupportedOperationException.class, () -> scores.remove(CCOrganScores.HEALTH),
@@ -200,14 +173,11 @@ class ArchitectureAndStructureTest {
         assertThrows(UnsupportedOperationException.class, scores::clear,
                 "Directly clearing getOrganScores() must throw UnsupportedOperationException");
 
-        // Mutating getOrganScoresView() must fail
         assertThrows(UnsupportedOperationException.class, () -> scoresView.put(CCOrganScores.HEALTH, 5.0F));
 
-        // Mutating oldOrganScores must fail
         assertThrows(UnsupportedOperationException.class, () -> oldScores.put(CCOrganScores.HEALTH, 5.0F));
         assertThrows(UnsupportedOperationException.class, () -> oldScoresView.put(CCOrganScores.HEALTH, 5.0F));
 
-        // Safe mutator setOrganScore must work and update dirty flags and views
         cavity.setOrganScore(CCOrganScores.HEALTH, 3.5F);
         assertEquals(3.5F, cavity.getOrganScores().get(CCOrganScores.HEALTH),
                 "getOrganScores() must reflect score set via safe accessor");
@@ -216,22 +186,18 @@ class ArchitectureAndStructureTest {
         assertEquals(3.5F, cavity.getOrganScore(CCOrganScores.HEALTH));
         assertTrue(cavity.hasScoreChanges(), "Modifying score via safe accessor must mark scoreChanges dirty");
 
-        // Null-safety on score getters
         assertEquals(0.0F, cavity.getOrganScore(null), "Null score id should return 0.0F");
         assertEquals(0.0F, cavity.getOldOrganScore(null), "Null old score id should return 0.0F");
 
-        // replaceOrganScores safe accessor
         Map<String, Float> newScores = new HashMap<>();
         newScores.put(CCOrganScores.DIGESTION, 2.0F);
         cavity.replaceOrganScores(newScores);
         assertEquals(2.0F, cavity.getOrganScores().get(CCOrganScores.DIGESTION));
         assertNull(cavity.getOrganScores().get(CCOrganScores.HEALTH));
 
-        // replaceOrganScores with null must not throw NPE
         assertDoesNotThrow(() -> cavity.replaceOrganScores(null));
         assertTrue(cavity.getOrganScores().isEmpty());
 
-        // copyCurrentScoresToOld updates old scores safely
         cavity.setOrganScore(CCOrganScores.LUCK, 1.0F);
         cavity.copyCurrentScoresToOld();
         assertFalse(cavity.hasScoreChanges());
@@ -254,22 +220,15 @@ class ArchitectureAndStructureTest {
         assertEquals(Items.BEEF, restored.getOrgans().get(1).getItem());
         assertEquals(1.5F, restored.getOrganScore(CCOrganScores.DIGESTION));
 
-        // Verify defensive wrappers are still active after deserializeNBT
         assertThrows(UnsupportedOperationException.class, () -> restored.getOrgans().set(1, ItemStack.EMPTY));
         assertThrows(UnsupportedOperationException.class, () -> restored.getOrganScores().put("test", 1.0F));
     }
 
-    // ==========================================
-    // 4. Code Deduplication Verification
-    // ==========================================
-
     @Test
     void testAbilityActivationHelperPublicAndFunctional() {
-        // AbilityActivationHelper should be a public class
         assertTrue(java.lang.reflect.Modifier.isPublic(AbilityActivationHelper.class.getModifiers()),
                 "AbilityActivationHelper should be a public class");
 
-        // Verify methods are public static
         assertDoesNotThrow(() -> {
             Method lookMethod = AbilityActivationHelper.class.getMethod("getNormalizedLook", net.minecraft.entity.player.EntityPlayerMP.class);
             assertTrue(java.lang.reflect.Modifier.isPublic(lookMethod.getModifiers()));
