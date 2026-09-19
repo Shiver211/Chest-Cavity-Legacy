@@ -360,12 +360,11 @@ events.onPlayerTick(function(event as crafttweaker.event.PlayerTickEvent) {
 
 #### 在游戏事件中动态改变胸腔大小（例如道具扩容）
 ```zenscript
-import crafttweaker.events.IEventManager;
-import crafttweaker.event.PlayerInteractItemEvent;
+import crafttweaker.event.PlayerRightClickItemEvent;
 import mods.chestcavity.ChestCavityHelper;
 
 // 监听玩家右键使用物品事件：使用下界之星为自己的胸腔扩展一行
-events.onPlayerInteractItem(function(event as PlayerInteractItemEvent) {
+events.onPlayerRightClickItem(function(event as PlayerRightClickItemEvent) {
     var player = event.player;
     var world = event.world;
     var item = event.item;
@@ -373,12 +372,10 @@ events.onPlayerInteractItem(function(event as PlayerInteractItemEvent) {
     if (!world.remote && !isNull(item) && item.definition.id == "minecraft:nether_star") {
         var cc = ChestCavityHelper.get(player);
         if (!isNull(cc)) {
-            // 当前行数加 1（最大扩充到 6 行）
             if (cc.rows < 6) {
                 var newRows = cc.rows + 1;
                 cc.setSize(cc.columns, newRows);
                 player.sendChat("§a你的胸腔发生了异变！当前尺寸扩充为: " ~ cc.columns ~ "x" ~ newRows);
-                item.shrink(1);
             } else {
                 player.sendChat("§c你的胸腔已经扩充到了极限！");
             }
