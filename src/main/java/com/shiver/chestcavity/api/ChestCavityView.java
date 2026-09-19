@@ -25,7 +25,7 @@ public final class ChestCavityView {
      *
      * @param chestCavity 被包装的胸腔数据。
      */
-    ChestCavityView(IChestCavity chestCavity) {
+    public ChestCavityView(IChestCavity chestCavity) {
         this.chestCavity = chestCavity;
     }
 
@@ -62,8 +62,7 @@ public final class ChestCavityView {
      * @return 列数。
      */
     public int getColumns() {
-        ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
-        return type != null ? type.getColumns() : 9;
+        return chestCavity.getColumns();
     }
 
     /**
@@ -72,8 +71,50 @@ public final class ChestCavityView {
      * @return 行数。
      */
     public int getRows() {
-        ChestCavityType type = ChestCavityHelper.getChestCavityType(chestCavity);
-        return type != null ? type.getRows() : 3;
+        return chestCavity.getRows();
+    }
+
+    /**
+     * 判断当前实体是否拥有独立自定义的胸腔网格尺寸。
+     *
+     * @return `true` 表示拥有独立尺寸。
+     */
+    public boolean hasCustomDimensions() {
+        return chestCavity.hasCustomDimensions();
+    }
+
+    /**
+     * 动态设置当前实体的胸腔网格尺寸。
+     *
+     * @param columns 网格列数。
+     * @param rows 网格行数。
+     */
+    public void setSize(int columns, int rows) {
+        chestCavity.setDimensions(columns, rows);
+        ChestCavityHelper.applyAndSyncScoreChanges(chestCavity);
+    }
+
+    /**
+     * 按总槽位数动态设置当前实体的胸腔尺寸（自适应排列）。
+     *
+     * @param slots 槽位总数。
+     */
+    public void setSize(int slots) {
+        if (slots <= 0) {
+            resetSize();
+            return;
+        }
+        int cols = Math.min(slots, 9);
+        int r = (int) Math.ceil((double) slots / cols);
+        setSize(cols, r);
+    }
+
+    /**
+     * 清除当前实体的独立尺寸设置，恢复回所属胸腔类型的默认尺寸。
+     */
+    public void resetSize() {
+        chestCavity.resetDimensions();
+        ChestCavityHelper.applyAndSyncScoreChanges(chestCavity);
     }
 
     /**

@@ -72,6 +72,59 @@ public interface IChestCavity {
     }
 
     /**
+     * 确保胸腔内部槽位数量与目标大小一致。
+     *
+     * @param targetSize 目标槽位数量。
+     */
+    default void ensureSlotCount(int targetSize) {
+        if (targetSize > 0 && targetSize != getSlotCount()) {
+            setSlotCount(targetSize);
+        }
+    }
+
+    /**
+     * 返回当前胸腔界面的网格列数。
+     *
+     * @return 列数。
+     */
+    default int getColumns() {
+        return 9;
+    }
+
+    /**
+     * 返回当前胸腔界面的网格行数。
+     *
+     * @return 行数。
+     */
+    default int getRows() {
+        return 3;
+    }
+
+    /**
+     * 判断当前胸腔是否设置了实体级的独立自定义网格尺寸。
+     *
+     * @return `true` 表示当前胸腔拥有独立尺寸，不跟随类型默认设置。
+     */
+    default boolean hasCustomDimensions() {
+        return false;
+    }
+
+    /**
+     * 为当前实体设置独立的胸腔网格尺寸。
+     *
+     * @param columns 网格列数。
+     * @param rows 网格行数。
+     */
+    default void setDimensions(int columns, int rows) {
+    }
+
+    /**
+     * 清除实体的独立网格尺寸设置，恢复回所属胸腔类型的默认尺寸。
+     */
+    default void resetDimensions() {
+    }
+
+    /**
      * 返回胸腔当前保存的全部器官列表的只读视图。
      * 如需修改槽位器官，请使用 {@link #setOrgan(int, ItemStack)} 或 {@link #getOrganInventory()}。
      *

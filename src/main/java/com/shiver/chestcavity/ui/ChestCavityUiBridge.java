@@ -38,7 +38,7 @@ public final class ChestCavityUiBridge {
                 && target != null
                 && target.isEntityAlive()
                 && player.getDistanceSq(target) <= MAX_INTERACT_DISTANCE_SQ
-                && ChestCavityHelper.hasAssignedChestCavityType(chestCavity);
+                && (ChestCavityHelper.hasAssignedChestCavityType(chestCavity) || (chestCavity != null && chestCavity.hasCustomDimensions()));
     }
 
     /**
@@ -54,9 +54,11 @@ public final class ChestCavityUiBridge {
         }
 
         IChestCavity chestCavity = ChestCavityHelper.getOrNull(target);
-        ChestCavityType type = chestCavity != null ? ChestCavityHelper.getChestCavityType(chestCavity) : null;
-        int columns = type != null ? type.getColumns() : DEFAULT_SLOTS_PER_ROW;
-        int rows = type != null ? type.getRows() : DEFAULT_ROWS;
+        int columns = chestCavity != null ? chestCavity.getColumns() : DEFAULT_SLOTS_PER_ROW;
+        int rows = chestCavity != null ? chestCavity.getRows() : DEFAULT_ROWS;
+        if (chestCavity != null) {
+            chestCavity.ensureSlotCount(columns * rows);
+        }
 
         ChestCavityGuiData data = new ChestCavityGuiData(player, target.getEntityId(), columns, rows);
         if (!canKeepOpen(player, data)) {

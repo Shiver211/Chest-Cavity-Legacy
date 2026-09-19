@@ -24,7 +24,7 @@ public final class CrTChestCavity {
      *
      * @param view 内部胸腔视图。
      */
-    CrTChestCavity(ChestCavityView view) {
+    public CrTChestCavity(ChestCavityView view) {
         this.view = view;
     }
 
@@ -68,6 +68,46 @@ public final class CrTChestCavity {
     @ZenMethod
     public int getRows() {
         return view.getRows();
+    }
+
+    /**
+     * 判断当前实体是否拥有独立自定义的胸腔网格尺寸。
+     *
+     * @return `true` 表示拥有独立尺寸。
+     */
+    @ZenGetter("hasCustomSize")
+    @ZenMethod
+    public boolean hasCustomSize() {
+        return view.hasCustomDimensions();
+    }
+
+    /**
+     * 动态调整当前实体的胸腔网格尺寸。
+     *
+     * @param columns 网格列数。
+     * @param rows 网格行数。
+     */
+    @ZenMethod
+    public void setSize(int columns, int rows) {
+        view.setSize(columns, rows);
+    }
+
+    /**
+     * 按总槽位数动态调整当前实体的胸腔尺寸（自适应排列）。
+     *
+     * @param slots 槽位总数。
+     */
+    @ZenMethod
+    public void setSize(int slots) {
+        view.setSize(slots);
+    }
+
+    /**
+     * 清除当前实体的独立尺寸设置，恢复回所属生物类型的默认尺寸。
+     */
+    @ZenMethod
+    public void resetSize() {
+        view.resetSize();
     }
 
     /**

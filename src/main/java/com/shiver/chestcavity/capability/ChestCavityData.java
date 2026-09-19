@@ -34,6 +34,8 @@ public class ChestCavityData implements IChestCavity {
     private final Map<String, Float> unmodifiableOldOrganScores = java.util.Collections.unmodifiableMap(oldOrganScores);
     private final IItemHandlerModifiable organInventory = new OrganItemHandler();
 
+    private int customColumns = -1;
+    private int customRows = -1;
     private int heartBleedTimer;
     private int bloodPoisonTimer;
     private int liverTimer;
@@ -61,15 +63,17 @@ public class ChestCavityData implements IChestCavity {
             if (compatibilityId == null) {
                 compatibilityId = owner.getUniqueID();
             }
-            ChestCavityType type = ChestCavityHelper.getChestCavityType(this);
-            if (type != null) {
-                ensureSlotCount(type.getSlotCount());
+            if (!hasCustomDimensions()) {
+                ChestCavityType type = ChestCavityHelper.getChestCavityType(this);
+                if (type != null) {
+                    ensureSlotCount(type.getSlotCount());
+                }
             }
         }
     }
 
     /**
-     * 调整胸腔槽位容量。扩容时填充空物品，缩容时保留前序物品（已打开胸腔时若存在多余物品且处于服务端则安全掉落）。
+     * 调整胸腔槽位容量。扩容时填充空物品，缩容时保留前序物品（已打开胸腔时或持有者为玩家时，若存在多余物品且处于服务端则安全掉落）。
      *
      * @param newSize 目标槽位数量。
      */
@@ -85,7 +89,7 @@ public class ChestCavityData implements IChestCavity {
         for (int i = 0; i < Math.min(organs.size(), newSize); i++) {
             newOrgans.set(i, organs.get(i));
         }
-        if (newSize < organs.size() && opened && owner != null && owner.world != null && !owner.world.isRemote) {
+        if (newSize < organs.size() && (opened || owner instanceof net.minecraft.entity.player.EntityPlayer) && owner != null && owner.world != null && !owner.world.isRemote) {
             for (int i = newSize; i < organs.size(); i++) {
                 ItemStack overflow = organs.get(i);
                 if (!overflow.isEmpty()) {
@@ -96,6 +100,49 @@ public class ChestCavityData implements IChestCavity {
         this.organs = newOrgans;
         this.unmodifiableOrgans = new UnmodifiableNonNullList<>(this.organs, ItemStack.EMPTY);
         markScoresDirty();
+    }
+
+    @Override
+    public int getColumns() {
+        if (customColumns > 0) {
+            return customColumns;
+        }
+        ChestCavityType type = ChestCavityHelper.getChestCavityType(this);
+        return type != null ? type.getColumns() : 9;
+    }
+
+    @Override
+    public int getRows() {
+        if (customRows > 0) {
+            return customRows;
+        }
+        ChestCavityType type = ChestCavityHelper.getChestCavityType(this);
+        return type != null ? type.getRows() : 3;
+    }
+
+    @Override
+    public boolean hasCustomDimensions() {
+        return customColumns > 0 && customRows > 0;
+    }
+
+    @Override
+    public void setDimensions(int columns, int rows) {
+        if (columns <= 0 || rows <= 0) {
+            resetDimensions();
+            return;
+        }
+        this.customColumns = columns;
+        this.customRows = rows;
+        setSlotCount(columns * rows);
+    }
+
+    @Override
+    public void resetDimensions() {
+        this.customColumns = -1;
+        this.customRows = -1;
+        ChestCavityType type = ChestCavityHelper.getChestCavityType(this);
+        int targetSize = type != null ? type.getSlotCount() : DEFAULT_SLOT_COUNT;
+        setSlotCount(targetSize);
     }
 
     /**
@@ -507,6 +554,10 @@ public class ChestCavityData implements IChestCavity {
         tag.setInteger("FurnaceProgress", furnaceProgress);
         tag.setInteger("PhotosynthesisProgress", photosynthesisProgress);
         tag.setInteger("SlotCount", getSlotCount());
+        if (hasCustomDimensions()) {
+            tag.setInteger("CustomColumns", customColumns);
+            tag.setInteger("CustomRows", customRows);
+        }
         tag.setTag("Inventory", writeInventory());
         tag.setTag("OrganScores", writeScores(organScores));
         return tag;
@@ -539,12 +590,20 @@ public class ChestCavityData implements IChestCavity {
         photosynthesisProgress = readInt(tag, "PhotosynthesisProgress", 0);
 
         int targetSlots = -1;
-        if (tag.hasKey("SlotCount", Constants.NBT.TAG_INT)) {
-            targetSlots = tag.getInteger("SlotCount");
-        }
-        ChestCavityType type = owner != null ? ChestCavityHelper.getChestCavityType(this) : null;
-        if (type != null) {
-            targetSlots = type.getSlotCount();
+        if (tag.hasKey("CustomColumns", Constants.NBT.TAG_INT) && tag.hasKey("CustomRows", Constants.NBT.TAG_INT)) {
+            customColumns = tag.getInteger("CustomColumns");
+            customRows = tag.getInteger("CustomRows");
+            targetSlots = customColumns * customRows;
+        } else {
+            customColumns = -1;
+            customRows = -1;
+            if (tag.hasKey("SlotCount", Constants.NBT.TAG_INT)) {
+                targetSlots = tag.getInteger("SlotCount");
+            }
+            ChestCavityType type = owner != null ? ChestCavityHelper.getChestCavityType(this) : null;
+            if (type != null) {
+                targetSlots = type.getSlotCount();
+            }
         }
         if (targetSlots > 0) {
             ensureSlotCount(targetSlots);

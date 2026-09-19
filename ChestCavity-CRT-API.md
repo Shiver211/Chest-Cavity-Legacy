@@ -82,11 +82,13 @@ if (!isNull(organ)) {
 
 | API | 说明 |
 |-----|------|
+| `ChestCavityType.setSize(typeId, columns, rows)` | 设置胸腔类型的网格尺寸（列数与行数，界面自动适配居中） |
+| `ChestCavityType.setSize(typeId, slots)` | 按总槽位数设置尺寸（默认以 9 列排列，不足 9 则为单行） |
 | `ChestCavityType.addBaseScore(typeId, scoreId, value)` | 添加基础分数 |
 | `ChestCavityType.removeBaseScore(typeId, scoreId)` | 移除基础分数 |
 | `ChestCavityType.setSlot(typeId, index, stack)` | 设置槽位物品 |
 | `ChestCavityType.clearSlots(typeId)` | 清空所有槽位 |
-| `ChestCavityType.addForbiddenSlot(typeId, slot)` | 添加禁止槽位 |
+| `ChestCavityType.addForbiddenSlot(typeId, slot)` | 添加禁止槽位（槽位索引从 0 开始计数） |
 | `ChestCavityType.removeForbiddenSlot(typeId, slot)` | 移除禁止槽位 |
 | `ChestCavityType.setDropRateMultiplier(typeId, value)` | 设置掉落倍率 |
 | `ChestCavityType.setBossChestCavity(typeId, value)` | 设置 Boss 标志 |
@@ -102,8 +104,14 @@ if (!isNull(organ)) {
 | `ChestCavityType.isBossChestCavity(typeId)` | bool | 是否为 Boss 类型 |
 | `ChestCavityType.isPlayerChestCavity(typeId)` | bool | 是否为玩家类型 |
 | `ChestCavityType.getDropRateMultiplier(typeId)` | float | 获取掉落倍率 |
+| `ChestCavityType.getColumns(typeId)` | int | 获取胸腔网格列数 |
+| `ChestCavityType.getRows(typeId)` | int | 获取胸腔网格行数 |
+| `ChestCavityType.getSlotCount(typeId)` | int | 获取胸腔总槽位数 |
 
 ### 示例
+
+> **注意：槽位索引以 0 开始计数（0-indexed）**。
+> 例如设置 `setSize("demon", 2, 1)`（2 列 1 行，共 2 个槽位），有效槽位索引为 `0` 和 `1`。如果填写 `2`（代表第 3 格）会超出范围而不会生效。
 
 ```zenscript
 import mods.chestcavity.ChestCavityType;
@@ -112,16 +120,20 @@ import mods.chestcavity.EntityAssignment;
 // ===注册新的胸腔类型===
 ChestCavityType.register("demon");
 
+// 设置胸腔网格大小为 4 列 2 行（共 8 格）
+ChestCavityType.setSize("demon", 4, 2);
+
 // 配置新类型
 ChestCavityType.setBossChestCavity("demon", true);
 ChestCavityType.setDropRateMultiplier("demon", 3.0);
 ChestCavityType.addBaseScore("demon", "health", 20.0);
 ChestCavityType.addBaseScore("demon", "fire_resistant", 1.0);
 
-// 设置默认器官布局
+// 设置默认器官布局（索引从 0 开始）
 ChestCavityType.setSlot("demon", 0, <chestcavity:dragon_heart> * 1);
 ChestCavityType.setSlot("demon", 1, <chestcavity:dragon_lung> * 1);
-// ... 更多槽位
+// 禁用第 4 个槽位（索引 3）
+ChestCavityType.addForbiddenSlot("demon", 3);
 
 // ===修改现有类型===
 ChestCavityType.addBaseScore("human", "health", 5.0);
@@ -130,6 +142,9 @@ ChestCavityType.removeBaseScore("human", "luck");
 // 查询类型属性
 var isBoss = ChestCavityType.isBossChestCavity("demon");
 var dropRate = ChestCavityType.getDropRateMultiplier("demon");
+var cols = ChestCavityType.getColumns("demon");
+var rows = ChestCavityType.getRows("demon");
+var slots = ChestCavityType.getSlotCount("demon");
 ```
 
 ---
@@ -264,7 +279,18 @@ AbilityManager.registerAbility("regeneration", "Regeneration", 60, function(even
 | API | 返回类型 | 说明 |
 |-----|----------|------|
 | `cc.isOpened` | bool | 胸腔是否已打开 |
-| `cc.slotCount` | int | 槽位数量 |
+| `cc.slotCount` | int | 槽位总数量 |
+| `cc.columns` | int | 网格列数 |
+| `cc.rows` | int | 网格行数 |
+| `cc.hasCustomSize` | bool | 是否设置了实体级独立自定义尺寸 |
+
+### IChestCavity 对象 - 尺寸动态调整
+
+| API | 说明 |
+|-----|------|
+| `cc.setSize(columns, rows)` | 动态调整当前实体的胸腔尺寸（列数与行数）。扩容自动补空格，缩容安全掉落多余器官 |
+| `cc.setSize(slots)` | 按总槽位数动态调整当前实体的胸腔尺寸（自适应排列） |
+| `cc.resetSize()` | 清除实体的独立尺寸设置，恢复回所属生物类型的默认尺寸 |
 
 ### IChestCavity 对象 - Score 查询
 
@@ -297,6 +323,7 @@ AbilityManager.registerAbility("regeneration", "Regeneration", 60, function(even
 
 ### 示例
 
+#### 基础查询与操作
 ```zenscript
 import mods.chestcavity.ChestCavityHelper;
 
@@ -307,6 +334,9 @@ events.onPlayerTick(function(event as crafttweaker.event.PlayerTickEvent) {
             // 状态查询
             var opened = cc.isOpened;
             var slotCount = cc.slotCount;
+            var cols = cc.columns;
+            var rows = cc.rows;
+            var isCustom = cc.hasCustomSize;
             
             // Score 查询
             var health = cc.getOrganScore("health");
@@ -323,6 +353,35 @@ events.onPlayerTick(function(event as crafttweaker.event.PlayerTickEvent) {
             // 强制操作
             cc.recalculateScores();
             cc.openChestCavity();
+        }
+    }
+});
+```
+
+#### 在游戏事件中动态改变胸腔大小（例如道具扩容）
+```zenscript
+import crafttweaker.events.IEventManager;
+import crafttweaker.event.PlayerInteractItemEvent;
+import mods.chestcavity.ChestCavityHelper;
+
+// 监听玩家右键使用物品事件：使用下界之星为自己的胸腔扩展一行
+events.onPlayerInteractItem(function(event as PlayerInteractItemEvent) {
+    var player = event.player;
+    var world = event.world;
+    var item = event.item;
+
+    if (!world.remote && !isNull(item) && item.definition.id == "minecraft:nether_star") {
+        var cc = ChestCavityHelper.get(player);
+        if (!isNull(cc)) {
+            // 当前行数加 1（最大扩充到 6 行）
+            if (cc.rows < 6) {
+                var newRows = cc.rows + 1;
+                cc.setSize(cc.columns, newRows);
+                player.sendChat("§a你的胸腔发生了异变！当前尺寸扩充为: " ~ cc.columns ~ "x" ~ newRows);
+                item.shrink(1);
+            } else {
+                player.sendChat("§c你的胸腔已经扩充到了极限！");
+            }
         }
     }
 });

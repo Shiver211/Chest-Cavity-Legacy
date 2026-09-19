@@ -18,6 +18,8 @@ import net.minecraft.init.Bootstrap;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import com.shiver.chestcavity.api.ChestCavityApis;
+import com.shiver.chestcavity.api.ChestCavityView;
+import com.shiver.chestcavity.crt.CrTChestCavity;
 import com.shiver.chestcavity.crt.CrTChestCavityType;
 import crafttweaker.api.item.IItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -529,5 +531,76 @@ class ChestCavityFixesTest {
         assertEquals(230, width4);
         assertEquals(186, height4);
         assertEquals(8, startX4); // (230 - 216)/2 = 7 -> Math.max(8, 7) = 8
+    }
+
+    @Test
+    void testChestCavityDataCustomDimensions() {
+        ChestCavityData data = new ChestCavityData();
+        assertFalse(data.hasCustomDimensions(), "New chest cavity should not have custom dimensions");
+        assertEquals(9, data.getColumns());
+        assertEquals(3, data.getRows());
+        assertEquals(27, data.getSlotCount());
+
+        // Set custom dimensions
+        data.setDimensions(4, 2);
+        assertTrue(data.hasCustomDimensions(), "Should have custom dimensions after setDimensions");
+        assertEquals(4, data.getColumns());
+        assertEquals(2, data.getRows());
+        assertEquals(8, data.getSlotCount());
+
+        // Test NBT serialization and deserialization
+        NBTTagCompound tag = data.serializeNBT();
+        assertTrue(tag.hasKey("CustomColumns"));
+        assertTrue(tag.hasKey("CustomRows"));
+        assertEquals(4, tag.getInteger("CustomColumns"));
+        assertEquals(2, tag.getInteger("CustomRows"));
+
+        ChestCavityData loaded = new ChestCavityData();
+        loaded.deserializeNBT(tag);
+        assertTrue(loaded.hasCustomDimensions());
+        assertEquals(4, loaded.getColumns());
+        assertEquals(2, loaded.getRows());
+        assertEquals(8, loaded.getSlotCount());
+
+        // Test resetDimensions
+        loaded.resetDimensions();
+        assertFalse(loaded.hasCustomDimensions());
+        assertEquals(9, loaded.getColumns());
+        assertEquals(3, loaded.getRows());
+        assertEquals(27, loaded.getSlotCount());
+    }
+
+    @Test
+    void testChestCavityViewAndCrTDynamicSizing() {
+        ChestCavityData data = new ChestCavityData();
+        ChestCavityView view = new ChestCavityView(data);
+        CrTChestCavity crt = new CrTChestCavity(view);
+
+        assertFalse(crt.hasCustomSize());
+        assertEquals(9, crt.getColumns());
+        assertEquals(3, crt.getRows());
+        assertEquals(27, crt.getSlotCount());
+
+        // setSize(cols, rows)
+        crt.setSize(5, 4);
+        assertTrue(crt.hasCustomSize());
+        assertEquals(5, crt.getColumns());
+        assertEquals(4, crt.getRows());
+        assertEquals(20, crt.getSlotCount());
+
+        // setSize(slots)
+        crt.setSize(10);
+        assertTrue(crt.hasCustomSize());
+        // 10 slots -> Math.min(10, 9) = 9 cols, ceil(10/9) = 2 rows -> 18 slots
+        assertEquals(9, crt.getColumns());
+        assertEquals(2, crt.getRows());
+        assertEquals(18, crt.getSlotCount());
+
+        // resetSize
+        crt.resetSize();
+        assertFalse(crt.hasCustomSize());
+        assertEquals(9, crt.getColumns());
+        assertEquals(3, crt.getRows());
+        assertEquals(27, crt.getSlotCount());
     }
 }
