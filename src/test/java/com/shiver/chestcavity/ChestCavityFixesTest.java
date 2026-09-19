@@ -21,6 +21,7 @@ import com.shiver.chestcavity.api.ChestCavityApis;
 import com.shiver.chestcavity.api.ChestCavityView;
 import com.shiver.chestcavity.crt.CrTChestCavity;
 import com.shiver.chestcavity.crt.CrTChestCavityType;
+import com.shiver.chestcavity.ui.ChestCavityUiHolder;
 import crafttweaker.api.item.IItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -498,39 +499,63 @@ class ChestCavityFixesTest {
 
     @Test
     void testModularUiPanelDimensionsCalculation() {
-        // Standard 9x3
+        // Standard 9x3 (Player / Humanoid)
         int cols1 = 9, rows1 = 3;
-        int width1 = Math.max(176, 14 + cols1 * 18);
-        int height1 = 114 + rows1 * 18;
-        int startX1 = Math.max(8, (width1 - cols1 * 18) / 2);
+        int width1 = ChestCavityUiHolder.calculatePanelWidth(cols1);
+        int height1 = ChestCavityUiHolder.calculatePanelHeight(rows1);
+        int startX1 = ChestCavityUiHolder.calculateStartX(width1, cols1);
+        int startY1 = ChestCavityUiHolder.calculateStartY();
+        assertTrue(ChestCavityUiHolder.isStandardLayout(cols1, rows1));
         assertEquals(176, width1);
-        assertEquals(168, height1);
-        assertEquals(8, startX1);
+        assertEquals(166, height1);
+        assertEquals(7, startX1);
+        assertEquals(17, startY1);
+        assertEquals(162, ChestCavityUiHolder.calculateDividerWidth(cols1));
+        assertEquals(71, ChestCavityUiHolder.calculateDividerY(rows1));
 
         // Extended 9x4
         int cols2 = 9, rows2 = 4;
-        int width2 = Math.max(176, 14 + cols2 * 18);
-        int height2 = 114 + rows2 * 18;
+        int width2 = ChestCavityUiHolder.calculatePanelWidth(cols2);
+        int height2 = ChestCavityUiHolder.calculatePanelHeight(rows2);
+        int startX2 = ChestCavityUiHolder.calculateStartX(width2, cols2);
+        assertFalse(ChestCavityUiHolder.isStandardLayout(cols2, rows2));
         assertEquals(176, width2);
-        assertEquals(186, height2);
+        assertEquals(184, height2);
+        assertEquals(7, startX2);
+        assertEquals(162, ChestCavityUiHolder.calculateDividerWidth(cols2));
+        assertEquals(89, ChestCavityUiHolder.calculateDividerY(rows2));
 
         // Small animal 3x3
         int cols3 = 3, rows3 = 3;
-        int width3 = Math.max(176, 14 + cols3 * 18);
-        int height3 = 114 + rows3 * 18;
-        int startX3 = Math.max(8, (width3 - cols3 * 18) / 2);
+        int width3 = ChestCavityUiHolder.calculatePanelWidth(cols3);
+        int height3 = ChestCavityUiHolder.calculatePanelHeight(rows3);
+        int startX3 = ChestCavityUiHolder.calculateStartX(width3, cols3);
+        assertFalse(ChestCavityUiHolder.isStandardLayout(cols3, rows3));
         assertEquals(176, width3);
-        assertEquals(168, height3);
-        assertEquals((176 - 54) / 2, startX3); // (176 - 54)/2 = 61, perfectly centered
+        assertEquals(166, height3);
+        assertEquals(61, startX3); // (176 - 54)/2 = 61, perfectly centered
+        assertEquals(162, ChestCavityUiHolder.calculateDividerWidth(cols3));
+        assertEquals(71, ChestCavityUiHolder.calculateDividerY(rows3));
 
         // Wide boss 12x4
         int cols4 = 12, rows4 = 4;
-        int width4 = Math.max(176, 14 + cols4 * 18);
-        int height4 = 114 + rows4 * 18;
-        int startX4 = Math.max(8, (width4 - cols4 * 18) / 2);
+        int width4 = ChestCavityUiHolder.calculatePanelWidth(cols4);
+        int height4 = ChestCavityUiHolder.calculatePanelHeight(rows4);
+        int startX4 = ChestCavityUiHolder.calculateStartX(width4, cols4);
+        assertFalse(ChestCavityUiHolder.isStandardLayout(cols4, rows4));
         assertEquals(230, width4);
-        assertEquals(186, height4);
-        assertEquals(8, startX4); // (230 - 216)/2 = 7 -> Math.max(8, 7) = 8
+        assertEquals(184, height4);
+        assertEquals(7, startX4); // (230 - 216)/2 = 7
+        assertEquals(216, ChestCavityUiHolder.calculateDividerWidth(cols4));
+        assertEquals(89, ChestCavityUiHolder.calculateDividerY(rows4));
+
+        // Player Inventory Texture (Direct slice from chest_cavity.png 162x76)
+        assertNotNull(ChestCavityUiHolder.PLAYER_INVENTORY_TEXTURE);
+        assertEquals(ChestCavityUiHolder.TEXTURE_9X3, ChestCavityUiHolder.PLAYER_INVENTORY_TEXTURE.getLocation());
+        assertEquals(7.0F / 256.0F, ChestCavityUiHolder.PLAYER_INVENTORY_TEXTURE.u0, 0.0001F);
+        assertEquals(83.0F / 256.0F, ChestCavityUiHolder.PLAYER_INVENTORY_TEXTURE.v0, 0.0001F);
+        assertEquals(169.0F / 256.0F, ChestCavityUiHolder.PLAYER_INVENTORY_TEXTURE.u1, 0.0001F);
+        assertEquals(159.0F / 256.0F, ChestCavityUiHolder.PLAYER_INVENTORY_TEXTURE.v1, 0.0001F);
     }
 
     @Test
