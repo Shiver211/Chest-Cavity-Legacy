@@ -84,10 +84,10 @@ if (!isNull(organ)) {
 |-----|------|
 | `ChestCavityType.setSize(typeId, columns, rows)` | 设置胸腔类型的网格尺寸（列数与行数，界面自动适配居中） |
 | `ChestCavityType.setSize(typeId, slots)` | 按总槽位数设置尺寸（默认以 9 列排列，不足 9 则为单行） |
-| `ChestCavityType.addBaseScore(typeId, scoreId, value)` | 添加基础分数 |
-| `ChestCavityType.removeBaseScore(typeId, scoreId)` | 移除基础分数 |
-| `ChestCavityType.setSlot(typeId, index, stack)` | 设置槽位物品 |
-| `ChestCavityType.clearSlots(typeId)` | 清空所有槽位 |
+| `ChestCavityType.addBaseScore(typeId, scoreId, value)` | 添加固有基础分数（胸腔自带的底分，即使不装任何器官也始终生效） |
+| `ChestCavityType.removeBaseScore(typeId, scoreId)` | 移除固有基础分数 |
+| `ChestCavityType.setSlot(typeId, index, stack)` | 设置默认槽位器官（定义生物健康状态下的默认胸腔配置） |
+| `ChestCavityType.clearSlots(typeId)` | 清空所有默认槽位 |
 | `ChestCavityType.addForbiddenSlot(typeId, slot)` | 添加禁止槽位（槽位索引从 0 开始计数） |
 | `ChestCavityType.removeForbiddenSlot(typeId, slot)` | 移除禁止槽位 |
 | `ChestCavityType.setDropRateMultiplier(typeId, value)` | 设置掉落倍率 |
@@ -107,6 +107,17 @@ if (!isNull(organ)) {
 | `ChestCavityType.getColumns(typeId)` | int | 获取胸腔网格列数 |
 | `ChestCavityType.getRows(typeId)` | int | 获取胸腔网格行数 |
 | `ChestCavityType.getSlotCount(typeId)` | int | 获取胸腔总槽位数 |
+
+### 机制说明：胸腔基础分数（固有底分）与默认基准总分
+
+> **1. 胸腔基础分数（`addBaseScore`）= 固有底分**
+> - 代表该生物**肉身天生自带的分数**。即使生物胸腔完全被掏空，该分数也始终生效！
+> - *典型例子*：原版骷髅体内没有肌肉、心脏和胃，但系统在它的 `baseOrganScores` 中赋予了力量、速度和消化底分，因此无肉身的骷髅依然能跑能攻击。
+>
+> **2. 默认基准总分（`defaultOrganScores`）= 固有底分 + 默认槽位器官总分**
+> - 系统的各种生理惩罚（如减速、瘫痪）是对比**当前实际总分**与**默认基准总分**计算差值的。
+> - **脊椎与瘫痪**：仅当生物基准神经分 `defaultNerves != 0` 且当前神经分 `nerves <= 0` 时才会判定为瘫痪（移速 -100%）。天生无脊椎生物（如史莱姆、或未配置脊椎的自定义类型）默认神经为 0，系统会将其判定为天生无神经生物，**不会触发瘫痪**。
+> - **肌肉与速度**：移速修正为 `(当前速度分 - 基准速度分) * 系数`。如果未配置肌肉且无速度底分，基准为 0，生物将保留原版原生速度。
 
 ### 示例
 
